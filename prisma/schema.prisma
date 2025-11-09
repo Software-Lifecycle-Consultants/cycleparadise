@@ -1,0 +1,241 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Enum definitions
+enum DifficultyLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+enum AccommodationType {
+  HOTEL
+  GUESTHOUSE
+  RESORT
+  HOMESTAY
+  CAMPING
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  PARTIAL
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+  CARD
+  OTHER
+}
+
+enum AdminRole {
+  ADMIN
+  EDITOR
+}
+
+// Main entities
+model TourPackage {
+  id                String          @id @default(uuid()) @db.Uuid
+  title             String
+  slug              String          @unique
+  description       String?         @db.Text
+  shortDescription  String?
+  itinerary         Json?
+  duration          Int
+  difficultyLevel   DifficultyLevel
+  region            String
+  basePrice         Decimal         @db.Decimal(10, 2)
+  maxParticipants   Int
+  includedServices  Json?
+  excludedServices  Json?
+  mediaGallery      Json?
+  youtubeVideoId    String?
+  isActive          Boolean         @default(true)
+  featured          Boolean         @default(false)
+  metaTitle         String?
+  metaDescription   String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  // Relationships
+  bookings              Booking[]
+  packageAccommodations PackageAccommodation[]
+
+  @@map("tour_packages")
+}
+
+model Accommodation {
+  id            String            @id @default(uuid()) @db.Uuid
+  name          String
+  slug          String            @unique
+  type          AccommodationType
+  location      String
+  description   String?           @db.Text
+  amenities     Json?
+  pricePerNight Decimal           @db.Decimal(8, 2)
+  maxOccupancy  Int
+  images        Json?
+  contactInfo   Json?
+  rating        Decimal?          @db.Decimal(2, 1)
+  isActive      Boolean           @default(true)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  // Relationships
+  bookingAccommodations BookingAccommodation[]
+  packageAccommodations PackageAccommodation[]
+
+  @@map("accommodations")
+}
+
+model Booking {
+  id                   String        @id @default(uuid()) @db.Uuid
+  bookingNumber        String        @unique
+  packageId            String        @db.Uuid
+  customerName         String
+  customerEmail        String
+  customerPhone        String
+  customerCountry      String?
+  numberOfParticipants Int
+  startDate            DateTime      @db.Date
+  endDate              DateTime      @db.Date
+  specialRequests      String?       @db.Text
+  totalAmount          Decimal       @db.Decimal(10, 2)
+  status               BookingStatus @default(PENDING)
+  confirmationNotes    String?       @db.Text
+  paymentStatus        PaymentStatus @default(PENDING)
+  paymentMethod        PaymentMethod @default(CASH)
+  submittedAt          DateTime      @default(now())
+  confirmedAt          DateTime?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  // Relationships
+  package               TourPackage            @relation(fields: [packageId], references: [id])
+  bookingAccommodations BookingAccommodation[]
+
+  @@map("bookings")
+}
+
+model BookingAccommodation {
+  id                     String        @id @default(uuid()) @db.Uuid
+  bookingId              String        @db.Uuid
+  accommodationId        String        @db.Uuid
+  checkInDate            DateTime      @db.Date
+  checkOutDate           DateTime      @db.Date
+  numberOfRooms          Int
+  numberOfNights         Int
+  pricePerNight          Decimal       @db.Decimal(8, 2)
+  totalAccommodationCost Decimal       @db.Decimal(10, 2)
+  createdAt              DateTime      @default(now())
+
+  // Relationships
+  booking       Booking       @relation(fields: [bookingId], references: [id])
+  accommodation Accommodation @relation(fields: [accommodationId], references: [id])
+
+  @@map("booking_accommodations")
+}
+
+model PackageAccommodation {
+  id              String        @id @default(uuid()) @db.Uuid
+  packageId       String        @db.Uuid
+  accommodationId String        @db.Uuid
+  isRecommended   Boolean       @default(false)
+  displayOrder    Int           @default(0)
+  createdAt       DateTime      @default(now())
+
+  // Relationships
+  package       TourPackage   @relation(fields: [packageId], references: [id])
+  accommodation Accommodation @relation(fields: [accommodationId], references: [id])
+
+  @@unique([packageId, accommodationId])
+  @@map("package_accommodations")
+}
+
+model CyclingGuide {
+  id               String   @id @default(uuid()) @db.Uuid
+  title            String
+  slug             String   @unique
+  region           String
+  content          String   @db.Text
+  routeMap         Json?
+  difficultyRating Int      @db.SmallInt
+  estimatedDuration String?
+  bestSeason       String?
+  safetyTips       Json?
+  pointsOfInterest Json?
+  images           Json?
+  isPublished      Boolean  @default(true)
+  featured         Boolean  @default(false)
+  metaTitle        String?
+  metaDescription  String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("cycling_guides")
+}
+
+model AdminUser {
+  id           String    @id @default(uuid()) @db.Uuid
+  email        String    @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  role         AdminRole @default(EDITOR)
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@map("admin_users")
+}
+
+model MediaAsset {
+  id          String   @id @default(uuid()) @db.Uuid
+  filename    String
+  storageKey  String   @unique
+  mimeType    String
+  fileSize    Int
+  dimensions  Json?
+  altText     String?
+  caption     String?
+  tags        Json?
+  uploadedBy  String?  @db.Uuid
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("media_assets")
+}
+
+// Indexes for performance
+model Session {
+  id        String   @id
+  sessionId String   @unique
+  data      String   @db.Text
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("sessions")
+}

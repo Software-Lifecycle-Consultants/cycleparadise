@@ -1,0 +1,911 @@
+openapi: 3.0.3
+info:
+  title: Sri Lanka Cycling Tours API
+  version: 1.0.0
+  description: API for cycling tour package discovery, booking, and content management
+  contact:
+    name: CycleParadise Support
+    email: admin@cycleparadise.com
+
+servers:
+  - url: https://cycleparadise.com/api/v1
+    description: Production server
+  - url: http://localhost:4321/api/v1  
+    description: Development server
+
+paths:
+  # Public Tour Package Endpoints
+  /packages:
+    get:
+      summary: List tour packages with filtering and pagination
+      tags: [Public - Packages]
+      parameters:
+        - name: region
+          in: query
+          schema:
+            type: string
+          description: Filter by geographic region
+        - name: difficulty
+          in: query
+          schema:
+            type: string
+            enum: [BEGINNER, INTERMEDIATE, ADVANCED, EXPERT]
+          description: Filter by difficulty level
+        - name: duration
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+          description: Filter by package duration in days
+        - name: featured
+          in: query
+          schema:
+            type: boolean
+          description: Show only featured packages
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 12
+      responses:
+        '200':
+          description: List of tour packages
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  packages:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TourPackageList'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+  /packages/{slug}:
+    get:
+      summary: Get detailed tour package information
+      tags: [Public - Packages]
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Detailed package information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TourPackageDetail'
+        '404':
+          description: Package not found
+
+  # Public Accommodation Endpoints
+  /accommodations:
+    get:
+      summary: List available accommodations
+      tags: [Public - Accommodations]
+      parameters:
+        - name: location
+          in: query
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [HOTEL, GUESTHOUSE, RESORT, HOMESTAY, CAMPING]
+        - name: packageId
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Show accommodations compatible with specific package
+      responses:
+        '200':
+          description: List of accommodations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccommodationList'
+
+  # Public Cycling Guide Endpoints
+  /guides:
+    get:
+      summary: List cycling guides and route information
+      tags: [Public - Guides]
+      parameters:
+        - name: region
+          in: query
+          schema:
+            type: string
+        - name: difficulty
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 10
+        - name: featured
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: List of cycling guides
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CyclingGuideList'
+
+  /guides/{slug}:
+    get:
+      summary: Get detailed cycling guide
+      tags: [Public - Guides]
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Detailed guide information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CyclingGuideDetail'
+
+  # Public Booking Endpoints
+  /bookings:
+    post:
+      summary: Submit new booking request
+      tags: [Public - Bookings]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookingRequest'
+      responses:
+        '201':
+          description: Booking request submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingResponse'
+        '400':
+          description: Invalid booking data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /bookings/{bookingNumber}/status:
+    get:
+      summary: Check booking status
+      tags: [Public - Bookings]
+      parameters:
+        - name: bookingNumber
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: email
+          in: query
+          required: true
+          schema:
+            type: string
+            format: email
+          description: Customer email for verification
+      responses:
+        '200':
+          description: Booking status information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingStatus'
+        '404':
+          description: Booking not found or email mismatch
+
+  # Public Search and Social
+  /search:
+    get:
+      summary: Search packages, guides, and accommodations
+      tags: [Public - Search]
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+          description: Search query
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [packages, guides, accommodations, all]
+            default: all
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResults'
+
+  /social/instagram:
+    get:
+      summary: Get recent Instagram posts
+      tags: [Public - Social]
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+            default: 9
+      responses:
+        '200':
+          description: Recent Instagram posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InstagramPost'
+
+  # Admin Authentication
+  /admin/auth/login:
+    post:
+      summary: Admin user login
+      tags: [Admin - Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminAuthResponse'
+        '401':
+          description: Invalid credentials
+
+  /admin/auth/logout:
+    post:
+      summary: Admin user logout
+      tags: [Admin - Auth]
+      security:
+        - AdminSession: []
+      responses:
+        '200':
+          description: Logout successful
+
+  # Admin Package Management
+  /admin/packages:
+    get:
+      summary: List all packages for admin management
+      tags: [Admin - Packages]
+      security:
+        - AdminSession: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, inactive, all]
+            default: all
+      responses:
+        '200':
+          description: Admin package list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdminTourPackage'
+
+    post:
+      summary: Create new tour package
+      tags: [Admin - Packages]
+      security:
+        - AdminSession: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TourPackageCreate'
+      responses:
+        '201':
+          description: Package created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminTourPackage'
+
+  /admin/packages/{id}:
+    put:
+      summary: Update tour package
+      tags: [Admin - Packages]
+      security:
+        - AdminSession: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TourPackageUpdate'
+      responses:
+        '200':
+          description: Package updated successfully
+
+    delete:
+      summary: Delete tour package
+      tags: [Admin - Packages]
+      security:
+        - AdminSession: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Package deleted successfully
+
+  # Admin Booking Management
+  /admin/bookings:
+    get:
+      summary: List all bookings for admin review
+      tags: [Admin - Bookings]
+      security:
+        - AdminSession: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [PENDING, CONFIRMED, CANCELLED, COMPLETED]
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Admin booking list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdminBooking'
+
+  /admin/bookings/{id}/confirm:
+    post:
+      summary: Confirm pending booking
+      tags: [Admin - Bookings]
+      security:
+        - AdminSession: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                confirmationNotes:
+                  type: string
+                paymentInstructions:
+                  type: string
+      responses:
+        '200':
+          description: Booking confirmed successfully
+
+  # Admin Media Management
+  /admin/media/upload:
+    post:
+      summary: Upload media files
+      tags: [Admin - Media]
+      security:
+        - AdminSession: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                altText:
+                  type: string
+                caption:
+                  type: string
+                entityType:
+                  type: string
+                entityId:
+                  type: string
+                  format: uuid
+      responses:
+        '201':
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaAsset'
+
+components:
+  securitySchemes:
+    AdminSession:
+      type: apiKey
+      in: cookie
+      name: admin_session
+
+  schemas:
+    TourPackageList:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        slug:
+          type: string
+        shortDescription:
+          type: string
+        duration:
+          type: integer
+        difficultyLevel:
+          type: string
+          enum: [BEGINNER, INTERMEDIATE, ADVANCED, EXPERT]
+        region:
+          type: string
+        basePrice:
+          type: number
+          format: decimal
+        featured:
+          type: boolean
+        thumbnail:
+          type: string
+          format: uri
+
+    TourPackageDetail:
+      allOf:
+        - $ref: '#/components/schemas/TourPackageList'
+        - type: object
+          properties:
+            description:
+              type: string
+            itinerary:
+              type: object
+            maxParticipants:
+              type: integer
+            includedServices:
+              type: array
+              items:
+                type: string
+            excludedServices:
+              type: array
+              items:
+                type: string
+            mediaGallery:
+              type: array
+              items:
+                $ref: '#/components/schemas/MediaAsset'
+            youtubeVideoId:
+              type: string
+            accommodationOptions:
+              type: array
+              items:
+                $ref: '#/components/schemas/AccommodationList'
+
+    AccommodationList:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        type:
+          type: string
+          enum: [HOTEL, GUESTHOUSE, RESORT, HOMESTAY, CAMPING]
+        location:
+          type: string
+        pricePerNight:
+          type: number
+          format: decimal
+        rating:
+          type: number
+          format: float
+        thumbnail:
+          type: string
+          format: uri
+
+    CyclingGuideList:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        slug:
+          type: string
+        region:
+          type: string
+        difficultyRating:
+          type: integer
+        estimatedDuration:
+          type: string
+        thumbnail:
+          type: string
+          format: uri
+
+    CyclingGuideDetail:
+      allOf:
+        - $ref: '#/components/schemas/CyclingGuideList'
+        - type: object
+          properties:
+            content:
+              type: string
+            routeMap:
+              type: object
+            bestSeason:
+              type: string
+            safetyTips:
+              type: array
+              items:
+                type: string
+            pointsOfInterest:
+              type: array
+              items:
+                type: object
+            images:
+              type: array
+              items:
+                $ref: '#/components/schemas/MediaAsset'
+
+    BookingRequest:
+      type: object
+      required: [packageId, customerName, customerEmail, customerPhone, numberOfParticipants, startDate]
+      properties:
+        packageId:
+          type: string
+          format: uuid
+        customerName:
+          type: string
+        customerEmail:
+          type: string
+          format: email
+        customerPhone:
+          type: string
+        customerCountry:
+          type: string
+        numberOfParticipants:
+          type: integer
+          minimum: 1
+        startDate:
+          type: string
+          format: date
+        specialRequests:
+          type: string
+        accommodations:
+          type: array
+          items:
+            type: object
+            properties:
+              accommodationId:
+                type: string
+                format: uuid
+              numberOfRooms:
+                type: integer
+                minimum: 1
+              checkInDate:
+                type: string
+                format: date
+              checkOutDate:
+                type: string
+                format: date
+
+    BookingResponse:
+      type: object
+      properties:
+        bookingNumber:
+          type: string
+        status:
+          type: string
+          enum: [PENDING]
+        message:
+          type: string
+        estimatedConfirmationTime:
+          type: string
+
+    BookingStatus:
+      type: object
+      properties:
+        bookingNumber:
+          type: string
+        status:
+          type: string
+          enum: [PENDING, CONFIRMED, CANCELLED, COMPLETED]
+        packageTitle:
+          type: string
+        startDate:
+          type: string
+          format: date
+        numberOfParticipants:
+          type: integer
+        totalAmount:
+          type: number
+          format: decimal
+        confirmationNotes:
+          type: string
+        paymentInstructions:
+          type: string
+
+    AdminTourPackage:
+      allOf:
+        - $ref: '#/components/schemas/TourPackageDetail'
+        - type: object
+          properties:
+            isActive:
+              type: boolean
+            totalBookings:
+              type: integer
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+
+    AdminBooking:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        bookingNumber:
+          type: string
+        customerName:
+          type: string
+        customerEmail:
+          type: string
+        customerPhone:
+          type: string
+        packageTitle:
+          type: string
+        startDate:
+          type: string
+          format: date
+        numberOfParticipants:
+          type: integer
+        totalAmount:
+          type: number
+          format: decimal
+        status:
+          type: string
+          enum: [PENDING, CONFIRMED, CANCELLED, COMPLETED]
+        submittedAt:
+          type: string
+          format: date-time
+        accommodations:
+          type: array
+          items:
+            type: object
+
+    MediaAsset:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        filename:
+          type: string
+        url:
+          type: string
+          format: uri
+        mimeType:
+          type: string
+        fileSize:
+          type: integer
+        dimensions:
+          type: object
+        altText:
+          type: string
+        caption:
+          type: string
+
+    InstagramPost:
+      type: object
+      properties:
+        id:
+          type: string
+        caption:
+          type: string
+        mediaUrl:
+          type: string
+          format: uri
+        mediaType:
+          type: string
+          enum: [IMAGE, VIDEO, CAROUSEL]
+        permalink:
+          type: string
+          format: uri
+        timestamp:
+          type: string
+          format: date-time
+
+    SearchResults:
+      type: object
+      properties:
+        query:
+          type: string
+        results:
+          type: object
+          properties:
+            packages:
+              type: array
+              items:
+                $ref: '#/components/schemas/TourPackageList'
+            guides:
+              type: array
+              items:
+                $ref: '#/components/schemas/CyclingGuideList'
+            accommodations:
+              type: array
+              items:
+                $ref: '#/components/schemas/AccommodationList'
+        totalResults:
+          type: integer
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        totalPages:
+          type: integer
+        hasNext:
+          type: boolean
+        hasPrev:
+          type: boolean
+
+    AdminAuthResponse:
+      type: object
+      properties:
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            email:
+              type: string
+            firstName:
+              type: string
+            lastName:
+              type: string
+            role:
+              type: string
+        sessionExpires:
+          type: string
+          format: date-time
+
+    ValidationError:
+      type: object
+      properties:
+        error:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+
+    TourPackageCreate:
+      type: object
+      required: [title, description, duration, difficultyLevel, region, basePrice, maxParticipants]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        shortDescription:
+          type: string
+        duration:
+          type: integer
+        difficultyLevel:
+          type: string
+          enum: [BEGINNER, INTERMEDIATE, ADVANCED, EXPERT]
+        region:
+          type: string
+        basePrice:
+          type: number
+          format: decimal
+        maxParticipants:
+          type: integer
+        includedServices:
+          type: array
+          items:
+            type: string
+        excludedServices:
+          type: array
+          items:
+            type: string
+        youtubeVideoId:
+          type: string
+        featured:
+          type: boolean
+        metaTitle:
+          type: string
+        metaDescription:
+          type: string
+
+    TourPackageUpdate:
+      allOf:
+        - $ref: '#/components/schemas/TourPackageCreate'
+        - type: object
+          properties:
+            isActive:
+              type: boolean
