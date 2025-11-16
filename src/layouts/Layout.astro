@@ -4,46 +4,214 @@ export interface Props {
   description?: string;
   canonicalUrl?: string;
   ogImage?: string;
+  ogType?: 'website' | 'article' | 'product' | 'profile';
+  keywords?: string[];
+  author?: string;
+  publishedTime?: string;
+  modifiedTime?: string;
+  structuredData?: any;
+  noIndex?: boolean;
+  alternateUrls?: { hreflang: string; href: string }[];
 }
 
-const { title, description, canonicalUrl, ogImage } = Astro.props;
+const { 
+  title, 
+  description, 
+  canonicalUrl, 
+  ogImage, 
+  ogType = 'website',
+  keywords = [],
+  author,
+  publishedTime,
+  modifiedTime,
+  structuredData,
+  noIndex = false,
+  alternateUrls = []
+} = Astro.props;
+
 const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://cycleparadise.lk';
+const currentUrl = canonicalUrl || `${siteUrl}${Astro.url.pathname}`;
+const defaultOgImage = `${siteUrl}/images/og-default.jpg`;
+const finalOgImage = ogImage || defaultOgImage;
+
+// Default keywords for cycling tours
+const defaultKeywords = [
+  'cycling tours sri lanka',
+  'bicycle tours',
+  'cycling holidays',
+  'adventure travel',
+  'eco tourism',
+  'guided cycling tours',
+  'sri lanka tourism'
+];
+
+const allKeywords = [...new Set([...keywords, ...defaultKeywords])];
+
+// Generate breadcrumb structured data
+const breadcrumbItems = [];
+const pathSegments = Astro.url.pathname.split('/').filter(Boolean);
+let currentPath = '';
+
+breadcrumbItems.push({
+  "@type": "ListItem",
+  "position": 1,
+  "name": "Home",
+  "item": siteUrl
+});
+
+pathSegments.forEach((segment, index) => {
+  currentPath += '/' + segment;
+  breadcrumbItems.push({
+    "@type": "ListItem",
+    "position": index + 2,
+    "name": segment.charAt(0).toUpperCase() + segment.slice(1).replace('-', ' '),
+    "item": siteUrl + currentPath
+  });
+});
+
+const breadcrumbStructuredData = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": breadcrumbItems
+};
+
+// Organization structured data
+const organizationStructuredData = {
+  "@context": "https://schema.org",
+  "@type": "TravelAgency",
+  "name": "Cycle Paradise",
+  "description": "Premium cycling tours and adventures across Sri Lanka",
+  "url": siteUrl,
+  "logo": `${siteUrl}/images/logo.png`,
+  "image": finalOgImage,
+  "telephone": "+94-77-123-4567",
+  "email": "info@cycleparadise.lk",
+  "address": {
+    "@type": "PostalAddress",
+    "addressCountry": "LK",
+    "addressLocality": "Colombo",
+    "addressRegion": "Western Province"
+  },
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "6.9271",
+    "longitude": "79.8612"
+  },
+  "sameAs": [
+    "https://www.facebook.com/cycleparadise",
+    "https://www.instagram.com/cycleparadise",
+    "https://www.twitter.com/cycleparadise"
+  ],
+  "priceRange": "$$",
+  "servesCuisine": "Cycling Tours",
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "Cycling Tour Packages",
+    "itemListElement": [
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "TouristTrip",
+          "name": "Hill Country Cycling Tours"
+        }
+      },
+      {
+        "@type": "Offer", 
+        "itemOffered": {
+          "@type": "TouristTrip",
+          "name": "Coastal Cycling Adventures"
+        }
+      }
+    ]
+  }
+};
+
+// Combine all structured data
+const combinedStructuredData = [
+  organizationStructuredData,
+  breadcrumbStructuredData,
+  ...(structuredData ? [structuredData] : [])
+];
 ---
 
 <!DOCTYPE html>
 <html lang="en" class="h-full">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    
+    <!-- Basic Meta Tags -->
+    <title>{title}</title>
+    <meta name="description" content={description || "Discover amazing cycling tours and adventures in Sri Lanka with Cycle Paradise. Premium guided bicycle tours across hill country, coastal routes, and cultural sites."} />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="generator" content={Astro.generator} />
     
     <!-- SEO Meta Tags -->
-    <title>{title}</title>
-    {description && <meta name="description" content={description} />}
-    {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+    <meta name="keywords" content={allKeywords.join(', ')} />
+    {author && <meta name="author" content={author} />}
+    <meta name="robots" content={noIndex ? "noindex, nofollow" : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"} />
+    <meta name="googlebot" content={noIndex ? "noindex, nofollow" : "index, follow"} />
     
-    <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content={title} />
+    <!-- Canonical URL -->
+    <link rel="canonical" href={currentUrl} />
+    
+    <!-- Alternate Languages -->
+    {alternateUrls.map(({ hreflang, href }) => (
+      <link rel="alternate" hreflang={hreflang} href={href} />
+    ))}
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content="Cycle Paradise" />
-    <meta property="og:url" content={canonicalUrl || siteUrl} />
-    <meta property="og:type" content="website" />
-    {description && <meta property="og:description" content={description} />}
-    {ogImage && <meta property="og:image" content={ogImage} />}
-    
-    <!-- Twitter Card Meta Tags -->
+    <meta property="og:url" content={currentUrl} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description || "Discover amazing cycling tours and adventures in Sri Lanka with Cycle Paradise"} />
+    <meta property="og:image" content={finalOgImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={title} />
+    <meta property="og:locale" content="en_US" />
+    {publishedTime && <meta property="article:published_time" content={publishedTime} />}
+    {modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
+    {author && <meta property="article:author" content={author} />}
+
+    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@cycleparadise" />
+    <meta name="twitter:creator" content="@cycleparadise" />
+    <meta name="twitter:url" content={currentUrl} />
     <meta name="twitter:title" content={title} />
-    {description && <meta name="twitter:description" content={description} />}
-    {ogImage && <meta name="twitter:image" content={ogImage} />}
-    
-    <!-- Fonts -->
+    <meta name="twitter:description" content={description || "Discover amazing cycling tours and adventures in Sri Lanka with Cycle Paradise"} />
+    <meta name="twitter:image" content={finalOgImage} />
+    <meta name="twitter:image:alt" content={title} />
+
+    <!-- Additional Meta Tags -->
+    <meta name="theme-color" content="#10b981" />
+    <meta name="msapplication-TileColor" content="#10b981" />
+    <meta name="format-detection" content="telephone=yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Cycle Paradise" />
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- Preconnect to external domains -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://graph.instagram.com" />
+    
+    <!-- Fonts -->
     <link 
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" 
       rel="stylesheet" 
     />
+
+    <!-- Structured Data -->
+    <script type="application/ld+json" set:html={JSON.stringify(combinedStructuredData)} />
   </head>
   
   <body class="h-full bg-white text-gray-900 font-sans">
@@ -63,7 +231,7 @@ const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://cycleparadise.lk';
             </div>
             
             <!-- Desktop Navigation -->
-            <div class="hidden md:flex items-center space-x-8">
+            <div class="hidden lg:flex items-center space-x-6">
               <a href="/packages" class="text-gray-600 hover:text-primary-600 transition-colors">
                 Tour Packages
               </a>
@@ -76,6 +244,23 @@ const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://cycleparadise.lk';
               <a href="/contact" class="text-gray-600 hover:text-primary-600 transition-colors">
                 Contact
               </a>
+              
+              <!-- Search -->
+              <div class="relative hidden md:block">
+                <form id="header-search" action="/search" method="get" class="relative">
+                  <input
+                    type="text"
+                    name="q"
+                    placeholder="Search tours..."
+                    class="w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                  />
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                  </div>
+                </form>
+              </div>
               <a 
                 href="/packages" 
                 class="bg-primary-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors"
@@ -84,16 +269,31 @@ const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://cycleparadise.lk';
               </a>
             </div>
             
-            <!-- Mobile menu button -->
-            <div class="md:hidden">
+            <!-- Mobile buttons -->
+            <div class="flex items-center space-x-2 lg:hidden">
+              <!-- Mobile Search Button -->
+              <a 
+                href="/search"
+                class="text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 p-2"
+                aria-label="Search"
+              >
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+              </a>
+              
+              <!-- Mobile menu button -->
               <button 
                 type="button" 
-                class="text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                class="text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 p-2"
                 aria-label="Open mobile menu"
                 id="mobile-menu-button"
               >
-                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" id="menu-icon">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+                <svg class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" id="close-icon">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
@@ -102,27 +302,51 @@ const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://cycleparadise.lk';
         
         <!-- Mobile Navigation Menu -->
         <div 
-          class="md:hidden hidden bg-white border-t border-gray-200 px-4 py-2 space-y-1"
+          class="lg:hidden hidden bg-white border-t border-gray-200 px-4 py-4 space-y-3"
           id="mobile-menu"
         >
-          <a href="/packages" class="block py-2 text-gray-600 hover:text-primary-600">
-            Tour Packages
-          </a>
-          <a href="/guides" class="block py-2 text-gray-600 hover:text-primary-600">
-            Cycling Guides
-          </a>
-          <a href="/about" class="block py-2 text-gray-600 hover:text-primary-600">
-            About Us
-          </a>
-          <a href="/contact" class="block py-2 text-gray-600 hover:text-primary-600">
-            Contact
-          </a>
-          <a 
-            href="/packages" 
-            class="block w-full text-center bg-primary-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors mt-2"
-          >
-            Book Now
-          </a>
+          <!-- Mobile Search -->
+          <div class="pb-3 border-b border-gray-200">
+            <form action="/search" method="get" class="relative">
+              <input
+                type="text"
+                name="q"
+                placeholder="Search tours and guides..."
+                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              />
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+              </div>
+            </form>
+          </div>
+          
+          <!-- Mobile Navigation Links -->
+          <div class="space-y-1">
+            <a href="/packages" class="block py-2 text-gray-600 hover:text-primary-600 font-medium">
+              Tour Packages
+            </a>
+            <a href="/guides" class="block py-2 text-gray-600 hover:text-primary-600 font-medium">
+              Cycling Guides
+            </a>
+            <a href="/about" class="block py-2 text-gray-600 hover:text-primary-600 font-medium">
+              About Us
+            </a>
+            <a href="/contact" class="block py-2 text-gray-600 hover:text-primary-600 font-medium">
+              Contact
+            </a>
+          </div>
+          
+          <!-- Mobile CTA -->
+          <div class="pt-3 border-t border-gray-200">
+            <a 
+              href="/packages" 
+              class="block w-full text-center bg-primary-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors"
+            >
+              Book Now
+            </a>
+          </div>
         </div>
       </header>
       
@@ -195,16 +419,210 @@ const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://cycleparadise.lk';
       </footer>
     </div>
     
-    <!-- Mobile menu toggle script -->
+    <!-- Header functionality script -->
     <script>
       document.addEventListener('DOMContentLoaded', function() {
+        // Mobile menu toggle
         const menuButton = document.getElementById('mobile-menu-button');
         const mobileMenu = document.getElementById('mobile-menu');
+        const menuIcon = document.getElementById('menu-icon');
+        const closeIcon = document.getElementById('close-icon');
         
         menuButton?.addEventListener('click', function() {
-          mobileMenu?.classList.toggle('hidden');
+          const isHidden = mobileMenu?.classList.contains('hidden');
+          
+          if (isHidden) {
+            mobileMenu?.classList.remove('hidden');
+            menuIcon?.classList.add('hidden');
+            closeIcon?.classList.remove('hidden');
+          } else {
+            mobileMenu?.classList.add('hidden');
+            menuIcon?.classList.remove('hidden');
+            closeIcon?.classList.add('hidden');
+          }
+        });
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+          const target = event.target as Element;
+          if (!menuButton?.contains(target) && !mobileMenu?.contains(target)) {
+            mobileMenu?.classList.add('hidden');
+            menuIcon?.classList.remove('hidden');
+            closeIcon?.classList.add('hidden');
+          }
+        });
+
+        // Header search functionality
+        const headerSearch = document.getElementById('header-search');
+        if (headerSearch) {
+          headerSearch.addEventListener('submit', function(e) {
+            const formData = new FormData(headerSearch as HTMLFormElement);
+            const query = formData.get('q')?.toString().trim();
+            
+            if (!query) {
+              e.preventDefault();
+              return;
+            }
+          });
+        }
+
+        // Close mobile menu on window resize
+        window.addEventListener('resize', function() {
+          if (window.innerWidth >= 1024) { // lg breakpoint
+            mobileMenu?.classList.add('hidden');
+            menuIcon?.classList.remove('hidden');
+            closeIcon?.classList.add('hidden');
+          }
         });
       });
+    </script>
+
+    <!-- Performance Monitoring -->
+    <script>
+      // Core Web Vitals monitoring
+      class PerformanceMonitor {
+        constructor() {
+          this.metrics = {};
+          this.init();
+        }
+
+        init() {
+          this.measureTTFB();
+          this.measureFCP();
+          this.measureLCP();
+          this.measureFID();
+          this.measureCLS();
+          this.monitorResources();
+          
+          // Send metrics when page unloads
+          window.addEventListener('beforeunload', () => this.sendMetrics());
+        }
+
+        measureTTFB() {
+          if ('navigation' in performance) {
+            const navTiming = performance.getEntriesByType('navigation')[0];
+            if (navTiming) {
+              this.metrics.ttfb = navTiming.responseStart - navTiming.requestStart;
+            }
+          }
+        }
+
+        measureFCP() {
+          if ('PerformanceObserver' in window) {
+            const observer = new PerformanceObserver((list) => {
+              for (const entry of list.getEntries()) {
+                if (entry.name === 'first-contentful-paint') {
+                  this.metrics.fcp = entry.startTime;
+                  observer.disconnect();
+                }
+              }
+            });
+            observer.observe({ entryTypes: ['paint'] });
+          }
+        }
+
+        measureLCP() {
+          if ('PerformanceObserver' in window) {
+            const observer = new PerformanceObserver((list) => {
+              const entries = list.getEntries();
+              const lastEntry = entries[entries.length - 1];
+              this.metrics.lcp = lastEntry.startTime;
+            });
+            observer.observe({ entryTypes: ['largest-contentful-paint'] });
+            
+            window.addEventListener('load', () => {
+              setTimeout(() => observer.disconnect(), 0);
+            });
+          }
+        }
+
+        measureFID() {
+          if ('PerformanceObserver' in window) {
+            const observer = new PerformanceObserver((list) => {
+              for (const entry of list.getEntries()) {
+                this.metrics.fid = entry.processingStart - entry.startTime;
+                observer.disconnect();
+              }
+            });
+            observer.observe({ entryTypes: ['first-input'] });
+          }
+        }
+
+        measureCLS() {
+          if ('PerformanceObserver' in window) {
+            let clsValue = 0;
+            
+            const observer = new PerformanceObserver((list) => {
+              for (const entry of list.getEntries()) {
+                if (!entry.hadRecentInput) {
+                  clsValue += entry.value;
+                }
+              }
+              this.metrics.cls = clsValue;
+            });
+            
+            observer.observe({ entryTypes: ['layout-shift'] });
+          }
+        }
+
+        monitorResources() {
+          if ('PerformanceObserver' in window) {
+            const observer = new PerformanceObserver((list) => {
+              const resources = {};
+              for (const entry of list.getEntries()) {
+                const resourceType = entry.initiatorType || 'other';
+                if (!resources[resourceType]) {
+                  resources[resourceType] = { count: 0, totalSize: 0, totalTime: 0 };
+                }
+                resources[resourceType].count++;
+                resources[resourceType].totalSize += entry.transferSize || 0;
+                resources[resourceType].totalTime += entry.duration || 0;
+              }
+              this.metrics.resources = resources;
+            });
+            observer.observe({ entryTypes: ['resource'] });
+          }
+        }
+
+        sendMetrics() {
+          if (Object.keys(this.metrics).length > 0) {
+            // Send to custom endpoint for monitoring
+            if ('navigator' in window && 'sendBeacon' in navigator) {
+              const data = JSON.stringify({
+                url: window.location.href,
+                userAgent: navigator.userAgent,
+                timestamp: Date.now(),
+                metrics: this.metrics
+              });
+              
+              navigator.sendBeacon('/api/analytics/performance', data);
+            }
+
+            // Console log for development
+            if (window.location.hostname === 'localhost') {
+              console.table(this.metrics);
+            }
+          }
+        }
+      }
+
+      // Initialize performance monitoring
+      document.addEventListener('DOMContentLoaded', () => {
+        window.performanceMonitor = new PerformanceMonitor();
+      });
+
+      // Service Worker registration for caching
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+              console.log('SW registered: ', registration);
+            })
+            .catch(registrationError => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
     </script>
   </body>
 </html>

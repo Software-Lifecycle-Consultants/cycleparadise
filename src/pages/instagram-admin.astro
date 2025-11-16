@@ -1,0 +1,244 @@
+---
+// Simple Instagram integration management page for development/admin use
+import Layout from '../layouts/Layout.astro';
+
+// This would typically be behind authentication in production
+const showAdminPanel = process.env.NODE_ENV === 'development' || process.env.SHOW_INSTAGRAM_ADMIN === 'true';
+
+if (!showAdminPanel) {
+  return Astro.redirect('/', 404);
+}
+---
+
+<Layout 
+  title="Instagram Integration Management - Cycle Paradise"
+  description="Manage Instagram API integration and token status."
+>
+  <div class="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
+    <div class="bg-white shadow rounded-lg">
+      <div class="px-4 py-5 sm:p-6">
+        <h1 class="text-2xl font-bold text-gray-900 mb-6">
+          Instagram Integration Management
+        </h1>
+
+        <!-- Status Section -->
+        <div class="mb-8">
+          <h2 class="text-lg font-medium text-gray-900 mb-4">Current Status</h2>
+          <div id="status-container" class="bg-gray-50 rounded-lg p-4">
+            <div class="animate-pulse">Loading status...</div>
+          </div>
+        </div>
+
+        <!-- Actions Section -->
+        <div class="space-y-4">
+          <h2 class="text-lg font-medium text-gray-900">Management Actions</h2>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <button 
+              id="validate-token"
+              class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+            >
+              Validate Token
+            </button>
+            
+            <button 
+              id="refresh-token"
+              class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors"
+            >
+              Refresh Token
+            </button>
+            
+            <button 
+              id="clear-cache"
+              class="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition-colors"
+            >
+              Clear Cache
+            </button>
+          </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="mt-8">
+          <h2 class="text-lg font-medium text-gray-900 mb-4">Action Results</h2>
+          <div 
+            id="results-container" 
+            class="bg-gray-50 rounded-lg p-4 min-h-[100px] max-h-64 overflow-y-auto"
+          >
+            <p class="text-gray-600">Results will appear here...</p>
+          </div>
+        </div>
+
+        <!-- Documentation Section -->
+        <div class="mt-8 border-t pt-8">
+          <h2 class="text-lg font-medium text-gray-900 mb-4">Setup Instructions</h2>
+          
+          <div class="prose prose-sm max-w-none text-gray-600">
+            <ol class="list-decimal list-inside space-y-2">
+              <li>
+                Go to <a href="https://developers.facebook.com/apps/" target="_blank" class="text-blue-600 hover:text-blue-700">Facebook Developers</a> and create a new app
+              </li>
+              <li>
+                Add Instagram Basic Display product to your app
+              </li>
+              <li>
+                Create an Instagram Test App and add test users
+              </li>
+              <li>
+                Generate a User Access Token with instagram_graph_user_profile and instagram_graph_user_media permissions
+              </li>
+              <li>
+                Exchange short-lived token for long-lived token (60 days)
+              </li>
+              <li>
+                Add the long-lived token to your .env file as INSTAGRAM_ACCESS_TOKEN
+              </li>
+              <li>
+                Set up a cron job to refresh the token every 50-55 days
+              </li>
+            </ol>
+            
+            <div class="mt-4 p-4 bg-blue-50 rounded-lg">
+              <h3 class="font-medium text-blue-900">Important Notes:</h3>
+              <ul class="list-disc list-inside mt-2 space-y-1 text-blue-800">
+                <li>Instagram Basic Display API is for personal use only</li>
+                <li>For business use, consider Instagram Graph API</li>
+                <li>Tokens must be refreshed every 60 days</li>
+                <li>Test users can only see their own content</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const statusContainer = document.getElementById('status-container');
+    const resultsContainer = document.getElementById('results-container');
+
+    // Function to update status display
+    async function updateStatus() {
+      try {
+        const response = await fetch('/api/instagram/manage');
+        const data = await response.json();
+        
+        if (data.success) {
+          const status = data.status;
+          statusContainer.innerHTML = `
+            <div class="space-y-2">
+              <div class="flex items-center">
+                <span class="w-3 h-3 rounded-full mr-2 ${status.token_valid ? 'bg-green-500' : 'bg-red-500'}"></span>
+                <span class="font-medium">Token Status:</span>
+                <span class="ml-2 ${status.token_valid ? 'text-green-600' : 'text-red-600'}">
+                  ${status.token_valid ? 'Valid' : 'Invalid'}
+                </span>
+              </div>
+              <div class="flex items-center">
+                <span class="w-3 h-3 rounded-full mr-2 ${status.cache_active ? 'bg-green-500' : 'bg-gray-500'}"></span>
+                <span class="font-medium">Cache Status:</span>
+                <span class="ml-2 ${status.cache_active ? 'text-green-600' : 'text-gray-600'}">
+                  ${status.cache_active ? 'Active' : 'Inactive'}
+                </span>
+              </div>
+              <div class="text-sm text-gray-600">
+                Last checked: ${new Date(status.last_check).toLocaleString()}
+              </div>
+            </div>
+          `;
+        } else {
+          statusContainer.innerHTML = `
+            <div class="text-red-600">
+              <span class="font-medium">Error:</span> ${data.error}
+            </div>
+          `;
+        }
+      } catch (error) {
+        statusContainer.innerHTML = `
+          <div class="text-red-600">
+            <span class="font-medium">Connection Error:</span> Unable to fetch status
+          </div>
+        `;
+      }
+    }
+
+    // Function to perform Instagram management actions
+    async function performAction(action, buttonId) {
+      const button = document.getElementById(buttonId);
+      const originalText = button?.textContent;
+      
+      if (button) {
+        button.textContent = 'Loading...';
+        button.disabled = true;
+      }
+
+      try {
+        const response = await fetch('/api/instagram/manage', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ action })
+        });
+
+        const data = await response.json();
+        
+        // Add result to results container
+        const timestamp = new Date().toLocaleTimeString();
+        const resultDiv = document.createElement('div');
+        resultDiv.className = `mb-2 p-2 rounded ${data.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`;
+        resultDiv.innerHTML = `
+          <div class="text-sm font-medium">[${timestamp}] ${action.replace('_', ' ').toUpperCase()}</div>
+          <div class="text-xs">${data.success ? data.message : data.error}</div>
+        `;
+        
+        if (resultsContainer) {
+          resultsContainer.insertBefore(resultDiv, resultsContainer.firstChild);
+        }
+
+        // Update status after action
+        if (data.success) {
+          setTimeout(updateStatus, 500);
+        }
+
+      } catch (error) {
+        const timestamp = new Date().toLocaleTimeString();
+        const resultDiv = document.createElement('div');
+        resultDiv.className = 'mb-2 p-2 rounded bg-red-100 text-red-800';
+        resultDiv.innerHTML = `
+          <div class="text-sm font-medium">[${timestamp}] ${action.replace('_', ' ').toUpperCase()}</div>
+          <div class="text-xs">Network error: ${error.message}</div>
+        `;
+        
+        if (resultsContainer) {
+          resultsContainer.insertBefore(resultDiv, resultsContainer.firstChild);
+        }
+      } finally {
+        if (button) {
+          button.textContent = originalText;
+          button.disabled = false;
+        }
+      }
+    }
+
+    // Initial status load
+    updateStatus();
+
+    // Button event listeners
+    document.getElementById('validate-token')?.addEventListener('click', () => {
+      performAction('validate_token', 'validate-token');
+    });
+
+    document.getElementById('refresh-token')?.addEventListener('click', () => {
+      performAction('refresh_token', 'refresh-token');
+    });
+
+    document.getElementById('clear-cache')?.addEventListener('click', () => {
+      performAction('clear_cache', 'clear-cache');
+    });
+
+    // Auto-refresh status every 30 seconds
+    setInterval(updateStatus, 30000);
+  });
+</script>

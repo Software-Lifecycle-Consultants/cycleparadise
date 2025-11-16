@@ -1,0 +1,180 @@
+---
+export interface Props {
+  videoId: string;
+  title?: string;
+  className?: string;
+  autoplay?: boolean;
+  muted?: boolean;
+  controls?: boolean;
+}
+
+const { 
+  videoId, 
+  title = 'YouTube Video', 
+  className = '', 
+  autoplay = false,
+  muted = false,
+  controls = true 
+} = Astro.props;
+
+// Validate YouTube video ID format
+const isValidYouTubeId = /^[a-zA-Z0-9_-]{11}$/.test(videoId);
+
+if (!isValidYouTubeId) {
+  console.warn(`Invalid YouTube video ID: ${videoId}`);
+}
+
+// Build YouTube embed URL with parameters
+const embedParams = new URLSearchParams();
+if (autoplay) embedParams.set('autoplay', '1');
+if (muted) embedParams.set('mute', '1');
+if (!controls) embedParams.set('controls', '0');
+embedParams.set('rel', '0'); // Don't show related videos
+embedParams.set('modestbranding', '1'); // Minimal YouTube branding
+
+const embedUrl = `https://www.youtube.com/embed/${videoId}?${embedParams.toString()}`;
+const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+---
+
+{isValidYouTubeId ? (
+  <div class={`youtube-embed-container ${className}`}>
+    <!-- Responsive wrapper -->
+    <div class="relative w-full aspect-video bg-gray-200 rounded-lg overflow-hidden shadow-md">
+      <!-- Loading placeholder -->
+      <div class="absolute inset-0 flex items-center justify-center bg-gray-100 youtube-loading">
+        <div class="text-center">
+          <svg class="w-12 h-12 text-gray-400 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+          </svg>
+          <p class="text-sm text-gray-500">Loading video...</p>
+        </div>
+      </div>
+      
+      <!-- YouTube iframe -->
+      <iframe
+        src={embedUrl}
+        title={title}
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen
+        class="absolute inset-0 w-full h-full youtube-iframe"
+        loading="lazy"
+        onload="this.parentElement.querySelector('.youtube-loading').style.display = 'none'"
+      ></iframe>
+      
+      <!-- Fallback thumbnail with play button (for when iframe fails to load) -->
+      <div class="absolute inset-0 youtube-fallback hidden">
+        <img 
+          src={thumbnailUrl} 
+          alt={`${title} thumbnail`}
+          class="w-full h-full object-cover"
+        />
+        <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
+          <div class="bg-red-600 rounded-full p-4 hover:bg-red-700 transition-colors">
+            <svg class="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Video caption/description -->
+    {title && (
+      <div class="mt-2">
+        <p class="text-sm text-gray-600">{title}</p>
+      </div>
+    )}
+  </div>
+) : (
+  <!-- Invalid video ID fallback -->
+  <div class={`youtube-embed-error bg-gray-100 rounded-lg p-8 text-center ${className}`}>
+    <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.728-.833-2.498 0L4.316 16.5c-.77.833.192 2.5 1.732 2.5z" />
+    </svg>
+    <h3 class="text-lg font-medium text-gray-900 mb-2">Video Unavailable</h3>
+    <p class="text-gray-600">The video could not be loaded. Please check the video ID.</p>
+  </div>
+)}
+
+<script>
+  // Enhanced error handling and loading states
+  document.addEventListener('DOMContentLoaded', function() {
+    const youtubeEmbeds = document.querySelectorAll('.youtube-embed-container');
+    
+    youtubeEmbeds.forEach(container => {
+      const iframe = container.querySelector('.youtube-iframe') as HTMLIFrameElement;
+      const loading = container.querySelector('.youtube-loading') as HTMLElement;
+      const fallback = container.querySelector('.youtube-fallback') as HTMLElement;
+      
+      if (iframe) {
+        // Set a timeout for loading
+        const loadTimeout = setTimeout(() => {
+          if (loading && !loading.style.display) {
+            loading.style.display = 'none';
+            if (fallback) {
+              fallback.classList.remove('hidden');
+            }
+          }
+        }, 10000); // 10 second timeout
+        
+        // Clear timeout when iframe loads successfully
+        iframe.addEventListener('load', () => {
+          clearTimeout(loadTimeout);
+          if (loading) {
+            loading.style.display = 'none';
+          }
+        });
+        
+        // Handle iframe errors
+        iframe.addEventListener('error', () => {
+          clearTimeout(loadTimeout);
+          if (loading) {
+            loading.style.display = 'none';
+          }
+          if (fallback) {
+            fallback.classList.remove('hidden');
+          }
+        });
+        
+        // Click handler for fallback thumbnail
+        if (fallback) {
+          fallback.addEventListener('click', () => {
+            // Try to reload the iframe
+            iframe.src = iframe.src;
+            fallback.classList.add('hidden');
+            if (loading) {
+              loading.style.display = 'flex';
+            }
+          });
+        }
+      }
+    });
+  });
+</script>
+
+<style>
+  .aspect-video {
+    aspect-ratio: 16 / 9;
+  }
+  
+  .youtube-embed-container {
+    /* Ensure proper stacking context */
+    position: relative;
+  }
+  
+  .youtube-iframe {
+    /* Smooth transition when loading */
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .youtube-iframe[src] {
+    opacity: 1;
+  }
+  
+  /* Custom scrollbar for webkit browsers */
+  .youtube-embed-container::-webkit-scrollbar {
+    display: none;
+  }
+</style>

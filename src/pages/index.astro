@@ -1,5 +1,92 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import PackageCard from '../components/ui/PackageCard.astro';
+import YouTubeEmbed from '../components/media/YouTubeEmbed.astro';
+import InstagramFeed from '../components/media/InstagramFeed.astro';
+import { tourPackageRepository } from '../lib/db/repositories/tour-packages.js';
+
+// Fetch featured packages for homepage
+let featuredPackages: any[] = [];
+try {
+  featuredPackages = await tourPackageRepository.findFeatured(3);
+} catch (error) {
+  console.error('Failed to load featured packages:', error);
+  // Use fallback data for development
+  featuredPackages = [
+    {
+      id: 1,
+      title: "Hill Country Explorer",
+      slug: "hill-country-explorer",
+      description: "Cycle through misty tea plantations and charming hill stations in Sri Lanka's central highlands.",
+      shortDescription: "Tea plantations and hill stations adventure",
+      price: 299,
+      duration: 7,
+      difficultyLevel: "INTERMEDIATE" as const,
+      maxGroupSize: 12,
+      images: ["/images/hill-country-1.jpg"],
+      videoUrl: null,
+      isActive: true,
+      isFeatured: true,
+      region: "Central",
+      includedServices: ["Bike rental", "Guide", "Accommodation"],
+      excludedServices: [],
+      highlights: ["Tea factory visits", "Scenic mountain views"],
+      itinerary: [],
+      whatToBring: [],
+      accommodation: [],
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: 2,
+      title: "Coastal Adventure",
+      slug: "coastal-adventure", 
+      description: "Ride along pristine beaches and through fishing villages on Sri Lanka's stunning coastline.",
+      shortDescription: "Beaches and fishing villages tour",
+      price: 199,
+      duration: 5,
+      difficultyLevel: "EASY" as const,
+      maxGroupSize: 15,
+      images: ["/images/coastal-1.jpg"],
+      videoUrl: null,
+      isActive: true,
+      isFeatured: true,
+      region: "Southern",
+      includedServices: ["Bike rental", "Guide", "Meals"],
+      excludedServices: [],
+      highlights: ["Beach cycling", "Local fishing communities"],
+      itinerary: [],
+      whatToBring: [],
+      accommodation: [],
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: 3,
+      title: "Cultural Triangle",
+      slug: "cultural-triangle",
+      description: "Discover ancient temples and archaeological wonders in Sri Lanka's cultural heartland.",
+      shortDescription: "Ancient temples and archaeological sites",
+      price: 399,
+      duration: 10,
+      difficultyLevel: "CHALLENGING" as const,
+      maxGroupSize: 10,
+      images: ["/images/cultural-1.jpg"],
+      videoUrl: null,
+      isActive: true,
+      isFeatured: true,
+      region: "North Central",
+      includedServices: ["Bike rental", "Guide", "Accommodation", "Cultural guide"],
+      excludedServices: [],
+      highlights: ["Ancient temples", "UNESCO World Heritage sites"],
+      itinerary: [],
+      whatToBring: [],
+      accommodation: [],
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }
+  ];
+}
 ---
 
 <Layout
@@ -104,64 +191,11 @@ import Layout from '../layouts/Layout.astro';
         </p>
       </div>
       
-      <!-- Placeholder for featured packages -->
+      <!-- Featured packages using PackageCard component -->
       <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-        <!-- Package Card Placeholder 1 -->
-        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-          <div class="aspect-w-16 aspect-h-9 bg-gray-200">
-            <div class="w-full h-48 bg-gradient-to-r from-primary-400 to-primary-600 flex items-center justify-center">
-              <span class="text-white font-semibold">Package Image</span>
-            </div>
-          </div>
-          <div class="p-6">
-            <h3 class="font-semibold text-xl text-gray-900 mb-2">Hill Country Explorer</h3>
-            <p class="text-gray-600 mb-4">
-              Cycle through misty tea plantations and charming hill stations in Sri Lanka's central highlands.
-            </p>
-            <div class="flex items-center justify-between">
-              <span class="text-2xl font-bold text-primary-600">$299</span>
-              <span class="text-sm text-gray-500">7 days</span>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Package Card Placeholder 2 -->
-        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-          <div class="aspect-w-16 aspect-h-9 bg-gray-200">
-            <div class="w-full h-48 bg-gradient-to-r from-tropical-blue to-blue-600 flex items-center justify-center">
-              <span class="text-white font-semibold">Package Image</span>
-            </div>
-          </div>
-          <div class="p-6">
-            <h3 class="font-semibold text-xl text-gray-900 mb-2">Coastal Adventure</h3>
-            <p class="text-gray-600 mb-4">
-              Ride along pristine beaches and through fishing villages on Sri Lanka's stunning coastline.
-            </p>
-            <div class="flex items-center justify-between">
-              <span class="text-2xl font-bold text-primary-600">$199</span>
-              <span class="text-sm text-gray-500">5 days</span>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Package Card Placeholder 3 -->
-        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-          <div class="aspect-w-16 aspect-h-9 bg-gray-200">
-            <div class="w-full h-48 bg-gradient-to-r from-tropical-green to-green-600 flex items-center justify-center">
-              <span class="text-white font-semibold">Package Image</span>
-            </div>
-          </div>
-          <div class="p-6">
-            <h3 class="font-semibold text-xl text-gray-900 mb-2">Cultural Triangle</h3>
-            <p class="text-gray-600 mb-4">
-              Discover ancient temples and archaeological wonders in Sri Lanka's cultural heartland.
-            </p>
-            <div class="flex items-center justify-between">
-              <span class="text-2xl font-bold text-primary-600">$399</span>
-              <span class="text-sm text-gray-500">10 days</span>
-            </div>
-          </div>
-        </div>
+        {featuredPackages.map((tourPackage) => (
+          <PackageCard package={tourPackage} />
+        ))}
       </div>
       
       <div class="text-center mt-12">
@@ -175,6 +209,40 @@ import Layout from '../layouts/Layout.astro';
           </svg>
         </a>
       </div>
+    </div>
+  </section>
+
+  <!-- Video Section -->
+  <section class="py-24 bg-white">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h2 class="font-display font-bold text-3xl text-gray-900 sm:text-4xl">
+          Experience Sri Lanka Like Never Before
+        </h2>
+        <p class="mt-4 text-lg text-gray-600">
+          Watch our riders explore the incredible landscapes and vibrant culture of Sri Lanka.
+        </p>
+      </div>
+      
+      <!-- Video embed -->
+      <div class="max-w-4xl mx-auto">
+        <YouTubeEmbed 
+          videoId="dQw4w9WgXcQ" 
+          title="Cycle Paradise - Sri Lanka Adventure Highlights"
+          className="rounded-xl shadow-2xl"
+        />
+      </div>
+    </div>
+  </section>
+
+  <!-- Instagram Feed Section -->
+  <section class="py-24 bg-gray-50">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <InstagramFeed 
+        hashtag="cycleparadise"
+        limit={6}
+        title="Follow Our Adventures"
+      />
     </div>
   </section>
 

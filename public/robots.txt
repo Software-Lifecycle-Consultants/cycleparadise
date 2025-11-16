@@ -1,0 +1,36 @@
+User-agent: *
+Allow: /
+
+# Disallow admin and API routes
+Disallow: /api/
+Disallow: /admin/
+Disallow: /instagram-admin
+
+# Disallow temporary and development files
+Disallow: /*.tmp$
+Disallow: /*.log$
+Disallow: /node_modules/
+Disallow: /.git/
+
+# Allow important crawlable content
+Allow: /packages/
+Allow: /guides/
+Allow: /search
+
+# Specify sitemap location
+Sitemap: https://cycleparadise.lk/sitemap.xml
+
+# Crawl-delay for bots (1 second)
+Crawl-delay: 1
+
+# Specific rules for common bots
+User-agent: Googlebot
+Disallow: /api/
+Allow: /
+
+User-agent: Bingbot
+Disallow: /api/
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /

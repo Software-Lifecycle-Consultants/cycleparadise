@@ -1,0 +1,478 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { cyclingGuideRepository } from '../lib/db/repositories/cycling-guides.js';
+import type { CyclingGuide, GuideSearchParams } from '../types/models.js';
+
+// Get search parameters from URL
+const url = new URL(Astro.request.url);
+const searchParams: GuideSearchParams = {
+  search: url.searchParams.get('search') || undefined,
+  region: url.searchParams.get('region') || undefined,
+  difficultyLevel: url.searchParams.get('difficulty') as 'EASY' | 'INTERMEDIATE' | 'CHALLENGING' | undefined,
+  page: url.searchParams.get('page') ? Number(url.searchParams.get('page')) : 1,
+  limit: 12
+};
+
+// Fetch guides and filter options
+let guides: CyclingGuide[] = [];
+let totalCount = 0;
+let regions: string[] = [];
+
+try {
+  const result = await cyclingGuideRepository.findMany(searchParams);
+  guides = result.guides;
+  totalCount = result.totalCount;
+  
+  // Get available regions
+  regions = await cyclingGuideRepository.getRegions();
+} catch (error) {
+  console.error('Failed to load cycling guides:', error);
+  // Fallback data for development
+  guides = [
+    {
+      id: 1,
+      title: "Sigiriya Rock Fortress Route",
+      slug: "sigiriya-rock-fortress",
+      description: "A scenic cycling route that takes you to the magnificent Sigiriya Rock Fortress, one of Sri Lanka's most iconic landmarks. This moderately challenging ride combines cultural exploration with natural beauty.",
+      shortDescription: "Cycle to the famous Sigiriya Rock Fortress",
+      content: "Experience the wonder of ancient Sri Lankan civilization as you cycle through rural villages to reach the mighty Sigiriya Rock Fortress...",
+      region: "Central",
+      difficultyLevel: "INTERMEDIATE" as const,
+      estimatedDistance: 25,
+      estimatedDuration: "4-5 hours",
+      startingPoint: "Sigiriya Village",
+      endingPoint: "Sigiriya Rock Base",
+      highlights: ["Ancient rock fortress", "Rural village life", "Panoramic views"],
+      terrainType: "Mixed roads and paths",
+      bestTimeToVisit: "October to March",
+      safetyTips: ["Carry plenty of water", "Start early morning", "Wear sun protection"],
+      nearbyAttractions: ["Pidurangala Rock", "Sigiriya Museum"],
+      images: ["/images/sigiriya-route-1.jpg", "/images/sigiriya-route-2.jpg"],
+      mapImageUrl: "/images/sigiriya-map.jpg",
+      gpxFileUrl: "/routes/sigiriya.gpx",
+      isActive: true,
+      isFeatured: true,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: 2,
+      title: "Galle Fort Coastal Ride",
+      slug: "galle-fort-coastal",
+      description: "A relaxing coastal cycling experience along Sri Lanka's southern coast, starting from the historic Galle Fort and following pristine beaches and fishing villages.",
+      shortDescription: "Scenic coastal ride from historic Galle Fort",
+      content: "Discover the charm of Sri Lanka's southern coast on this easy cycling adventure...",
+      region: "Southern",
+      difficultyLevel: "EASY" as const,
+      estimatedDistance: 15,
+      estimatedDuration: "2-3 hours",
+      startingPoint: "Galle Fort",
+      endingPoint: "Unawatuna Beach",
+      highlights: ["Historic fort walls", "Pristine beaches", "Local fishing communities"],
+      terrainType: "Flat coastal roads",
+      bestTimeToVisit: "November to April",
+      safetyTips: ["Watch for traffic near fort", "Bring sunscreen", "Stay hydrated"],
+      nearbyAttractions: ["Galle Lighthouse", "National Maritime Museum"],
+      images: ["/images/galle-coastal-1.jpg", "/images/galle-coastal-2.jpg"],
+      mapImageUrl: "/images/galle-map.jpg",
+      gpxFileUrl: "/routes/galle-coastal.gpx",
+      isActive: true,
+      isFeatured: true,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: 3,
+      title: "Ella to Nine Arch Bridge",
+      slug: "ella-nine-arch-bridge",
+      description: "A challenging mountain cycling route through Sri Lanka's hill country, featuring tea plantations, mountain views, and the famous Nine Arch Bridge.",
+      shortDescription: "Mountain adventure to the iconic Nine Arch Bridge",
+      content: "Challenge yourself with this mountain cycling adventure through Sri Lanka's stunning hill country...",
+      region: "Central",
+      difficultyLevel: "CHALLENGING" as const,
+      estimatedDistance: 18,
+      estimatedDuration: "3-4 hours",
+      startingPoint: "Ella Town",
+      endingPoint: "Nine Arch Bridge",
+      highlights: ["Nine Arch Bridge", "Tea plantations", "Mountain vistas"],
+      terrainType: "Hilly mountain roads",
+      bestTimeToVisit: "December to March",
+      safetyTips: ["Use proper mountain bike", "Check weather conditions", "Inform someone of your route"],
+      nearbyAttractions: ["Little Adam's Peak", "Ravana Falls"],
+      images: ["/images/ella-bridge-1.jpg", "/images/ella-bridge-2.jpg"],
+      mapImageUrl: "/images/ella-map.jpg",
+      gpxFileUrl: "/routes/ella-nine-arch.gpx",
+      isActive: true,
+      isFeatured: false,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }
+  ];
+  totalCount = 3;
+  regions = ["Central", "Southern", "Western", "Northern", "Eastern"];
+}
+
+// Calculate pagination
+const totalPages = Math.ceil(totalCount / searchParams.limit!);
+const currentPage = searchParams.page || 1;
+
+// Helper function to get difficulty badge color
+function getDifficultyColor(level: string): string {
+  switch (level) {
+    case 'EASY': return 'bg-green-100 text-green-800';
+    case 'INTERMEDIATE': return 'bg-yellow-100 text-yellow-800';
+    case 'CHALLENGING': return 'bg-red-100 text-red-800';
+    default: return 'bg-gray-100 text-gray-800';
+  }
+}
+---
+
+<Layout 
+  title={searchParams.search ? `Search Results for "${searchParams.search}" - Cycling Guides - Cycle Paradise` : "Cycling Guides - Cycle Paradise"}
+  description="Discover the best cycling routes in Sri Lanka with our comprehensive guides. From easy coastal rides to challenging mountain trails, find your perfect cycling adventure."
+>
+  <!-- Page Header -->
+  <section class="bg-gradient-to-b from-primary-50 to-white py-16">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="text-center">
+        <h1 class="font-display font-bold text-4xl text-gray-900 sm:text-5xl">
+          Cycling Guides
+        </h1>
+        <p class="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
+          Explore Sri Lanka's most beautiful cycling routes with our detailed guides. 
+          Each route includes maps, difficulty ratings, safety tips, and local attractions.
+        </p>
+        <p class="mt-2 text-gray-600">
+          Showing {guides.length} of {totalCount} routes
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+    <!-- Search and Filters -->
+    <div class="mb-8 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+      <form id="filter-form" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <!-- Search -->
+        <div>
+          <label for="search" class="block text-sm font-medium text-gray-700 mb-2">
+            Search Routes
+          </label>
+          <input
+            type="text"
+            id="search"
+            name="search"
+            value={searchParams.search || ''}
+            placeholder="Search by name or location..."
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          />
+        </div>
+
+        <!-- Region Filter -->
+        <div>
+          <label for="region" class="block text-sm font-medium text-gray-700 mb-2">
+            Region
+          </label>
+          <select
+            id="region"
+            name="region"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          >
+            <option value="">All Regions</option>
+            {regions.map(region => (
+              <option value={region} selected={searchParams.region === region}>
+                {region}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <!-- Difficulty Filter -->
+        <div>
+          <label for="difficulty" class="block text-sm font-medium text-gray-700 mb-2">
+            Difficulty
+          </label>
+          <select
+            id="difficulty"
+            name="difficulty"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          >
+            <option value="">All Levels</option>
+            <option value="EASY" selected={searchParams.difficultyLevel === 'EASY'}>Easy</option>
+            <option value="INTERMEDIATE" selected={searchParams.difficultyLevel === 'INTERMEDIATE'}>Intermediate</option>
+            <option value="CHALLENGING" selected={searchParams.difficultyLevel === 'CHALLENGING'}>Challenging</option>
+          </select>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-end space-x-2">
+          <button
+            type="submit"
+            class="flex-1 bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors"
+          >
+            Search
+          </button>
+          <button
+            type="button"
+            id="clear-filters"
+            class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
+          >
+            Clear
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Cycling Guides Grid -->
+    {guides.length > 0 ? (
+      <>
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+          {guides.map((guide) => (
+            <article class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+              <!-- Route Image -->
+              <div class="aspect-w-16 aspect-h-10">
+                <img 
+                  src={guide.images[0] || "/images/default-route.jpg"} 
+                  alt={guide.title}
+                  class="w-full h-48 object-cover"
+                />
+              </div>
+              
+              <!-- Content -->
+              <div class="p-6">
+                <!-- Header -->
+                <div class="flex items-start justify-between mb-3">
+                  <div class="flex items-center gap-2">
+                    <span class={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(guide.difficultyLevel)}`}>
+                      {guide.difficultyLevel.toLowerCase()}
+                    </span>
+                    <span class="text-sm text-gray-600">{guide.region}</span>
+                  </div>
+                  
+                  {guide.isFeatured && (
+                    <span class="bg-primary-100 text-primary-800 px-2 py-1 rounded-full text-xs font-medium">
+                      Featured
+                    </span>
+                  )}
+                </div>
+
+                <!-- Title and Description -->
+                <h3 class="font-display font-bold text-xl text-gray-900 mb-2">
+                  <a href={`/guides/${guide.slug}`} class="hover:text-primary-600 transition-colors">
+                    {guide.title}
+                  </a>
+                </h3>
+                
+                <p class="text-gray-600 text-sm mb-4 line-clamp-2">
+                  {guide.shortDescription}
+                </p>
+
+                <!-- Route Stats -->
+                <div class="grid grid-cols-2 gap-4 mb-4 text-sm">
+                  <div class="flex items-center text-gray-600">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                    </svg>
+                    <span>{guide.estimatedDistance} km</span>
+                  </div>
+                  
+                  <div class="flex items-center text-gray-600">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span>{guide.estimatedDuration}</span>
+                  </div>
+                </div>
+
+                <!-- Highlights -->
+                {guide.highlights.length > 0 && (
+                  <div class="mb-4">
+                    <div class="flex flex-wrap gap-1">
+                      {guide.highlights.slice(0, 3).map((highlight) => (
+                        <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
+                          {highlight}
+                        </span>
+                      ))}
+                      {guide.highlights.length > 3 && (
+                        <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
+                          +{guide.highlights.length - 3} more
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <!-- Action Buttons -->
+                <div class="flex space-x-2">
+                  <a 
+                    href={`/guides/${guide.slug}`}
+                    class="flex-1 bg-primary-600 text-white py-2 px-4 rounded-md text-center font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors"
+                  >
+                    View Guide
+                  </a>
+                  
+                  {guide.gpxFileUrl && (
+                    <a 
+                      href={guide.gpxFileUrl}
+                      download
+                      class="bg-gray-200 text-gray-700 py-2 px-4 rounded-md font-medium hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
+                      title="Download GPX file"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                      </svg>
+                    </a>
+                  )}
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <!-- Pagination -->
+        {totalPages > 1 && (
+          <div class="mt-12 flex items-center justify-between">
+            <div class="text-sm text-gray-700">
+              Showing page {currentPage} of {totalPages}
+            </div>
+            
+            <nav class="flex items-center space-x-2">
+              {currentPage > 1 && (
+                <a
+                  href={`/guides?${new URLSearchParams({...Object.fromEntries(url.searchParams), page: (currentPage - 1).toString()})}`}
+                  class="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  Previous
+                </a>
+              )}
+              
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const pageNum = Math.max(1, Math.min(totalPages, currentPage - 2 + i));
+                return (
+                  <a
+                    href={`/guides?${new URLSearchParams({...Object.fromEntries(url.searchParams), page: pageNum.toString()})}`}
+                    class={`px-3 py-2 text-sm font-medium rounded-md ${
+                      pageNum === currentPage
+                        ? 'bg-primary-600 text-white'
+                        : 'text-gray-500 hover:text-gray-700 border border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    {pageNum}
+                  </a>
+                );
+              })}
+              
+              {currentPage < totalPages && (
+                <a
+                  href={`/guides?${new URLSearchParams({...Object.fromEntries(url.searchParams), page: (currentPage + 1).toString()})}`}
+                  class="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  Next
+                </a>
+              )}
+            </nav>
+          </div>
+        )}
+      </>
+    ) : (
+      <!-- No Results -->
+      <div class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m-6 3v10"/>
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No cycling guides found</h3>
+        <p class="mt-1 text-sm text-gray-500">
+          Try adjusting your search criteria or explore all guides.
+        </p>
+        <div class="mt-6">
+          <button
+            type="button"
+            id="clear-all-filters"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-primary-600 bg-primary-100 hover:bg-primary-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+          >
+            View All Guides
+          </button>
+        </div>
+      </div>
+    )}
+  </div>
+
+  <!-- CTA Section -->
+  <section class="bg-primary-600 py-16">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
+      <h2 class="font-display font-bold text-3xl text-white sm:text-4xl mb-4">
+        Ready to Explore Sri Lanka?
+      </h2>
+      <p class="text-xl text-primary-100 mb-8 max-w-2xl mx-auto">
+        Join our guided tours for a hassle-free cycling experience with expert local guides.
+      </p>
+      <a 
+        href="/packages" 
+        class="inline-flex items-center px-8 py-3 border border-transparent text-lg font-medium rounded-lg text-primary-600 bg-white hover:bg-gray-50 transition-colors"
+      >
+        View Tour Packages
+        <svg class="ml-2 -mr-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
+        </svg>
+      </a>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  // Filter form handling
+  document.addEventListener('DOMContentLoaded', function() {
+    const filterForm = document.getElementById('filter-form');
+    const clearFiltersBtn = document.getElementById('clear-filters');
+    const clearAllFiltersBtn = document.getElementById('clear-all-filters');
+
+    if (filterForm) {
+      filterForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(filterForm);
+        const params = new URLSearchParams();
+        
+        for (const [key, value] of formData.entries()) {
+          if (value && value.toString().trim()) {
+            params.append(key, value.toString());
+          }
+        }
+        
+        // Reset to page 1 when applying new filters
+        params.set('page', '1');
+        
+        window.location.href = `/guides?${params.toString()}`;
+      });
+    }
+
+    if (clearFiltersBtn) {
+      clearFiltersBtn.addEventListener('click', function() {
+        window.location.href = '/guides';
+      });
+    }
+
+    if (clearAllFiltersBtn) {
+      clearAllFiltersBtn.addEventListener('click', function() {
+        window.location.href = '/guides';
+      });
+    }
+
+    // Auto-submit on select changes for better UX
+    const selectInputs = filterForm?.querySelectorAll('select');
+    selectInputs?.forEach(select => {
+      select.addEventListener('change', function() {
+        filterForm.dispatchEvent(new Event('submit'));
+      });
+    });
+  });
+</script>
+
+<style>
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>

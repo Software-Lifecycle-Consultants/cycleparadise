@@ -1,0 +1,106 @@
+---
+export interface Props {
+  src: string;
+  alt: string;
+  width?: number;
+  height?: number;
+  loading?: 'lazy' | 'eager';
+  sizes?: string;
+  class?: string;
+  priority?: boolean;
+}
+
+const { 
+  src, 
+  alt, 
+  width, 
+  height, 
+  loading = 'lazy', 
+  sizes, 
+  class: className = '',
+  priority = false
+} = Astro.props;
+
+// Generate responsive image sizes
+const generateSrcSet = (baseSrc: string) => {
+  const widths = [320, 640, 768, 1024, 1280, 1920];
+  return widths.map(w => `${baseSrc}?w=${w} ${w}w`).join(', ');
+};
+
+// Default sizes based on common breakpoints
+const defaultSizes = sizes || '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw';
+
+// Determine loading strategy
+const imageLoading = priority ? 'eager' : loading;
+const fetchPriority = priority ? 'high' : 'auto';
+---
+
+<!-- Optimized Image Component -->
+<img
+  src={src}
+  srcset={generateSrcSet(src)}
+  sizes={defaultSizes}
+  alt={alt}
+  width={width}
+  height={height}
+  loading={imageLoading}
+  decoding="async"
+  fetchpriority={fetchPriority}
+  class={`transition-opacity duration-300 ${className}`}
+  onload="this.style.opacity='1'"
+  style="opacity: 0;"
+/>
+
+<style>
+  img {
+    /* Improve image rendering */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+  
+  /* Fallback for browsers that don't support loading="lazy" */
+  @supports not (loading: lazy) {
+    img[loading="lazy"] {
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    
+    img[loading="lazy"].loaded {
+      opacity: 1;
+    }
+  }
+</style>
+
+<script>
+  // Intersection Observer for legacy browsers
+  if (!('loading' in HTMLImageElement.prototype)) {
+    const images = document.querySelectorAll('img[loading="lazy"]');
+    
+    const imageObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const img = entry.target as HTMLImageElement;
+          img.src = img.dataset.src || img.src;
+          img.classList.add('loaded');
+          observer.unobserve(img);
+        }
+      });
+    });
+    
+    images.forEach(img => imageObserver.observe(img));
+  }
+  
+  // Add fade-in effect for all images
+  document.addEventListener('DOMContentLoaded', () => {
+    const images = document.querySelectorAll('img');
+    images.forEach(img => {
+      if (img.complete) {
+        img.style.opacity = '1';
+      } else {
+        img.addEventListener('load', () => {
+          img.style.opacity = '1';
+        });
+      }
+    });
+  });
+</script>

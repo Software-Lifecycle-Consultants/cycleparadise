@@ -14,7 +14,9 @@ export class DatabaseClient {
   /**
    * Execute a function within a database transaction
    */
-  async transaction<T>(fn: (tx: PrismaClient) => Promise<T>): Promise<T> {
+  async transaction<T>(
+    fn: (tx: Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>) => Promise<T>
+  ): Promise<T> {
     try {
       return await this.client.$transaction(fn);
     } catch (error) {

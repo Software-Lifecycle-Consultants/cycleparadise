@@ -9,6 +9,56 @@
     "chat.tools.terminal.autoApprove": {
         ".specify/scripts/bash/": true,
         ".specify/scripts/powershell/": true
-    }
+    },
+    "typescript.preferences.includePackageJsonAutoImports": "off",
+    "typescript.suggest.autoImports": false,
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit",
+        "source.organizeImports": "explicit"
+    },
+    "editor.formatOnSave": true,
+    "eslint.validate": [
+        "javascript",
+        "typescript",
+        "astro"
+    ],
+    "eslint.workingDirectories": [
+        "."
+    ],
+    "files.associations": {
+        "*.astro": "astro"
+    },
+    "editor.quickSuggestions": {
+        "strings": true
+    },
+    "typescript.preferences.quotestyle": "single",
+    "javascript.preferences.quotestyle": "single",
+    "astro.typescript.allowArbitraryAttributes": false,
+    "astro.typescript.strictMode": true,
+    "problems.decorations.enabled": true,
+    "editor.rulers": [80, 120],
+    "editor.wordWrap": "bounded",
+    "editor.wordWrapColumn": 120,
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/dist": true,
+        "**/.astro": true,
+        "**/coverage": true
+    },
+    "files.exclude": {
+        "**/.astro": true,
+        "**/node_modules": true
+    },
+    "errorLens.enabledDiagnosticLevels": [
+        "error",
+        "warning",
+        "info"
+    ],
+    "errorLens.exclude": [
+        "never (read|used)"
+    ],
+    "typescript.check.npmIsInstalled": false,
+    "typescript.disableAutomaticTypeAcquisition": false,
+    "typescript.updateImportsOnFileMove.enabled": "always"
 }
 

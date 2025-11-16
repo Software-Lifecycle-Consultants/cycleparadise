@@ -1,7 +1,6 @@
 {
   "extends": [
-    "@typescript-eslint/recommended",
-    "plugin:astro/recommended"
+    "eslint:recommended"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
@@ -9,12 +8,67 @@
     "sourceType": "module"
   },
   "plugins": ["@typescript-eslint"],
+  "ignorePatterns": [
+    "dist/**/*",
+    "node_modules/**/*",
+    ".astro/**/*",
+    "public/**/*"
+  ],
   "rules": {
+    // Prevent reserved word usage
+    "no-restricted-globals": [
+      "error",
+      {
+        "name": "package",
+        "message": "Don't use 'package' as a variable name - it's a reserved word. Use 'pkg', 'tourPackage', or similar instead."
+      }
+    ],
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "VariableDeclarator[id.name='package']",
+        "message": "Don't use 'package' as a variable name - it's a reserved word. Use 'pkg', 'tourPackage', or similar instead."
+      },
+      {
+        "selector": "FunctionExpression > Identifier[name='package']",
+        "message": "Don't use 'package' as a parameter name - it's a reserved word. Use 'pkg', 'tourPackage', or similar instead."
+      },
+      {
+        "selector": "ArrowFunctionExpression > Identifier[name='package']",
+        "message": "Don't use 'package' as a parameter name - it's a reserved word. Use 'pkg', 'tourPackage', or similar instead."
+      }
+    ],
+
+    // TypeScript specific rules
     "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
-    "@typescript-eslint/explicit-function-return-type": "warn",
+    "@typescript-eslint/explicit-function-return-type": "off",
     "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/prefer-const": "error",
+
+    // General syntax rules
+    "no-console": ["warn", { "allow": ["warn", "error"] }],
     "prefer-const": "error",
-    "no-var": "error"
+    "no-var": "error",
+    "eqeqeq": ["error", "always"],
+    "curly": ["error", "all"],
+    "brace-style": ["error", "1tbs"],
+    
+    // Prevent common mistakes
+    "no-unreachable": "error",
+    "no-duplicate-case": "error",
+    "no-extra-semi": "error",
+    "no-irregular-whitespace": "error",
+    "valid-typeof": "error",
+    
+    // Array and object rules
+    "array-bracket-spacing": ["error", "never"],
+    "object-curly-spacing": ["error", "always"],
+    "comma-dangle": ["error", "never"],
+    "semi": ["error", "always"],
+    
+    // Function rules
+    "func-call-spacing": ["error", "never"],
+    "space-before-function-paren": ["error", "never"]
   },
   "overrides": [
     {
@@ -23,6 +77,15 @@
       "parserOptions": {
         "parser": "@typescript-eslint/parser",
         "extraFileExtensions": [".astro"]
+      },
+      "rules": {
+        // Astro specific rules
+        "astro/no-conflict-set-directives": "error",
+        "astro/no-unused-define-vars-in-style": "error",
+        "astro/valid-compile": "error",
+        "astro/no-deprecated-astro-canonicalurl": "error",
+        "astro/no-deprecated-astro-resolve": "error",
+        "astro/no-deprecated-getentrybyslug": "error"
       }
     }
   ],

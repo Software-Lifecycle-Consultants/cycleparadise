@@ -1,0 +1,412 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PackageCard from '../components/ui/PackageCard.astro';
+import { tourPackageRepository } from '../lib/db/repositories/tour-packages.js';
+import type { TourPackage, PackageSearchParams } from '../types/models.js';
+
+// Get search parameters from URL
+const url = new URL(Astro.request.url);
+const searchParams: PackageSearchParams = {
+  search: url.searchParams.get('search') || undefined,
+  region: url.searchParams.get('region') || undefined,
+  difficultyLevel: url.searchParams.get('difficulty') as 'EASY' | 'INTERMEDIATE' | 'CHALLENGING' | undefined,
+  minPrice: url.searchParams.get('minPrice') ? Number(url.searchParams.get('minPrice')) : undefined,
+  maxPrice: url.searchParams.get('maxPrice') ? Number(url.searchParams.get('maxPrice')) : undefined,
+  minDuration: url.searchParams.get('minDuration') ? Number(url.searchParams.get('minDuration')) : undefined,
+  maxDuration: url.searchParams.get('maxDuration') ? Number(url.searchParams.get('maxDuration')) : undefined,
+  page: url.searchParams.get('page') ? Number(url.searchParams.get('page')) : 1,
+  limit: 9
+};
+
+// Fetch packages and filters
+let packages: TourPackage[] = [];
+let totalCount = 0;
+let regions: string[] = [];
+let priceRange = { min: 0, max: 1000 };
+let durationRange = { min: 1, max: 14 };
+
+try {
+  const result = await tourPackageRepository.findMany(searchParams);
+  packages = result.packages;
+  totalCount = result.totalCount;
+  
+  // Get filter options
+  regions = await tourPackageRepository.getRegions();
+  priceRange = await tourPackageRepository.getPriceRange();
+  durationRange = await tourPackageRepository.getDurationRange();
+} catch (error) {
+  console.error('Failed to load packages:', error);
+  // Fallback data for development
+  packages = [
+    {
+      id: 1,
+      title: "Hill Country Explorer",
+      slug: "hill-country-explorer",
+      description: "Cycle through misty tea plantations and charming hill stations in Sri Lanka's central highlands. Experience the cool mountain air and breathtaking views.",
+      shortDescription: "Tea plantations and hill stations adventure",
+      price: 299,
+      duration: 7,
+      difficultyLevel: "INTERMEDIATE" as const,
+      maxGroupSize: 12,
+      images: ["/images/hill-country-1.jpg", "/images/hill-country-2.jpg"],
+      videoUrl: null,
+      isActive: true,
+      isFeatured: true,
+      region: "Central",
+      includedServices: ["Bike rental", "Professional guide", "Accommodation", "Breakfast"],
+      excludedServices: ["Lunch", "Dinner", "Personal expenses"],
+      highlights: ["Tea factory visits", "Scenic mountain views", "Traditional villages"],
+      itinerary: [],
+      whatToBring: [],
+      accommodation: [],
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: 2,
+      title: "Coastal Adventure",
+      slug: "coastal-adventure", 
+      description: "Ride along pristine beaches and through fishing villages on Sri Lanka's stunning coastline. Enjoy fresh seafood and ocean breezes.",
+      shortDescription: "Beaches and fishing villages tour",
+      price: 199,
+      duration: 5,
+      difficultyLevel: "EASY" as const,
+      maxGroupSize: 15,
+      images: ["/images/coastal-1.jpg", "/images/coastal-2.jpg"],
+      videoUrl: null,
+      isActive: true,
+      isFeatured: true,
+      region: "Southern",
+      includedServices: ["Bike rental", "Guide", "Meals", "Beach activities"],
+      excludedServices: ["Personal expenses", "Alcohol"],
+      highlights: ["Beach cycling", "Local fishing communities", "Seafood experiences"],
+      itinerary: [],
+      whatToBring: [],
+      accommodation: [],
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: 3,
+      title: "Cultural Triangle",
+      slug: "cultural-triangle",
+      description: "Discover ancient temples and archaeological wonders in Sri Lanka's cultural heartland. Explore UNESCO World Heritage sites.",
+      shortDescription: "Ancient temples and archaeological sites",
+      price: 399,
+      duration: 10,
+      difficultyLevel: "CHALLENGING" as const,
+      maxGroupSize: 10,
+      images: ["/images/cultural-1.jpg", "/images/cultural-2.jpg"],
+      videoUrl: null,
+      isActive: true,
+      isFeatured: true,
+      region: "North Central",
+      includedServices: ["Bike rental", "Guide", "Accommodation", "Cultural guide", "Site entrance fees"],
+      excludedServices: ["Personal expenses", "Tips"],
+      highlights: ["Ancient temples", "UNESCO World Heritage sites", "Archaeological museums"],
+      itinerary: [],
+      whatToBring: [],
+      accommodation: [],
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }
+  ];
+  totalCount = 3;
+  regions = ["Central", "Southern", "North Central", "Western", "Eastern"];
+  priceRange = { min: 99, max: 599 };
+  durationRange = { min: 3, max: 14 };
+}
+
+// Calculate pagination
+const totalPages = Math.ceil(totalCount / searchParams.limit!);
+const currentPage = searchParams.page || 1;
+---
+
+<Layout 
+  title={searchParams.search ? `Search Results for "${searchParams.search}" - Cycle Paradise` : "Tour Packages - Cycle Paradise"}
+  description="Explore our comprehensive collection of cycling tour packages in Sri Lanka. From easy coastal rides to challenging mountain adventures, find your perfect cycling holiday."
+>
+  <!-- Page Header -->
+  <section class="bg-gradient-to-b from-primary-50 to-white py-16">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="text-center">
+        <h1 class="font-display font-bold text-4xl text-gray-900 sm:text-5xl">
+          {searchParams.search ? `Search Results` : 'Tour Packages'}
+        </h1>
+        {searchParams.search && (
+          <p class="mt-4 text-lg text-gray-600">
+            Results for "<span class="font-semibold text-primary-600">{searchParams.search}</span>"
+          </p>
+        )}
+        <p class="mt-2 text-gray-600">
+          Showing {packages.length} of {totalCount} packages
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+    <div class="lg:grid lg:grid-cols-4 lg:gap-8">
+      <!-- Filters Sidebar -->
+      <div class="mb-8 lg:mb-0">
+        <form id="filter-form" class="space-y-6">
+          <!-- Search -->
+          <div>
+            <label for="search" class="block text-sm font-medium text-gray-700 mb-2">
+              Search Packages
+            </label>
+            <input
+              type="text"
+              id="search"
+              name="search"
+              value={searchParams.search || ''}
+              placeholder="Search by name or description..."
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            />
+          </div>
+
+          <!-- Region Filter -->
+          <div>
+            <label for="region" class="block text-sm font-medium text-gray-700 mb-2">
+              Region
+            </label>
+            <select
+              id="region"
+              name="region"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            >
+              <option value="">All Regions</option>
+              {regions.map(region => (
+                <option value={region} selected={searchParams.region === region}>
+                  {region}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <!-- Difficulty Filter -->
+          <div>
+            <label for="difficulty" class="block text-sm font-medium text-gray-700 mb-2">
+              Difficulty Level
+            </label>
+            <select
+              id="difficulty"
+              name="difficulty"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            >
+              <option value="">All Levels</option>
+              <option value="EASY" selected={searchParams.difficultyLevel === 'EASY'}>Easy</option>
+              <option value="INTERMEDIATE" selected={searchParams.difficultyLevel === 'INTERMEDIATE'}>Intermediate</option>
+              <option value="CHALLENGING" selected={searchParams.difficultyLevel === 'CHALLENGING'}>Challenging</option>
+            </select>
+          </div>
+
+          <!-- Price Range -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Price Range (USD)
+            </label>
+            <div class="grid grid-cols-2 gap-2">
+              <input
+                type="number"
+                name="minPrice"
+                placeholder="Min"
+                value={searchParams.minPrice || ''}
+                min={priceRange.min}
+                max={priceRange.max}
+                class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              />
+              <input
+                type="number"
+                name="maxPrice"
+                placeholder="Max"
+                value={searchParams.maxPrice || ''}
+                min={priceRange.min}
+                max={priceRange.max}
+                class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              />
+            </div>
+            <p class="text-xs text-gray-500 mt-1">
+              Range: ${priceRange.min} - ${priceRange.max}
+            </p>
+          </div>
+
+          <!-- Duration Range -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Duration (Days)
+            </label>
+            <div class="grid grid-cols-2 gap-2">
+              <input
+                type="number"
+                name="minDuration"
+                placeholder="Min"
+                value={searchParams.minDuration || ''}
+                min={durationRange.min}
+                max={durationRange.max}
+                class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              />
+              <input
+                type="number"
+                name="maxDuration"
+                placeholder="Max"
+                value={searchParams.maxDuration || ''}
+                min={durationRange.min}
+                max={durationRange.max}
+                class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              />
+            </div>
+            <p class="text-xs text-gray-500 mt-1">
+              Range: {durationRange.min} - {durationRange.max} days
+            </p>
+          </div>
+
+          <!-- Filter Actions -->
+          <div class="space-y-2">
+            <button
+              type="submit"
+              class="w-full bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors"
+            >
+              Apply Filters
+            </button>
+            <button
+              type="button"
+              id="clear-filters"
+              class="w-full bg-gray-200 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
+            >
+              Clear Filters
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Package Results -->
+      <div class="lg:col-span-3">
+        {packages.length > 0 ? (
+          <>
+            <!-- Package Grid -->
+            <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 xl:grid-cols-3">
+              {packages.map((tourPackage) => (
+                <PackageCard package={tourPackage} />
+              ))}
+            </div>
+
+            <!-- Pagination -->
+            {totalPages > 1 && (
+              <div class="mt-12 flex items-center justify-between">
+                <div class="text-sm text-gray-700">
+                  Showing page {currentPage} of {totalPages}
+                </div>
+                
+                <nav class="flex items-center space-x-2">
+                  {currentPage > 1 && (
+                    <a
+                      href={`/packages?${new URLSearchParams({...Object.fromEntries(url.searchParams), page: (currentPage - 1).toString()})}`}
+                      class="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+                    >
+                      Previous
+                    </a>
+                  )}
+                  
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    const pageNum = Math.max(1, Math.min(totalPages, currentPage - 2 + i));
+                    return (
+                      <a
+                        href={`/packages?${new URLSearchParams({...Object.fromEntries(url.searchParams), page: pageNum.toString()})}`}
+                        class={`px-3 py-2 text-sm font-medium rounded-md ${
+                          pageNum === currentPage
+                            ? 'bg-primary-600 text-white'
+                            : 'text-gray-500 hover:text-gray-700 border border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {pageNum}
+                      </a>
+                    );
+                  })}
+                  
+                  {currentPage < totalPages && (
+                    <a
+                      href={`/packages?${new URLSearchParams({...Object.fromEntries(url.searchParams), page: (currentPage + 1).toString()})}`}
+                      class="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+                    >
+                      Next
+                    </a>
+                  )}
+                </nav>
+              </div>
+            )}
+          </>
+        ) : (
+          <!-- No Results -->
+          <div class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.29-1.217-5.417-3.034A8.002 8.002 0 012 9c0-4.418 3.582-8 8-8s8 3.582 8 8a8.002 8.002 0 01-4.583 7.034A7.962 7.962 0 0112 15z"/>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No packages found</h3>
+            <p class="mt-1 text-sm text-gray-500">
+              Try adjusting your filters or search terms.
+            </p>
+            <div class="mt-6">
+              <button
+                type="button"
+                id="clear-all-filters"
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-primary-600 bg-primary-100 hover:bg-primary-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+              >
+                Clear All Filters
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  // Filter form handling
+  document.addEventListener('DOMContentLoaded', function() {
+    const filterForm = document.getElementById('filter-form');
+    const clearFiltersBtn = document.getElementById('clear-filters');
+    const clearAllFiltersBtn = document.getElementById('clear-all-filters');
+
+    if (filterForm) {
+      filterForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(filterForm);
+        const params = new URLSearchParams();
+        
+        for (const [key, value] of formData.entries()) {
+          if (value && value.toString().trim()) {
+            params.append(key, value.toString());
+          }
+        }
+        
+        // Reset to page 1 when applying new filters
+        params.set('page', '1');
+        
+        window.location.href = `/packages?${params.toString()}`;
+      });
+    }
+
+    if (clearFiltersBtn) {
+      clearFiltersBtn.addEventListener('click', function() {
+        window.location.href = '/packages';
+      });
+    }
+
+    if (clearAllFiltersBtn) {
+      clearAllFiltersBtn.addEventListener('click', function() {
+        window.location.href = '/packages';
+      });
+    }
+
+    // Auto-submit on select changes for better UX
+    const selectInputs = filterForm?.querySelectorAll('select');
+    selectInputs?.forEach(select => {
+      select.addEventListener('change', function() {
+        filterForm.dispatchEvent(new Event('submit'));
+      });
+    });
+  });
+</script>

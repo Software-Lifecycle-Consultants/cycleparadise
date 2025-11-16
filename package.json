@@ -18,7 +18,12 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "validate": "node scripts/validate.mjs",
+    "type-check": "tsc --noEmit --skipLibCheck",
+    "pre-commit": "powershell -ExecutionPolicy Bypass -File .githooks/pre-commit.ps1",
+    "check-all": "npm run type-check && npm run lint && npm run validate && npm run build",
+    "setup-hooks": "git config core.hooksPath .githooks && chmod +x .githooks/*"
   },
   "dependencies": {
     "@astrojs/react": "^3.6.0",
@@ -42,8 +47,8 @@
     "@types/nodemailer": "^6.4.14",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
-    "@typescript-eslint/eslint-plugin": "^6.0.0",
-    "@typescript-eslint/parser": "^6.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
     "@vitest/coverage-v8": "^1.6.0",
     "@vitest/ui": "^1.6.0",
     "eslint": "^8.57.0",

@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# Pre-commit hook to prevent common errors
+set -e
+
+echo "🔍 Running pre-commit checks..."
+
+# 1. TypeScript type checking
+echo "📝 Checking TypeScript..."
+npx tsc --noEmit --skipLibCheck
+if [ $? -ne 0 ]; then
+  echo "❌ TypeScript errors found. Please fix before committing."
+  exit 1
+fi
+
+# 2. ESLint checks
+echo "🔧 Running ESLint..."
+npx eslint . --ext .ts,.js,.astro --max-warnings 0
+if [ $? -ne 0 ]; then
+  echo "❌ ESLint errors found. Please fix before committing."
+  exit 1
+fi
+
+# 3. Check for reserved word usage
+echo "🚫 Checking for reserved word usage..."
+if grep -r "\.map((package)" src/ --include="*.astro" --include="*.ts" --include="*.js"; then
+  echo "❌ Found usage of 'package' as variable name (reserved word). Use 'tourPackage', 'pkg', or similar instead."
+  exit 1
+fi
+
+# 4. Check for common syntax errors
+echo "🔍 Checking for common syntax errors..."
+if grep -r "]);" src/ --include="*.ts" --include="*.js" | grep -v "async" | grep -v "Promise.all"; then
+  echo "⚠️  Found potential extra ']); patterns. Please review."
+fi
+
+# 5. Check Astro build
+echo "🏗️  Testing Astro build..."
+npm run build > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo "❌ Astro build failed. Please fix build errors before committing."
+  exit 1
+fi
+
+echo "✅ All pre-commit checks passed!"
+exit 0

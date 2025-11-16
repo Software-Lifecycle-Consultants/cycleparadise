@@ -1,0 +1,173 @@
+---
+import type { TourPackage } from '../../types/models';
+
+export interface Props {
+  package: TourPackage;
+  featured?: boolean;
+  className?: string;
+}
+
+const { package: tourPackage, featured = false, className = '' } = Astro.props;
+
+// Helper function to get difficulty color
+function getDifficultyColor(level: string): string {
+  switch (level) {
+    case 'BEGINNER':
+      return 'bg-green-100 text-green-800';
+    case 'INTERMEDIATE':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'ADVANCED':
+      return 'bg-orange-100 text-orange-800';
+    case 'EXPERT':
+      return 'bg-red-100 text-red-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+}
+
+// Helper function to get difficulty label
+function getDifficultyLabel(level: string): string {
+  return level.charAt(0).toUpperCase() + level.slice(1).toLowerCase();
+}
+
+// Get first image from gallery or use placeholder
+const firstImage = tourPackage.mediaGallery?.images?.[0]?.url || '/images/package-placeholder.jpg';
+const packageUrl = `/packages/${tourPackage.slug}`;
+---
+
+<div class={`bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 ${className}`}>
+  <!-- Image Section -->
+  <div class="relative aspect-w-16 aspect-h-9">
+    <a href={packageUrl}>
+      <img 
+        src={firstImage} 
+        alt={tourPackage.title}
+        class="w-full h-48 object-cover"
+        loading="lazy"
+      />
+    </a>
+    
+    <!-- Featured Badge -->
+    {featured && (
+      <div class="absolute top-3 left-3">
+        <span class="bg-primary-600 text-white px-2 py-1 rounded-full text-xs font-semibold">
+          Featured
+        </span>
+      </div>
+    )}
+    
+    <!-- Difficulty Badge -->
+    <div class="absolute top-3 right-3">
+      <span class={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(tourPackage.difficultyLevel)}`}>
+        {getDifficultyLabel(tourPackage.difficultyLevel)}
+      </span>
+    </div>
+  </div>
+
+  <!-- Content Section -->
+  <div class="p-6">
+    <!-- Title -->
+    <h3 class="font-semibold text-xl text-gray-900 mb-2 line-clamp-2">
+      <a href={packageUrl} class="hover:text-primary-600 transition-colors">
+        {tourPackage.title}
+      </a>
+    </h3>
+    
+    <!-- Short Description -->
+    {tourPackage.shortDescription && (
+      <p class="text-gray-600 text-sm mb-4 line-clamp-3">
+        {tourPackage.shortDescription}
+      </p>
+    )}
+    
+    <!-- Package Details -->
+    <div class="flex items-center justify-between mb-4 text-sm text-gray-500">
+      <div class="flex items-center space-x-4">
+        <!-- Duration -->
+        <div class="flex items-center">
+          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>{tourPackage.duration} days</span>
+        </div>
+        
+        <!-- Region -->
+        <div class="flex items-center">
+          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span class="truncate">{tourPackage.region}</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Price and Action -->
+    <div class="flex items-center justify-between">
+      <div class="flex flex-col">
+        <span class="text-2xl font-bold text-primary-600">
+          ${tourPackage.basePrice}
+        </span>
+        <span class="text-xs text-gray-500">per person</span>
+      </div>
+      
+      <a 
+        href={packageUrl}
+        class="bg-primary-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors"
+      >
+        View Details
+      </a>
+    </div>
+    
+    <!-- Included Services Preview -->
+    {tourPackage.includedServices && tourPackage.includedServices.length > 0 && (
+      <div class="mt-4 pt-4 border-t border-gray-200">
+        <p class="text-xs text-gray-500 mb-2">Includes:</p>
+        <div class="flex flex-wrap gap-1">
+          {tourPackage.includedServices.slice(0, 3).map((service: string) => (
+            <span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
+              {service}
+            </span>
+          ))}
+          {tourPackage.includedServices.length > 3 && (
+            <span class="text-xs text-gray-500">
+              +{tourPackage.includedServices.length - 3} more
+            </span>
+          )}
+        </div>
+      </div>
+    )}
+  </div>
+</div>
+
+<style>
+  /* Line clamp utility for text truncation */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .aspect-w-16 {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+  }
+  
+  .aspect-w-16 > * {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+  }
+</style>
