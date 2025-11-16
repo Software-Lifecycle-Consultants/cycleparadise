@@ -1,0 +1,372 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+const contactEmail = import.meta.env.CONTACT_EMAIL || "info@cycleparadise.lk";
+const contactPhone = "+94 77 123 4567";
+const whatsappNumber = "+94 71 555 8899";
+const officeAddress = "38/12 Temple Lane, Colombo 05, Sri Lanka";
+const mapEmbedUrl = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d7934.353533961576!2d79.852027!3d6.877091!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ae25a4a5eb1a6d7%3A0x8fd97845e15b8ff9!2sColombo%2005!5e0!3m2!1sen!2slk!4v1700000000000!5m2!1sen!2slk";
+
+const officeHours = [
+  { label: "Monday - Friday", value: "08:00 – 18:00" },
+  { label: "Saturday", value: "08:00 – 13:00" },
+  { label: "24/7 Rider Hotline", value: "+94 77 123 4567" }
+];
+
+const supportChannels = [
+  {
+    title: "Call Us",
+    description: "Speak with a trip designer about routes, pricing, or gear logistics.",
+    value: contactPhone,
+    action: `tel:${contactPhone.replace(/\s/g, "")}`
+  },
+  {
+    title: "Email",
+    description: "Share your draft itinerary, special occasions, or team objectives.",
+    value: contactEmail,
+    action: `mailto:${contactEmail}`
+  },
+  {
+    title: "WhatsApp",
+    description: "Quick updates, live ride support, and photo sharing for guests on tour.",
+    value: whatsappNumber,
+    action: `https://wa.me/${whatsappNumber.replace(/[^\d]/g, "")}`
+  }
+];
+
+const faqs = [
+  {
+    question: "How soon should I book a custom cycling holiday?",
+    answer: "Peak season (December–April) fills up 3 to 4 months in advance. Securing your dates early helps us lock in boutique stays and permits."
+  },
+  {
+    question: "Can you design rides for mixed experience levels?",
+    answer: "Yes. We split groups by pace, deploy e-bike support, and design optional shuttles so everyone feels challenged yet comfortable."
+  },
+  {
+    question: "Do you assist with bikes, nutrition, and mechanics?",
+    answer: "Absolutely. Choose from high-performance rentals, bring your own bike with pro-tune services, and count on our on-route mechanic team."
+  },
+  {
+    question: "What happens after I submit the form?",
+    answer: "A trip designer replies within one business day with clarifying questions and suggested discovery call slots."
+  }
+];
+
+const contactFormConfig = {
+  endpoint: import.meta.env.PUBLIC_CONTACT_FORM_ENDPOINT || "",
+  fallbackEmail: contactEmail
+};
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "ContactPage",
+  "name": "Contact Cycle Paradise",
+  "description": "Reach the Cycle Paradise team for cycling tour planning, partnerships, and support.",
+  "url": "https://cycleparadise.lk/contact",
+  "mainEntity": {
+    "@type": "Organization",
+    "name": "Cycle Paradise",
+    "email": contactEmail,
+    "telephone": contactPhone,
+    "contactPoint": [
+      {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "telephone": contactPhone,
+        "areaServed": "LK",
+        "availableLanguage": ["English", "Sinhala", "Tamil"],
+        "email": contactEmail
+      }
+    ],
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "38/12 Temple Lane",
+      "addressLocality": "Colombo",
+      "addressRegion": "Western Province",
+      "postalCode": "00500",
+      "addressCountry": "LK"
+    }
+  }
+};
+---
+
+<Layout
+  title="Contact Cycle Paradise | Plan Your Sri Lanka Cycling Tour"
+  description="Talk to Cycle Paradise trip designers for bookings, partnerships, and rider support. Call, WhatsApp, or email us to plan your Sri Lanka cycling adventure."
+  keywords={["contact cycle paradise", "cycling tours support sri lanka", "book cycling holiday"]}
+  structuredData={structuredData}
+>
+  <section class="bg-gradient-to-b from-primary-50 via-white to-white">
+    <div class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+      <div class="grid gap-12 lg:grid-cols-2">
+        <div>
+          <p class="text-sm uppercase tracking-widest text-primary-600 font-semibold">Let's plan your next ride</p>
+          <h1 class="mt-4 font-display text-4xl font-bold text-gray-900 sm:text-5xl">
+            Dedicated trip designers, 24/7 rider care.
+          </h1>
+          <p class="mt-6 text-lg text-gray-700">
+            Share your dream terrain, budget, and riders. We reply within one business day with a curated ride plan, logistics checklist, and suggested call slots.
+          </p>
+          <dl class="mt-10 grid gap-6 sm:grid-cols-2">
+            <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+              <dt class="text-sm font-semibold text-gray-500">Phone Hotline</dt>
+              <dd class="mt-2 text-2xl font-semibold text-gray-900">{contactPhone}</dd>
+              <p class="mt-1 text-sm text-gray-500">Weekdays 08:00 – 18:00 GMT+5:30</p>
+            </div>
+            <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+              <dt class="text-sm font-semibold text-gray-500">Email</dt>
+              <dd class="mt-2 text-2xl font-semibold text-gray-900">{contactEmail}</dd>
+              <p class="mt-1 text-sm text-gray-500">Replies within 24 hours</p>
+            </div>
+          </dl>
+        </div>
+        <div class="rounded-[32px] bg-white p-8 shadow-xl ring-1 ring-gray-100">
+          <p class="text-sm uppercase tracking-widest text-primary-600 font-semibold">Office Hours</p>
+          <ul class="mt-6 space-y-4">
+            {officeHours.map((slot) => (
+              <li class="flex items-center justify-between rounded-2xl bg-gray-50 px-4 py-3">
+                <span class="text-gray-600">{slot.label}</span>
+                <span class="font-semibold text-gray-900">{slot.value}</span>
+              </li>
+            ))}
+          </ul>
+          <div class="mt-8">
+            <p class="text-sm font-semibold text-gray-500">Studio</p>
+            <p class="mt-1 text-lg font-semibold text-gray-900">{officeAddress}</p>
+            <p class="mt-3 text-sm text-gray-500">Visits by appointment. Secure bike storage and fit studio on-site.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-24">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="grid gap-12 lg:grid-cols-2">
+        <div>
+          <p class="text-sm uppercase tracking-widest text-primary-600 font-semibold">Message us</p>
+          <h2 class="mt-4 font-display text-3xl font-bold text-gray-900">Tell us about your ride goals.</h2>
+          <p class="mt-4 text-gray-600">We prioritize clarity and consent. Expect a detailed reply, optional video call invite, and zero spam.</p>
+          <form id="contact-form" class="mt-10 space-y-6" novalidate>
+            <div>
+              <label for="fullName" class="block text-sm font-medium text-gray-700">Full name</label>
+              <input
+                id="fullName"
+                name="fullName"
+                type="text"
+                required
+                class="mt-2 block w-full rounded-xl border border-gray-300 px-4 py-3 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              />
+            </div>
+            <div class="grid gap-6 md:grid-cols-2">
+              <div>
+                <label for="email" class="block text-sm font-medium text-gray-700">Email address</label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  class="mt-2 block w-full rounded-xl border border-gray-300 px-4 py-3 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                />
+              </div>
+              <div>
+                <label for="phone" class="block text-sm font-medium text-gray-700">Phone or WhatsApp</label>
+                <input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  placeholder="Optional"
+                  class="mt-2 block w-full rounded-xl border border-gray-300 px-4 py-3 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                />
+              </div>
+            </div>
+            <div>
+              <label for="interest" class="block text-sm font-medium text-gray-700">What are you planning?</label>
+              <select
+                id="interest"
+                name="interest"
+                class="mt-2 block w-full rounded-xl border border-gray-300 px-4 py-3 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              >
+                <option value="custom-tour">Custom multi-day tour</option>
+                <option value="corporate-retreat">Corporate or team retreat</option>
+                <option value="day-ride">Guided day ride</option>
+                <option value="event-support">Race or event logistics</option>
+                <option value="media">Media or partnership enquiry</option>
+              </select>
+            </div>
+            <div>
+              <label for="message" class="block text-sm font-medium text-gray-700">How can we help?</label>
+              <textarea
+                id="message"
+                name="message"
+                rows={5}
+                required
+                class="mt-2 block w-full rounded-xl border border-gray-300 px-4 py-3 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                placeholder="Share preferred dates, distance goals, group size, or any non-negotiables."
+              ></textarea>
+            </div>
+            <div class="flex items-center">
+              <input
+                id="consent"
+                name="consent"
+                type="checkbox"
+                required
+                class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              />
+              <label for="consent" class="ml-3 text-sm text-gray-600">
+                I agree to be contacted regarding my enquiry and understand I can opt out anytime.
+              </label>
+            </div>
+            <button
+              type="submit"
+              class="inline-flex w-full items-center justify-center rounded-xl bg-primary-600 px-6 py-4 text-base font-semibold text-white shadow hover:bg-primary-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+            >
+              Send message
+            </button>
+            <p id="contact-form-status" class="hidden text-sm font-semibold"></p>
+          </form>
+        </div>
+        <div class="space-y-10">
+          <div class="rounded-3xl bg-gray-50 p-8">
+            <p class="text-sm uppercase tracking-widest text-primary-600 font-semibold">Preferred channels</p>
+            <div class="mt-6 space-y-4">
+              {supportChannels.map((channel) => (
+                <a
+                  href={channel.action}
+                  class="flex items-start justify-between rounded-2xl bg-white px-5 py-4 text-left shadow-sm ring-1 ring-gray-100 hover:ring-primary-200"
+                >
+                  <div>
+                    <p class="text-sm font-semibold text-gray-500">{channel.title}</p>
+                    <p class="text-lg font-semibold text-gray-900">{channel.value}</p>
+                    <p class="mt-1 text-sm text-gray-600">{channel.description}</p>
+                  </div>
+                  <svg class="ml-4 h-6 w-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </a>
+              ))}
+            </div>
+          </div>
+          <div class="rounded-3xl bg-white p-8 shadow-xl ring-1 ring-gray-100">
+            <p class="text-sm uppercase tracking-widest text-primary-600 font-semibold">Frequently asked</p>
+            <div class="mt-6 space-y-6">
+              {faqs.map((faq) => (
+                <details class="rounded-2xl border border-gray-200 p-4" open>
+                  <summary class="cursor-pointer text-base font-semibold text-gray-900">
+                    {faq.question}
+                  </summary>
+                  <p class="mt-3 text-sm text-gray-600">{faq.answer}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="bg-gray-900 py-24 text-white">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="grid gap-10 lg:grid-cols-2 lg:items-center">
+        <div>
+          <p class="text-sm uppercase tracking-widest text-primary-300 font-semibold">Visit our studio</p>
+          <h2 class="mt-4 font-display text-3xl font-bold">Bike fit lab, coffee bar, and gear concierge.</h2>
+          <p class="mt-4 text-lg text-gray-200">
+            Schedule a fitting session, test our carbon fleet, or co-design a CSR ride with our sustainability lead.
+          </p>
+          <ul class="mt-6 space-y-3 text-gray-200">
+            <li class="flex items-center">
+              <svg class="mr-3 h-5 w-5 text-primary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              </svg>
+              Complimentary bike transport from Colombo hotels
+            </li>
+            <li class="flex items-center">
+              <svg class="mr-3 h-5 w-5 text-primary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Same-day emergency mechanic service for active guests
+            </li>
+            <li class="flex items-center">
+              <svg class="mr-3 h-5 w-5 text-primary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              Wheelchair-accessible reception and briefing lounge
+            </li>
+          </ul>
+        </div>
+        <div class="overflow-hidden rounded-3xl shadow-2xl ring-1 ring-white/10">
+          <iframe
+            src={mapEmbedUrl}
+            loading="lazy"
+            class="h-96 w-full border-0"
+            allowFullScreen
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script type="application/json" id="contact-form-config" set:html={JSON.stringify(contactFormConfig)}></script>
+  <script type="module">
+    const configElement = document.getElementById("contact-form-config");
+    const formConfig = configElement ? JSON.parse(configElement.textContent || "{}") : {};
+    const form = document.getElementById("contact-form");
+    const statusEl = document.getElementById("contact-form-status");
+
+    function setStatus(message, type = "info") {
+      if (!statusEl) return;
+      statusEl.textContent = message;
+      statusEl.classList.remove("hidden", "text-primary-700", "text-red-600", "text-gray-700");
+      const colorMap = {
+        info: "text-gray-700",
+        success: "text-primary-700",
+        error: "text-red-600"
+      };
+      statusEl.classList.add(colorMap[type] || "text-gray-700");
+    }
+
+    async function handleSubmit(event) {
+      event.preventDefault();
+      if (!form) {
+        return;
+      }
+      setStatus("Sending your message...", "info");
+      const formData = new FormData(form);
+      const payload = Object.fromEntries(formData.entries());
+
+      if (!formConfig.endpoint) {
+        await new Promise((resolve) => setTimeout(resolve, 600));
+        setStatus(`Almost there! Please email us directly at ${formConfig.fallbackEmail} while we finalize the messaging endpoint.`, "info");
+        return;
+      }
+
+      try {
+        const response = await fetch(formConfig.endpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json"
+          },
+          body: JSON.stringify({ ...payload, formName: "cycle-paradise-contact" })
+        });
+
+        if (!response.ok) {
+          throw new Error("Unable to submit the form right now.");
+        }
+
+        form.reset();
+        setStatus("Thank you! A trip designer will reply within one business day.", "success");
+      } catch (error) {
+        console.error(error);
+        setStatus("Something went wrong. Please email us at " + formConfig.fallbackEmail + " or call our hotline.", "error");
+      }
+    }
+
+    if (form) {
+      form.addEventListener("submit", handleSubmit);
+    }
+  </script>
+</Layout>
