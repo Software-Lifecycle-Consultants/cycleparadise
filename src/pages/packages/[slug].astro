@@ -4,17 +4,32 @@ import PackageGallery from '../../components/media/PackageGallery.astro';
 import YouTubeEmbed from '../../components/media/YouTubeEmbed.astro';
 import { tourPackageRepository } from '../../lib/db/repositories/tour-packages.js';
 import type { TourPackage } from '../../types/models.js';
+import {
+  getFallbackTourPackageBySlug,
+  getFallbackTourPackageSlugs,
+  getRelatedFallbackTourPackages
+} from '../../data/fallback-tour-packages.ts';
+
+const databaseUrl = typeof process !== 'undefined' ? process.env?.DATABASE_URL : undefined;
+const databaseAvailable = Boolean(databaseUrl);
 
 export async function getStaticPaths() {
-  try {
-    const result = await tourPackageRepository.findMany({ limit: 100 });
-    return result.packages.map((pkg) => ({
-      params: { slug: pkg.slug },
-    }));
-  } catch (error) {
-    console.error('Error generating package static paths:', error);
-    return [];
+  const runtimeDatabaseUrl = typeof process !== 'undefined' ? process.env?.DATABASE_URL : undefined;
+  const hasDatabaseConnection = Boolean(runtimeDatabaseUrl);
+
+  if (hasDatabaseConnection) {
+    try {
+      const result = await tourPackageRepository.findMany({ limit: 100 });
+      if (result.packages.length > 0) {
+        return result.packages.map((pkg) => ({
+          params: { slug: pkg.slug }
+        }));
+      }
+    } catch (error) {
+      console.error('Error generating package static paths:', error);
+    }
   }
+  return getFallbackTourPackageSlugs().map((slug) => ({ params: { slug } }));
 }
 
 // Get the package slug from the URL
@@ -27,23 +42,94 @@ if (!slug) {
 // Fetch the package data
 let packageData: TourPackage | null = null;
 let relatedPackages: TourPackage[] = [];
+let usingFallbackData = false;
 
-try {
-  packageData = await tourPackageRepository.findBySlug(slug);
-  if (!packageData) {
-    return Astro.redirect('/packages', 404);
+if (databaseAvailable) {
+  try {
+    packageData = await tourPackageRepository.findBySlug(slug);
+
+    if (packageData) {
+      const related = await tourPackageRepository.findMany({
+        region: packageData.region,
+        limit: 4
+      });
+      relatedPackages = related.packages.filter((p) => p.slug !== packageData?.slug).slice(0, 3);
+    }
+  } catch (error) {
+    console.error('Failed to load package from database:', error);
   }
-  
-  // Get related packages from the same region
-  const related = await tourPackageRepository.findMany({
-    region: packageData.region,
-    limit: 3
-  });
-  relatedPackages = related.packages.filter(p => p.id !== packageData!.id).slice(0, 3);
-} catch (error) {
-  console.error('Failed to load package:', error);
-  return Astro.redirect('/packages', 500);
 }
+
+if (!packageData) {
+  packageData = getFallbackTourPackageBySlug(slug) as TourPackage | null;
+  usingFallbackData = Boolean(packageData);
+}
+
+if (!packageData) {
+  return Astro.redirect('/packages', 404);
+}
+
+if (usingFallbackData || relatedPackages.length === 0) {
+  relatedPackages = getRelatedFallbackTourPackages(packageData.slug, packageData.region, 3);
+}
+
+const ensureArray = <T = any>(value: any): T[] => {
+  if (!value) return [];
+  if (Array.isArray(value)) return value as T[];
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? (parsed as T[]) : [];
+    } catch (error) {
+      return [];
+    }
+  }
+  if (typeof value === 'object') {
+    if (Array.isArray((value as any).items)) return (value as any).items as T[];
+    if (Array.isArray((value as any).value)) return (value as any).value as T[];
+    if (Array.isArray((value as any).data)) return (value as any).data as T[];
+  }
+  return [];
+};
+
+const galleryItems = packageData.mediaGallery?.images?.length
+  ? packageData.mediaGallery.images
+  : ensureArray<string>(packageData.images).map((url, index) => ({ url, alt: `${packageData.title} photo ${index + 1}` }));
+
+const heroImage = galleryItems[0]?.url || ensureArray<string>(packageData.images)[0] || '/images/default-package.jpg';
+const pricePerPerson = packageData.price ?? packageData.basePrice;
+const maxGroupSize = packageData.maxGroupSize ?? packageData.maxParticipants;
+const highlights = ensureArray<string>(packageData.highlights);
+const includedServices = ensureArray<string>(packageData.includedServices);
+const excludedServices = ensureArray<string>(packageData.excludedServices);
+const itineraryItems = ensureArray<any>(packageData.itinerary);
+const whatToBring = ensureArray<string>(packageData.whatToBring);
+const faqItems = ensureArray<{ question: string; answer: string }>(packageData.faqs);
+const reviewItems = ensureArray<{ author: string; role?: string; rating?: number; date?: string; content: string }>(packageData.reviews);
+const supportContacts = ensureArray<{ label: string; value: string; href?: string }>(packageData.supportContacts);
+const sustainability = packageData.sustainability || {};
+const siteUrl = 'https://cycleparadise.lk';
+const canonicalUrl = `${siteUrl}/packages/${packageData.slug}`;
+const heroImageAbsolute = heroImage?.startsWith('http') ? heroImage : `${siteUrl}${heroImage}`;
+const getPackageThumbnail = (pkg: TourPackage) => {
+  const gallery = (pkg as any).mediaGallery?.images;
+  if (Array.isArray(gallery) && gallery[0]?.url) {
+    return gallery[0].url;
+  }
+  const fallbackImages = ensureArray<string>((pkg as any).images);
+  return fallbackImages[0] || '/images/default-package.jpg';
+};
+const videoId = (() => {
+  const candidate = packageData.youtubeVideoId || packageData.videoUrl;
+  if (!candidate) return null;
+  if (/^[a-zA-Z0-9_-]{11}$/.test(candidate)) return candidate;
+  try {
+    const parsed = new URL(candidate);
+    return parsed.searchParams.get('v') || parsed.pathname.split('/').filter(Boolean).pop();
+  } catch (error) {
+    return candidate;
+  }
+})();
 
 // Helper function to get difficulty badge color
 function getDifficultyColor(level: string): string {
@@ -60,15 +146,15 @@ const structuredData = {
   "@context": "https://schema.org",
   "@type": "TouristTrip",
   "name": packageData.title,
-  "description": packageData.description,
-  "image": packageData.image ? `https://cycleparadise.lk${packageData.image}` : null,
-  "url": `https://cycleparadise.lk/packages/${packageData.slug}`,
-  "touristType": "Cycling Tour",
+  "description": packageData.shortDescription || packageData.description,
+  "image": heroImageAbsolute,
+  "url": canonicalUrl,
+  "touristType": packageData.difficultyLevel,
   "duration": `P${packageData.duration}D`,
   "offers": {
     "@type": "Offer",
-    "price": packageData.price.toString(),
-    "priceCurrency": "USD", 
+    "price": pricePerPerson?.toString(),
+    "priceCurrency": "USD",
     "availability": "https://schema.org/InStock",
     "validFrom": new Date().toISOString(),
     "priceValidUntil": new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
@@ -76,42 +162,44 @@ const structuredData = {
   "provider": {
     "@type": "TravelAgency",
     "name": "Cycle Paradise",
-    "url": "https://cycleparadise.lk"
+    "url": siteUrl
   },
-  "touristType": packageData.difficulty,
-  "itinerary": packageData.itinerary ? packageData.itinerary.map((item, index) => ({
+  "itinerary": itineraryItems.map((item, index) => ({
     "@type": "TouristAttraction",
-    "name": item.title || `Day ${index + 1}`,
+    "name": item.title || `Day ${item.day || index + 1}`,
     "description": item.description
-  })) : [],
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "4.8",
-    "reviewCount": "127",
-    "bestRating": "5",
-    "worstRating": "1"
-  },
-  "review": [
-    {
-      "@type": "Review",
-      "reviewRating": {
-        "@type": "Rating", 
-        "ratingValue": "5"
-      },
-      "author": {
-        "@type": "Person",
-        "name": "Travel Enthusiast"
-      },
-      "reviewBody": "Amazing cycling experience with professional guides and stunning scenery."
-    }
-  ]
+  })),
+  "aggregateRating": reviewItems.length
+    ? {
+        "@type": "AggregateRating",
+        "ratingValue": (
+          reviewItems.reduce((sum, review) => sum + (review.rating ?? 5), 0) / reviewItems.length
+        ).toFixed(1),
+        "reviewCount": reviewItems.length.toString(),
+        "bestRating": "5",
+        "worstRating": "1"
+      }
+    : undefined,
+  "review": reviewItems.slice(0, 3).map((review) => ({
+    "@type": "Review",
+    "reviewRating": {
+      "@type": "Rating",
+      "ratingValue": review.rating?.toString() || '5'
+    },
+    "author": {
+      "@type": "Person",
+      "name": review.author
+    },
+    "datePublished": review.date,
+    "reviewBody": review.content
+  }))
 };
 
 // SEO keywords based on package data
 const seoKeywords = [
   packageData.title.toLowerCase(),
   `${packageData.region.toLowerCase()} cycling tour`,
-  `${packageData.difficulty.toLowerCase()} cycling`,
+  `${packageData.difficultyLevel.toLowerCase()} cycling`,
   `${packageData.duration} day tour`,
   'sri lanka cycling',
   'bicycle tour',
@@ -124,8 +212,8 @@ const seoKeywords = [
 <Layout 
   title={`${packageData.title} - Cycle Paradise`}
   description={packageData.shortDescription || packageData.description}
-  canonicalUrl={`https://cycleparadise.lk/packages/${packageData.slug}`}
-  ogImage={packageData.image ? `https://cycleparadise.lk${packageData.image}` : undefined}
+  canonicalUrl={canonicalUrl}
+  ogImage={heroImageAbsolute}
   ogType="product"
   keywords={seoKeywords}
   structuredData={structuredData}
@@ -133,12 +221,12 @@ const seoKeywords = [
   <!-- Package Hero Section -->
   <section class="relative">
     <!-- Image Gallery -->
-    {packageData.images.length > 1 ? (
-      <PackageGallery images={packageData.images} title={packageData.title} />
+    {galleryItems.length > 1 ? (
+      <PackageGallery images={galleryItems} title={`${packageData.title} gallery`} />
     ) : (
       <div class="aspect-w-16 aspect-h-9 lg:aspect-h-6">
         <img 
-          src={packageData.images[0] || "/images/default-package.jpg"} 
+          src={heroImage}
           alt={packageData.title}
           class="w-full h-96 lg:h-[500px] object-cover"
         />
@@ -168,14 +256,14 @@ const seoKeywords = [
             <div class="flex items-center justify-between">
               <div>
                 <span class="text-3xl lg:text-4xl font-bold text-primary-600">
-                  ${packageData.price}
+                  ${pricePerPerson}
                 </span>
                 <span class="text-gray-600 ml-1">/ person</span>
               </div>
               
               <div class="text-right text-sm text-gray-600">
                 <div>{packageData.duration} days</div>
-                <div>Max {packageData.maxGroupSize} people</div>
+                <div>Max {maxGroupSize} people</div>
               </div>
             </div>
           </div>
@@ -201,13 +289,13 @@ const seoKeywords = [
         </section>
 
         <!-- Highlights -->
-        {packageData.highlights.length > 0 && (
+        {highlights.length > 0 && (
           <section class="mb-12">
             <h2 class="font-display font-bold text-2xl text-gray-900 mb-4">
               Tour Highlights
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {packageData.highlights.map((highlight) => (
+              {highlights.map((highlight) => (
                 <div class="flex items-start">
                   <svg class="w-5 h-5 text-primary-600 mt-1 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
@@ -218,6 +306,73 @@ const seoKeywords = [
             </div>
           </section>
         )}
+          {itineraryItems.length > 0 && (
+            <section class="mb-12">
+              <h2 class="font-display font-bold text-2xl text-gray-900 mb-4">
+                Daily Itinerary
+              </h2>
+              <ol class="space-y-4">
+                {itineraryItems.map((item, index) => (
+                  <li class="relative border border-gray-200 rounded-lg p-4 pl-12 bg-white shadow-sm">
+                    <div class="absolute left-4 top-4 text-primary-600 font-semibold text-sm">
+                      Day {item.day || index + 1}
+                    </div>
+                    <h3 class="font-semibold text-lg text-gray-900 mb-1">
+                      {item.title || `Experience ${index + 1}`}
+                    </h3>
+                    <p class="text-gray-600 text-sm mb-2">{item.description}</p>
+                    {(item.distance || item.elevationGain || item.meals) && (
+                      <div class="flex flex-wrap gap-4 text-xs text-gray-500">
+                        {item.distance && (
+                          <span class="flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                            </svg>
+                            {item.distance}
+                          </span>
+                        )}
+                        {item.elevationGain && (
+                          <span class="flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3v18h18" />
+                            </svg>
+                            {item.elevationGain}
+                          </span>
+                        )}
+                        {item.meals && (
+                          <span class="flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h16M9 4v16m6-16v16M4 9h16m-8 0v11" />
+                            </svg>
+                            {item.meals}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
+
+          {whatToBring.length > 0 && (
+            <section class="mb-12">
+              <h2 class="font-display font-bold text-2xl text-gray-900 mb-4">
+                What to Pack
+              </h2>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {whatToBring.map((item) => (
+                  <div class="flex items-start gap-3 bg-gray-50 border border-gray-100 rounded-lg p-3">
+                    <svg class="w-5 h-5 text-primary-600 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <p class="text-gray-700 text-sm">{item}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
 
         <!-- Included Services -->
         <section class="mb-12">
@@ -234,7 +389,7 @@ const seoKeywords = [
                 Included
               </h3>
               <ul class="space-y-2">
-                {packageData.includedServices.map((service) => (
+                {includedServices.map((service) => (
                   <li class="flex items-start">
                     <svg class="w-4 h-4 text-green-600 mt-1 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
@@ -246,7 +401,7 @@ const seoKeywords = [
             </div>
 
             <!-- Excluded -->
-            {packageData.excludedServices.length > 0 && (
+            {excludedServices.length > 0 && (
               <div>
                 <h3 class="font-semibold text-lg text-gray-900 mb-3 flex items-center">
                   <svg class="w-5 h-5 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -255,7 +410,7 @@ const seoKeywords = [
                   Not Included
                 </h3>
                 <ul class="space-y-2">
-                  {packageData.excludedServices.map((service) => (
+                  {excludedServices.map((service) => (
                     <li class="flex items-start">
                       <svg class="w-4 h-4 text-red-600 mt-1 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
@@ -270,16 +425,69 @@ const seoKeywords = [
         </section>
 
         <!-- Video Section -->
-        {packageData.videoUrl && (
+        {videoId && (
           <section class="mb-12">
             <h2 class="font-display font-bold text-2xl text-gray-900 mb-4">
               Tour Preview
             </h2>
             <YouTubeEmbed 
-              videoId={packageData.videoUrl}
+              videoId={videoId}
               title={`${packageData.title} - Tour Preview`}
               className="rounded-lg shadow-lg"
             />
+          </section>
+        )}
+
+        {reviewItems.length > 0 && (
+          <section class="mb-12">
+            <h2 class="font-display font-bold text-2xl text-gray-900 mb-4">
+              Traveler Reviews
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {reviewItems.slice(0, 4).map((review) => (
+                <article class="border border-gray-200 rounded-lg p-5 bg-white shadow-sm">
+                  <div class="flex items-center justify-between mb-3">
+                    <div>
+                      <p class="font-semibold text-gray-900">{review.author}</p>
+                      {review.role && <p class="text-sm text-gray-500">{review.role}</p>}
+                    </div>
+                    {review.rating && (
+                      <div class="flex items-center text-amber-500">
+                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118L10 13.347l-2.987 2.125c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.363-1.118l-2.8-2.034c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <span class="text-sm font-semibold">{review.rating.toFixed ? review.rating.toFixed(1) : review.rating}</span>
+                      </div>
+                    )}
+                  </div>
+                  <p class="text-gray-600 text-sm leading-relaxed">{review.content}</p>
+                  {review.date && <p class="mt-3 text-xs text-gray-400">{review.date}</p>}
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {faqItems.length > 0 && (
+          <section class="mb-12">
+            <h2 class="font-display font-bold text-2xl text-gray-900 mb-4">
+              Frequently Asked Questions
+            </h2>
+            <div class="divide-y divide-gray-200 border border-gray-200 rounded-lg bg-white">
+              {faqItems.map((faq, index) => (
+                <details class="group" open={index === 0}>
+                  <summary class="flex items-start justify-between gap-4 cursor-pointer px-5 py-4">
+                    <div>
+                      <p class="font-semibold text-gray-900">{faq.question}</p>
+                      <p class="mt-2 text-sm text-gray-600">{faq.answer}</p>
+                    </div>
+                    <svg class="w-5 h-5 text-gray-400 group-open:rotate-45 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                  </summary>
+                </details>
+              ))}
+            </div>
           </section>
         )}
       </div>
@@ -290,7 +498,7 @@ const seoKeywords = [
         <div class="bg-white border border-gray-200 rounded-lg shadow-lg p-6 sticky top-4">
           <div class="text-center mb-6">
             <div class="text-3xl font-bold text-primary-600 mb-1">
-              ${packageData.price}
+              ${pricePerPerson}
             </div>
             <div class="text-gray-600">per person</div>
           </div>
@@ -303,7 +511,7 @@ const seoKeywords = [
             </div>
             <div class="flex justify-between text-sm">
               <span class="text-gray-600">Group Size:</span>
-              <span class="font-medium">Max {packageData.maxGroupSize}</span>
+              <span class="font-medium">Max {maxGroupSize}</span>
             </div>
             <div class="flex justify-between text-sm">
               <span class="text-gray-600">Difficulty:</span>
@@ -332,11 +540,48 @@ const seoKeywords = [
             <p class="text-sm text-gray-600 mb-2">
               Need help planning your trip?
             </p>
-            <p class="text-sm font-medium text-gray-900">
-              Call us: <a href="tel:+94123456789" class="text-primary-600 hover:text-primary-700">+94 12 345 6789</a>
-            </p>
+            {supportContacts.length > 0 ? (
+              <ul class="space-y-2 text-sm">
+                {supportContacts.map((contact) => (
+                  <li>
+                    <span class="font-medium text-gray-900">{contact.label}:</span>
+                    {contact.href ? (
+                      <a href={contact.href} class="text-primary-600 hover:text-primary-700 ml-1">
+                        {contact.value}
+                      </a>
+                    ) : (
+                      <span class="text-gray-700 ml-1">{contact.value}</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p class="text-sm font-medium text-gray-900">
+                Call us: <a href="tel:+94123456789" class="text-primary-600 hover:text-primary-700">+94 12 345 6789</a>
+              </p>
+            )}
           </div>
         </div>
+
+        {(sustainability.carbonOffset || sustainability.communityImpact || typeof sustainability.supportVehicle === 'boolean') && (
+          <div class="mt-8 bg-emerald-50 border border-emerald-100 rounded-lg p-5">
+            <h3 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2l7 7-7 13-7-13 7-7z" />
+              </svg>
+              Sustainability & Support
+            </h3>
+            <ul class="space-y-3 text-sm text-gray-700">
+              {sustainability.carbonOffset && <li><span class="font-medium">Carbon Offset:</span> {sustainability.carbonOffset}</li>}
+              {sustainability.communityImpact && <li><span class="font-medium">Community Impact:</span> {sustainability.communityImpact}</li>}
+              {typeof sustainability.supportVehicle === 'boolean' && (
+                <li>
+                  <span class="font-medium">Support Vehicle:</span> {sustainability.supportVehicle ? 'Included throughout the tour' : 'Not included on this itinerary'}
+                </li>
+              )}
+            </ul>
+          </div>
+        )}
 
         <!-- Related Packages -->
         {relatedPackages.length > 0 && (
@@ -349,7 +594,7 @@ const seoKeywords = [
                 <a href={`/packages/${relatedPackage.slug}`} class="block bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                   <div class="flex items-center space-x-4">
                     <img 
-                      src={relatedPackage.images[0] || "/images/default-package.jpg"} 
+                      src={getPackageThumbnail(relatedPackage)} 
                       alt={relatedPackage.title}
                       class="w-16 h-16 object-cover rounded-lg"
                     />
@@ -358,7 +603,7 @@ const seoKeywords = [
                         {relatedPackage.title}
                       </h4>
                       <p class="text-sm text-gray-600">
-                        ${relatedPackage.price} • {relatedPackage.duration} days
+                        ${relatedPackage.price ?? relatedPackage.basePrice} • {relatedPackage.duration} days
                       </p>
                     </div>
                   </div>

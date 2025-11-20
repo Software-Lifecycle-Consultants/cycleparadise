@@ -3,7 +3,12 @@ import Layout from '../layouts/Layout.astro';
 import PackageCard from '../components/ui/PackageCard.astro';
 import { tourPackageRepository } from '../lib/db/repositories/tour-packages.js';
 import { cyclingGuideRepository } from '../lib/db/repositories/cycling-guides.js';
+import { fallbackTourPackages } from '../data/fallback-tour-packages.ts';
+import { fallbackCyclingGuides } from '../data/fallback-cycling-guides.ts';
 import type { TourPackage, CyclingGuide } from '../types/models.js';
+
+const databaseUrl = typeof process !== 'undefined' ? process.env?.DATABASE_URL : undefined;
+const hasDatabaseConnection = Boolean(databaseUrl);
 
 // Get search query from URL
 const url = new URL(Astro.request.url);
@@ -19,60 +24,81 @@ let totalPackages = 0;
 let totalGuides = 0;
 let totalResults = 0;
 
+const fallbackPackageMatches = (term: string) => {
+  const normalized = term.toLowerCase();
+  return (fallbackTourPackages as TourPackage[]).filter((pkg) =>
+    [pkg.title, pkg.shortDescription, pkg.description, pkg.region]
+      .filter(Boolean)
+      .some((field) => field!.toLowerCase().includes(normalized))
+  );
+};
+
+const fallbackGuideMatches = (term: string) => {
+  const normalized = term.toLowerCase();
+  return (fallbackCyclingGuides as CyclingGuide[]).filter((guide) =>
+    [guide.title, guide.shortDescription, guide.description, guide.region]
+      .filter(Boolean)
+      .some((field) => field!.toLowerCase().includes(normalized))
+  );
+};
+
+const applyFallbackSearch = () => {
+  const trimmed = query.trim();
+  if (!trimmed) return;
+
+  if (type === 'all' || type === 'packages') {
+    const matches = fallbackPackageMatches(trimmed);
+    totalPackages = matches.length;
+    const packageLimit = type === 'packages' ? limit : 5;
+    const packagePage = type === 'packages' ? page : 1;
+    const start = (packagePage - 1) * packageLimit;
+    packages = matches.slice(start, start + packageLimit);
+  }
+
+  if (type === 'all' || type === 'guides') {
+    const matches = fallbackGuideMatches(trimmed);
+    totalGuides = matches.length;
+    const guideLimit = type === 'guides' ? limit : 5;
+    const guidePage = type === 'guides' ? page : 1;
+    const start = (guidePage - 1) * guideLimit;
+    guides = matches.slice(start, start + guideLimit);
+  }
+
+  totalResults = totalPackages + totalGuides;
+};
+
 if (query.trim()) {
-  try {
-    // Search packages
-    if (type === 'all' || type === 'packages') {
-      const packageResults = await tourPackageRepository.search(query, {
-        page: type === 'packages' ? page : 1,
-        limit: type === 'packages' ? limit : 5
-      });
-      packages = packageResults.packages;
-      totalPackages = packageResults.totalCount;
-    }
+  if (hasDatabaseConnection) {
+    try {
+      if (type === 'all' || type === 'packages') {
+        const packageResults = await tourPackageRepository.search(query, type === 'packages' ? limit : 5);
+        if (Array.isArray(packageResults)) {
+          packages = packageResults;
+          totalPackages = packageResults.length;
+        } else {
+          packages = packageResults.packages ?? [];
+          totalPackages = packageResults.totalCount ?? packages.length;
+        }
+      }
 
-    // Search guides
-    if (type === 'all' || type === 'guides') {
-      const guideResults = await cyclingGuideRepository.search(query, {
-        page: type === 'guides' ? page : 1,
-        limit: type === 'guides' ? limit : 5
-      });
-      guides = guideResults.guides;
-      totalGuides = guideResults.totalCount;
-    }
+      if (type === 'all' || type === 'guides') {
+        const guideResults = await cyclingGuideRepository.search(query, type === 'guides' ? limit : 5);
+        if (Array.isArray(guideResults)) {
+          guides = guideResults;
+          totalGuides = guideResults.length;
+        } else {
+          guides = guideResults.guides ?? [];
+          totalGuides = guideResults.totalCount ?? guides.length;
+        }
+      }
 
-    totalResults = totalPackages + totalGuides;
-  } catch (error) {
-    console.error('Search failed:', error);
-    // Use fallback search results
-    if (query.toLowerCase().includes('hill')) {
-      packages = [{
-        id: 1,
-        title: "Hill Country Explorer",
-        slug: "hill-country-explorer",
-        description: "Cycle through misty tea plantations and charming hill stations in Sri Lanka's central highlands.",
-        shortDescription: "Tea plantations and hill stations adventure",
-        price: 299,
-        duration: 7,
-        difficultyLevel: "INTERMEDIATE" as const,
-        maxGroupSize: 12,
-        images: ["/images/hill-country-1.jpg"],
-        videoUrl: null,
-        isActive: true,
-        isFeatured: true,
-        region: "Central",
-        includedServices: ["Bike rental", "Guide", "Accommodation"],
-        excludedServices: [],
-        highlights: ["Tea factory visits", "Scenic mountain views"],
-        itinerary: [],
-        whatToBring: [],
-        accommodation: [],
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }];
-      totalPackages = 1;
-      totalResults = 1;
+      totalResults = totalPackages + totalGuides;
+    } catch (error) {
+      console.error('Search failed:', error);
+      applyFallbackSearch();
     }
+  } else {
+    applyFallbackSearch();
   }
 }
 

@@ -1,7 +1,14 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { cyclingGuideRepository } from '../lib/db/repositories/cycling-guides.js';
+import { fallbackCyclingGuides } from '../data/fallback-cycling-guides.ts';
 import type { CyclingGuide, GuideSearchParams } from '../types/models.js';
+
+function getDatabaseUrl() {
+  return typeof process !== 'undefined' ? process.env?.DATABASE_URL : undefined;
+}
+
+const hasDatabaseConnection = Boolean(getDatabaseUrl());
 
 // Get search parameters from URL
 const url = new URL(Astro.request.url);
@@ -13,107 +20,92 @@ const searchParams: GuideSearchParams = {
   limit: 12
 };
 
+const ensureArray = <T = any>(value: any): T[] => {
+  if (!value) return [];
+  if (Array.isArray(value)) return value as T[];
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? (parsed as T[]) : [];
+    } catch {
+      return [];
+    }
+  }
+  if (typeof value === 'object') {
+    if (Array.isArray((value as any).items)) return (value as any).items as T[];
+    if (Array.isArray((value as any).value)) return (value as any).value as T[];
+    if (Array.isArray((value as any).data)) return (value as any).data as T[];
+  }
+  return [];
+};
+
+const getGuideThumbnail = (guide: CyclingGuide) => {
+  const images = ensureArray<string>(guide.images);
+  return images[0] || '/images/default-route.jpg';
+};
+
+const filterFallbackGuides = (guides: CyclingGuide[], params: GuideSearchParams) => {
+  return guides.filter((guide) => {
+    const searchTerm = params.search?.toLowerCase();
+    const matchesSearch = searchTerm
+      ? [guide.title, guide.shortDescription, guide.description, guide.region]
+          .filter(Boolean)
+          .some((field) => field!.toLowerCase().includes(searchTerm))
+      : true;
+
+    const matchesRegion = params.region
+      ? guide.region?.toLowerCase() === params.region.toLowerCase()
+      : true;
+
+    const matchesDifficulty = params.difficultyLevel
+      ? guide.difficultyLevel === params.difficultyLevel
+      : true;
+
+    return matchesSearch && matchesRegion && matchesDifficulty;
+  });
+};
+
+const getGuideRegions = (guides: CyclingGuide[]) =>
+  Array.from(new Set(guides.map((guide) => guide.region).filter(Boolean))).sort();
+
+const applyFallbackGuides = () => {
+  const fallbackList = fallbackCyclingGuides as CyclingGuide[];
+  const filtered = filterFallbackGuides(fallbackList, searchParams);
+  totalCount = filtered.length;
+  const limit = searchParams.limit ?? 12;
+  const currentPage = searchParams.page ?? 1;
+  const start = (currentPage - 1) * limit;
+  guides = filtered.slice(start, start + limit);
+  regions = getGuideRegions(fallbackList);
+};
+
 // Fetch guides and filter options
 let guides: CyclingGuide[] = [];
 let totalCount = 0;
 let regions: string[] = [];
 
-try {
-  const result = await cyclingGuideRepository.findMany(searchParams);
-  guides = result.guides;
-  totalCount = result.totalCount;
-  
-  // Get available regions
-  regions = await cyclingGuideRepository.getRegions();
-} catch (error) {
-  console.error('Failed to load cycling guides:', error);
-  // Fallback data for development
-  guides = [
-    {
-      id: 1,
-      title: "Sigiriya Rock Fortress Route",
-      slug: "sigiriya-rock-fortress",
-      description: "A scenic cycling route that takes you to the magnificent Sigiriya Rock Fortress, one of Sri Lanka's most iconic landmarks. This moderately challenging ride combines cultural exploration with natural beauty.",
-      shortDescription: "Cycle to the famous Sigiriya Rock Fortress",
-      content: "Experience the wonder of ancient Sri Lankan civilization as you cycle through rural villages to reach the mighty Sigiriya Rock Fortress...",
-      region: "Central",
-      difficultyLevel: "INTERMEDIATE" as const,
-      estimatedDistance: 25,
-      estimatedDuration: "4-5 hours",
-      startingPoint: "Sigiriya Village",
-      endingPoint: "Sigiriya Rock Base",
-      highlights: ["Ancient rock fortress", "Rural village life", "Panoramic views"],
-      terrainType: "Mixed roads and paths",
-      bestTimeToVisit: "October to March",
-      safetyTips: ["Carry plenty of water", "Start early morning", "Wear sun protection"],
-      nearbyAttractions: ["Pidurangala Rock", "Sigiriya Museum"],
-      images: ["/images/sigiriya-route-1.jpg", "/images/sigiriya-route-2.jpg"],
-      mapImageUrl: "/images/sigiriya-map.jpg",
-      gpxFileUrl: "/routes/sigiriya.gpx",
-      isActive: true,
-      isFeatured: true,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      id: 2,
-      title: "Galle Fort Coastal Ride",
-      slug: "galle-fort-coastal",
-      description: "A relaxing coastal cycling experience along Sri Lanka's southern coast, starting from the historic Galle Fort and following pristine beaches and fishing villages.",
-      shortDescription: "Scenic coastal ride from historic Galle Fort",
-      content: "Discover the charm of Sri Lanka's southern coast on this easy cycling adventure...",
-      region: "Southern",
-      difficultyLevel: "EASY" as const,
-      estimatedDistance: 15,
-      estimatedDuration: "2-3 hours",
-      startingPoint: "Galle Fort",
-      endingPoint: "Unawatuna Beach",
-      highlights: ["Historic fort walls", "Pristine beaches", "Local fishing communities"],
-      terrainType: "Flat coastal roads",
-      bestTimeToVisit: "November to April",
-      safetyTips: ["Watch for traffic near fort", "Bring sunscreen", "Stay hydrated"],
-      nearbyAttractions: ["Galle Lighthouse", "National Maritime Museum"],
-      images: ["/images/galle-coastal-1.jpg", "/images/galle-coastal-2.jpg"],
-      mapImageUrl: "/images/galle-map.jpg",
-      gpxFileUrl: "/routes/galle-coastal.gpx",
-      isActive: true,
-      isFeatured: true,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      id: 3,
-      title: "Ella to Nine Arch Bridge",
-      slug: "ella-nine-arch-bridge",
-      description: "A challenging mountain cycling route through Sri Lanka's hill country, featuring tea plantations, mountain views, and the famous Nine Arch Bridge.",
-      shortDescription: "Mountain adventure to the iconic Nine Arch Bridge",
-      content: "Challenge yourself with this mountain cycling adventure through Sri Lanka's stunning hill country...",
-      region: "Central",
-      difficultyLevel: "CHALLENGING" as const,
-      estimatedDistance: 18,
-      estimatedDuration: "3-4 hours",
-      startingPoint: "Ella Town",
-      endingPoint: "Nine Arch Bridge",
-      highlights: ["Nine Arch Bridge", "Tea plantations", "Mountain vistas"],
-      terrainType: "Hilly mountain roads",
-      bestTimeToVisit: "December to March",
-      safetyTips: ["Use proper mountain bike", "Check weather conditions", "Inform someone of your route"],
-      nearbyAttractions: ["Little Adam's Peak", "Ravana Falls"],
-      images: ["/images/ella-bridge-1.jpg", "/images/ella-bridge-2.jpg"],
-      mapImageUrl: "/images/ella-map.jpg",
-      gpxFileUrl: "/routes/ella-nine-arch.gpx",
-      isActive: true,
-      isFeatured: false,
-      createdAt: new Date(),
-      updatedAt: new Date()
+if (hasDatabaseConnection) {
+  try {
+    const result = await cyclingGuideRepository.findMany(searchParams);
+    if (Array.isArray(result)) {
+      guides = result;
+      totalCount = result.length;
+    } else {
+      guides = result.guides ?? [];
+      totalCount = result.totalCount ?? guides.length;
     }
-  ];
-  totalCount = 3;
-  regions = ["Central", "Southern", "Western", "Northern", "Eastern"];
+
+    regions = await cyclingGuideRepository.getRegions();
+  } catch (error) {
+    console.error('Failed to load cycling guides:', error);
+    applyFallbackGuides();
+  }
+} else {
+  applyFallbackGuides();
 }
 
 // Calculate pagination
-const totalPages = Math.ceil(totalCount / searchParams.limit!);
+const totalPages = Math.max(1, Math.ceil(totalCount / searchParams.limit!));
 const currentPage = searchParams.page || 1;
 
 // Helper function to get difficulty badge color
@@ -232,7 +224,7 @@ function getDifficultyColor(level: string): string {
               <!-- Route Image -->
               <div class="aspect-w-16 aspect-h-10">
                 <img 
-                  src={guide.images[0] || "/images/default-route.jpg"} 
+                  src={getGuideThumbnail(guide)} 
                   alt={guide.title}
                   class="w-full h-48 object-cover"
                 />
@@ -249,7 +241,7 @@ function getDifficultyColor(level: string): string {
                     <span class="text-sm text-gray-600">{guide.region}</span>
                   </div>
                   
-                  {guide.isFeatured && (
+                  {guide.featured && (
                     <span class="bg-primary-100 text-primary-800 px-2 py-1 rounded-full text-xs font-medium">
                       Featured
                     </span>

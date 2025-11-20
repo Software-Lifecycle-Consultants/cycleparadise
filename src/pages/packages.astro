@@ -2,7 +2,11 @@
 import Layout from '../layouts/Layout.astro';
 import PackageCard from '../components/ui/PackageCard.astro';
 import { tourPackageRepository } from '../lib/db/repositories/tour-packages.js';
+import { fallbackTourPackages } from '../data/fallback-tour-packages.ts';
 import type { TourPackage, PackageSearchParams } from '../types/models.js';
+
+const getDatabaseUrl = () => (typeof process !== 'undefined' ? process.env?.DATABASE_URL : undefined);
+const hasDatabaseConnection = Boolean(getDatabaseUrl());
 
 // Get search parameters from URL
 const url = new URL(Astro.request.url);
@@ -18,6 +22,74 @@ const searchParams: PackageSearchParams = {
   limit: 9
 };
 
+const getPackagePrice = (pkg: TourPackage) => pkg.price ?? pkg.basePrice ?? 0;
+
+const filterFallbackPackages = (pkgList: TourPackage[], params: PackageSearchParams) => {
+  return pkgList.filter((pkg) => {
+    const searchTerm = params.search?.toLowerCase();
+    const matchesSearch = searchTerm
+      ? [pkg.title, pkg.shortDescription, pkg.description]
+          .filter(Boolean)
+          .some((field) => field!.toLowerCase().includes(searchTerm))
+      : true;
+
+    const matchesRegion = params.region
+      ? pkg.region?.toLowerCase() === params.region.toLowerCase()
+      : true;
+
+    const matchesDifficulty = params.difficultyLevel
+      ? pkg.difficultyLevel === params.difficultyLevel
+      : true;
+
+    const price = getPackagePrice(pkg);
+    const matchesMinPrice = params.minPrice ? price >= params.minPrice : true;
+    const matchesMaxPrice = params.maxPrice ? price <= params.maxPrice : true;
+
+    const matchesMinDuration = params.minDuration ? pkg.duration >= params.minDuration : true;
+    const matchesMaxDuration = params.maxDuration ? pkg.duration <= params.maxDuration : true;
+
+    return (
+      matchesSearch &&
+      matchesRegion &&
+      matchesDifficulty &&
+      matchesMinPrice &&
+      matchesMaxPrice &&
+      matchesMinDuration &&
+      matchesMaxDuration
+    );
+  });
+};
+
+const getFallbackRegions = (pkgList: TourPackage[]) =>
+  Array.from(new Set(pkgList.map((pkg) => pkg.region).filter(Boolean))).sort();
+
+const getFallbackPriceRange = (pkgList: TourPackage[]) => {
+  const prices = pkgList.map(getPackagePrice).filter((price) => price > 0);
+  return prices.length
+    ? { min: Math.min(...prices), max: Math.max(...prices) }
+    : { min: 0, max: 0 };
+};
+
+const getFallbackDurationRange = (pkgList: TourPackage[]) => {
+  const durations = pkgList.map((pkg) => pkg.duration).filter((duration) => typeof duration === 'number');
+  return durations.length
+    ? { min: Math.min(...durations), max: Math.max(...durations) }
+    : { min: 0, max: 0 };
+};
+
+const applyFallbackPackages = () => {
+  const fallbackList = fallbackTourPackages as TourPackage[];
+  const filtered = filterFallbackPackages(fallbackList, searchParams);
+  totalCount = filtered.length;
+  const limit = searchParams.limit ?? 9;
+  const currentPage = searchParams.page ?? 1;
+  const start = (currentPage - 1) * limit;
+  packages = filtered.slice(start, start + limit);
+  regions = getFallbackRegions(fallbackList);
+  priceRange = getFallbackPriceRange(fallbackList);
+  durationRange = getFallbackDurationRange(fallbackList);
+};
+
 // Fetch packages and filters
 let packages: TourPackage[] = [];
 let totalCount = 0;
@@ -25,96 +97,22 @@ let regions: string[] = [];
 let priceRange = { min: 0, max: 1000 };
 let durationRange = { min: 1, max: 14 };
 
-try {
-  const result = await tourPackageRepository.findMany(searchParams);
-  packages = result.packages;
-  totalCount = result.totalCount;
-  
-  // Get filter options
-  regions = await tourPackageRepository.getRegions();
-  priceRange = await tourPackageRepository.getPriceRange();
-  durationRange = await tourPackageRepository.getDurationRange();
-} catch (error) {
-  console.error('Failed to load packages:', error);
-  // Fallback data for development
-  packages = [
-    {
-      id: 1,
-      title: "Hill Country Explorer",
-      slug: "hill-country-explorer",
-      description: "Cycle through misty tea plantations and charming hill stations in Sri Lanka's central highlands. Experience the cool mountain air and breathtaking views.",
-      shortDescription: "Tea plantations and hill stations adventure",
-      price: 299,
-      duration: 7,
-      difficultyLevel: "INTERMEDIATE" as const,
-      maxGroupSize: 12,
-      images: ["/images/hill-country-1.jpg", "/images/hill-country-2.jpg"],
-      videoUrl: null,
-      isActive: true,
-      isFeatured: true,
-      region: "Central",
-      includedServices: ["Bike rental", "Professional guide", "Accommodation", "Breakfast"],
-      excludedServices: ["Lunch", "Dinner", "Personal expenses"],
-      highlights: ["Tea factory visits", "Scenic mountain views", "Traditional villages"],
-      itinerary: [],
-      whatToBring: [],
-      accommodation: [],
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      id: 2,
-      title: "Coastal Adventure",
-      slug: "coastal-adventure", 
-      description: "Ride along pristine beaches and through fishing villages on Sri Lanka's stunning coastline. Enjoy fresh seafood and ocean breezes.",
-      shortDescription: "Beaches and fishing villages tour",
-      price: 199,
-      duration: 5,
-      difficultyLevel: "EASY" as const,
-      maxGroupSize: 15,
-      images: ["/images/coastal-1.jpg", "/images/coastal-2.jpg"],
-      videoUrl: null,
-      isActive: true,
-      isFeatured: true,
-      region: "Southern",
-      includedServices: ["Bike rental", "Guide", "Meals", "Beach activities"],
-      excludedServices: ["Personal expenses", "Alcohol"],
-      highlights: ["Beach cycling", "Local fishing communities", "Seafood experiences"],
-      itinerary: [],
-      whatToBring: [],
-      accommodation: [],
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      id: 3,
-      title: "Cultural Triangle",
-      slug: "cultural-triangle",
-      description: "Discover ancient temples and archaeological wonders in Sri Lanka's cultural heartland. Explore UNESCO World Heritage sites.",
-      shortDescription: "Ancient temples and archaeological sites",
-      price: 399,
-      duration: 10,
-      difficultyLevel: "CHALLENGING" as const,
-      maxGroupSize: 10,
-      images: ["/images/cultural-1.jpg", "/images/cultural-2.jpg"],
-      videoUrl: null,
-      isActive: true,
-      isFeatured: true,
-      region: "North Central",
-      includedServices: ["Bike rental", "Guide", "Accommodation", "Cultural guide", "Site entrance fees"],
-      excludedServices: ["Personal expenses", "Tips"],
-      highlights: ["Ancient temples", "UNESCO World Heritage sites", "Archaeological museums"],
-      itinerary: [],
-      whatToBring: [],
-      accommodation: [],
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  ];
-  totalCount = 3;
-  regions = ["Central", "Southern", "North Central", "Western", "Eastern"];
-  priceRange = { min: 99, max: 599 };
-  durationRange = { min: 3, max: 14 };
+if (hasDatabaseConnection) {
+  try {
+    const result = await tourPackageRepository.findMany(searchParams);
+    packages = result.packages;
+    totalCount = (result as any).total ?? (result as any).totalCount ?? packages.length;
+
+    // Get filter options
+    regions = await tourPackageRepository.getRegions();
+    priceRange = await tourPackageRepository.getPriceRange();
+    durationRange = await tourPackageRepository.getDurationRange();
+  } catch (error) {
+    console.error('Failed to load packages:', error);
+    applyFallbackPackages();
+  }
+} else {
+  applyFallbackPackages();
 }
 
 // Calculate pagination

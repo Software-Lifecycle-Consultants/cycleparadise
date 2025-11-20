@@ -277,6 +277,27 @@ export class TourPackageRepository {
       throw new ValidationError('Failed to retrieve price range');
     }
   }
+
+  /**
+   * Get duration range for filtering
+   */
+  async getDurationRange(): Promise<{ min: number; max: number }> {
+    try {
+      const result = await db.prisma.tourPackage.aggregate({
+        where: { isActive: true },
+        _min: { duration: true },
+        _max: { duration: true }
+      });
+
+      return {
+        min: Number(result._min.duration) || 0,
+        max: Number(result._max.duration) || 0
+      };
+    } catch (error) {
+      console.error('Error getting duration range:', error);
+      throw new ValidationError('Failed to retrieve duration range');
+    }
+  }
 }
 
 /**

@@ -1,4 +1,21 @@
-import type { DifficultyLevel, TourPackage as PrismaTourPackage, CyclingGuide as PrismaCyclingGuide, Accommodation as PrismaAccommodation, Booking as PrismaBooking } from '@prisma/client';
+import type {
+  DifficultyLevel,
+  TourPackage as PrismaTourPackage,
+  CyclingGuide as PrismaCyclingGuide,
+  Accommodation as PrismaAccommodation,
+  Booking as PrismaBooking
+} from '@prisma/client';
+
+export interface MediaGalleryItem {
+  url: string;
+  alt?: string;
+  type?: 'image' | 'video';
+}
+
+export interface MediaGallery {
+  images?: MediaGalleryItem[];
+  videos?: Array<{ url: string; title?: string; thumbnailUrl?: string }>;
+}
 
 /**
  * Tour Package model interface for type safety
@@ -14,11 +31,25 @@ export interface TourPackage {
   difficultyLevel: DifficultyLevel;
   region: string;
   basePrice: number;
+  price?: number;
   maxParticipants: number;
+  maxGroupSize?: number;
   includedServices?: any[]; // JSON array
   excludedServices?: any[]; // JSON array
-  mediaGallery?: any; // JSON object with image URLs
+  highlights?: string[];
+  whatToBring?: string[];
+  images?: string[];
+  mediaGallery?: MediaGallery | any; // JSON object with image URLs
+  videoUrl?: string | null;
   youtubeVideoId?: string;
+  faqs?: Array<{ question: string; answer: string }>;
+  reviews?: Array<{ author: string; role?: string; rating?: number; date?: string; content: string }>;
+  supportContacts?: Array<{ label: string; value: string; href?: string }>;
+  sustainability?: {
+    carbonOffset?: string;
+    communityImpact?: string;
+    supportVehicle?: boolean;
+  };
   isActive: boolean;
   featured: boolean;
   metaTitle?: string;
@@ -43,13 +74,28 @@ export interface CyclingGuide {
   slug: string;
   region: string;
   content: string;
+  description?: string;
+  shortDescription?: string;
   routeMap?: any; // JSON object with GPS data
   difficultyRating: number; // 1-10
+  difficultyLevel?: 'EASY' | 'INTERMEDIATE' | 'CHALLENGING';
+  estimatedDistance?: number;
   estimatedDuration?: string;
+  startingPoint?: string;
+  endingPoint?: string;
+  terrainType?: string;
   bestSeason?: string;
+  bestTimeToVisit?: string;
   safetyTips?: any[]; // JSON array
+  gearChecklist?: string[];
+  nearbyAttractions?: string[];
+  highlights?: string[];
+  routeSegments?: Array<{ title?: string; distance?: string; description?: string }>;
+  hydrationStops?: Array<{ name: string; type: string; notes?: string }>;
   pointsOfInterest?: any; // JSON object
   images?: any; // JSON object
+  mapImageUrl?: string;
+  gpxFileUrl?: string;
   isPublished: boolean;
   featured: boolean;
   metaTitle?: string;
@@ -116,6 +162,7 @@ export interface BookingWithPackage extends Booking {
  * Package search and filter interfaces
  */
 export interface PackageSearchParams {
+  search?: string;
   query?: string;
   region?: string;
   difficultyLevel?: DifficultyLevel;
@@ -124,6 +171,8 @@ export interface PackageSearchParams {
   minDuration?: number;
   maxDuration?: number;
   featured?: boolean;
+  page?: number;
+  limit?: number;
 }
 
 export interface PackageSearchResult {
@@ -138,10 +187,14 @@ export interface PackageSearchResult {
  * Guide search parameters
  */
 export interface GuideSearchParams {
+  search?: string;
   query?: string;
   region?: string;
+  difficultyLevel?: 'EASY' | 'INTERMEDIATE' | 'CHALLENGING';
   difficultyRating?: number;
   featured?: boolean;
+  page?: number;
+  limit?: number;
 }
 
 /**

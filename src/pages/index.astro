@@ -4,88 +4,29 @@ import PackageCard from '../components/ui/PackageCard.astro';
 import YouTubeEmbed from '../components/media/YouTubeEmbed.astro';
 import InstagramFeed from '../components/media/InstagramFeed.astro';
 import { tourPackageRepository } from '../lib/db/repositories/tour-packages.js';
+import { fallbackTourPackages } from '../data/fallback-tour-packages.ts';
+import type { TourPackage } from '../types/models.js';
+
+const databaseUrl = typeof process !== 'undefined' ? process.env?.DATABASE_URL : undefined;
+const hasDatabaseConnection = Boolean(databaseUrl);
+
+const getFeaturedFallbackPackages = (): TourPackage[] => {
+  const fallbackList = fallbackTourPackages as TourPackage[];
+  const featured = fallbackList.filter((pkg) => pkg.featured);
+  return (featured.length > 0 ? featured : fallbackList).slice(0, 3);
+};
 
 // Fetch featured packages for homepage
-let featuredPackages: any[] = [];
-try {
-  featuredPackages = await tourPackageRepository.findFeatured(3);
-} catch (error) {
-  console.error('Failed to load featured packages:', error);
-  // Use fallback data for development
-  featuredPackages = [
-    {
-      id: 1,
-      title: "Hill Country Explorer",
-      slug: "hill-country-explorer",
-      description: "Cycle through misty tea plantations and charming hill stations in Sri Lanka's central highlands.",
-      shortDescription: "Tea plantations and hill stations adventure",
-      price: 299,
-      duration: 7,
-      difficultyLevel: "INTERMEDIATE" as const,
-      maxGroupSize: 12,
-      images: ["/images/hill-country-1.jpg"],
-      videoUrl: null,
-      isActive: true,
-      isFeatured: true,
-      region: "Central",
-      includedServices: ["Bike rental", "Guide", "Accommodation"],
-      excludedServices: [],
-      highlights: ["Tea factory visits", "Scenic mountain views"],
-      itinerary: [],
-      whatToBring: [],
-      accommodation: [],
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      id: 2,
-      title: "Coastal Adventure",
-      slug: "coastal-adventure", 
-      description: "Ride along pristine beaches and through fishing villages on Sri Lanka's stunning coastline.",
-      shortDescription: "Beaches and fishing villages tour",
-      price: 199,
-      duration: 5,
-      difficultyLevel: "EASY" as const,
-      maxGroupSize: 15,
-      images: ["/images/coastal-1.jpg"],
-      videoUrl: null,
-      isActive: true,
-      isFeatured: true,
-      region: "Southern",
-      includedServices: ["Bike rental", "Guide", "Meals"],
-      excludedServices: [],
-      highlights: ["Beach cycling", "Local fishing communities"],
-      itinerary: [],
-      whatToBring: [],
-      accommodation: [],
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      id: 3,
-      title: "Cultural Triangle",
-      slug: "cultural-triangle",
-      description: "Discover ancient temples and archaeological wonders in Sri Lanka's cultural heartland.",
-      shortDescription: "Ancient temples and archaeological sites",
-      price: 399,
-      duration: 10,
-      difficultyLevel: "CHALLENGING" as const,
-      maxGroupSize: 10,
-      images: ["/images/cultural-1.jpg"],
-      videoUrl: null,
-      isActive: true,
-      isFeatured: true,
-      region: "North Central",
-      includedServices: ["Bike rental", "Guide", "Accommodation", "Cultural guide"],
-      excludedServices: [],
-      highlights: ["Ancient temples", "UNESCO World Heritage sites"],
-      itinerary: [],
-      whatToBring: [],
-      accommodation: [],
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  ];
+let featuredPackages: TourPackage[] = [];
+if (hasDatabaseConnection) {
+  try {
+    featuredPackages = await tourPackageRepository.findFeatured(3);
+  } catch (error) {
+    console.error('Failed to load featured packages:', error);
+    featuredPackages = getFeaturedFallbackPackages();
+  }
+} else {
+  featuredPackages = getFeaturedFallbackPackages();
 }
 ---
 
