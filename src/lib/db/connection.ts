@@ -10,17 +10,25 @@ declare global {
 
 let prisma: PrismaClient;
 
-if (process.env.NODE_ENV === 'production') {
-  prisma = new PrismaClient({
-    log: ['error', 'warn'],
-  });
-} else {
-  if (!global.__prisma) {
-    global.__prisma = new PrismaClient({
-      log: ['query', 'error', 'warn'],
+// Only initialize Prisma if DATABASE_URL is available
+const hasDatabaseUrl = typeof process !== 'undefined' && Boolean(process.env?.DATABASE_URL);
+
+if (hasDatabaseUrl) {
+  if (process.env.NODE_ENV === 'production') {
+    prisma = new PrismaClient({
+      log: ['error', 'warn'],
     });
+  } else {
+    if (!global.__prisma) {
+      global.__prisma = new PrismaClient({
+        log: ['query', 'error', 'warn'],
+      });
+    }
+    prisma = global.__prisma;
   }
-  prisma = global.__prisma;
+} else {
+  // Create a dummy client that will never be called
+  prisma = {} as PrismaClient;
 }
 
 export { prisma };
@@ -29,13 +37,18 @@ export { prisma };
  * Graceful shutdown handler for Prisma connection
  */
 export async function disconnect(): Promise<void> {
-  await prisma.$disconnect();
+  if (hasDatabaseUrl && prisma.$disconnect) {
+    await prisma.$disconnect();
+  }
 }
 
 /**
  * Database connection health check
  */
 export async function healthCheck(): Promise<boolean> {
+  if (!hasDatabaseUrl) {
+    return false;
+  }
   try {
     await prisma.$queryRaw`SELECT 1`;
     return true;
