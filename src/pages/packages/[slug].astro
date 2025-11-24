@@ -527,12 +527,18 @@ const seoKeywords = [
 
           <!-- CTA Buttons -->
           <div class="space-y-3">
-            <button class="w-full bg-primary-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors">
+            <a 
+              href={`/book?package=${packageData.slug}&title=${encodeURIComponent(packageData.title)}&price=${pricePerPerson}`}
+              class="block w-full bg-primary-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors text-center"
+            >
               Book This Tour
-            </button>
-            <button class="w-full border border-primary-600 text-primary-600 py-3 px-4 rounded-lg font-semibold hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors">
+            </a>
+            <a 
+              href="/contact"
+              class="block w-full border border-primary-600 text-primary-600 py-3 px-4 rounded-lg font-semibold hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors text-center"
+            >
               Request Information
-            </button>
+            </a>
           </div>
 
           <!-- Contact Info -->
@@ -616,26 +622,3 @@ const seoKeywords = [
     </div>
   </div>
 </Layout>
-
-<script>
-  // Booking functionality
-  document.addEventListener('DOMContentLoaded', function() {
-    // Book This Tour button
-    const bookButton = document.querySelector('button:first-of-type');
-    if (bookButton && bookButton.textContent?.includes('Book This Tour')) {
-      bookButton.addEventListener('click', function() {
-        // In a real implementation, this would open a booking modal or redirect to booking page
-        alert('Booking functionality coming soon! Please call us to book this tour.');
-      });
-    }
-
-    // Request Information button  
-    const infoButton = document.querySelector('button:last-of-type');
-    if (infoButton && infoButton.textContent?.includes('Request Information')) {
-      infoButton.addEventListener('click', function() {
-        // In a real implementation, this would open a contact form modal
-        alert('Information request functionality coming soon! Please call us for more details.');
-      });
-    }
-  });
-</script>
