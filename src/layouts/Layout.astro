@@ -237,7 +237,7 @@ const combinedStructuredData = [
     <div class="min-h-full">
       <!-- Header -->
       <header id="main-header" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
-        <nav class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 transition-all duration-100">
+        <nav class="mx-auto max-w-7xl px-8 sm:px-12 lg:px-20 py-4 transition-all duration-100">
           <div class="flex justify-between items-center">
             <!-- Logo -->
             <div class="flex items-center">
@@ -245,7 +245,7 @@ const combinedStructuredData = [
                 <div class="w-7 h-7 bg-primary-600 rounded-full flex items-center justify-center">
                   <span class="text-white font-bold text-xs">CP</span>
                 </div>
-                <span class="font-display font-semibold text-base text-gray-900 transition-colors"
+                <span class="font-display font-semibold text-base nav-text transition-colors"
                   >Cycle Paradise</span
                 >
               </a>
@@ -253,30 +253,14 @@ const combinedStructuredData = [
 
             <!-- Desktop Navigation -->
             <div class="hidden lg:flex items-center space-x-5">
-              <a
-                href="/packages"
-                class="text-sm text-gray-800 hover:text-primary-600 transition-colors font-medium"
-              >
+              <a href="/packages" class="text-sm nav-link transition-colors font-medium">
                 Tour Packages
               </a>
-              <a
-                href="/guides"
-                class="text-sm text-gray-800 hover:text-primary-600 transition-colors font-medium"
-              >
+              <a href="/guides" class="text-sm nav-link transition-colors font-medium">
                 Cycling Guides
               </a>
-              <a
-                href="/about"
-                class="text-sm text-gray-800 hover:text-primary-600 transition-colors font-medium"
-              >
-                About Us
-              </a>
-              <a
-                href="/contact"
-                class="text-sm text-gray-800 hover:text-primary-600 transition-colors font-medium"
-              >
-                Contact
-              </a>
+              <a href="/about" class="text-sm nav-link transition-colors font-medium"> About Us</a>
+              <a href="/contact" class="text-sm nav-link transition-colors font-medium"> Contact</a>
 
               <!-- Search -->
               <div class="relative hidden md:block">
@@ -285,11 +269,11 @@ const combinedStructuredData = [
                     type="text"
                     name="q"
                     placeholder="Search tours..."
-                    class="w-48 pl-9 pr-3 py-1.5 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                    class="nav-search w-48 pl-9 pr-3 py-1.5 border rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm transition-all"
                   />
                   <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg
-                      class="h-4 w-4 text-gray-400"
+                      class="h-4 w-4 nav-search-icon"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -316,7 +300,7 @@ const combinedStructuredData = [
               <!-- Mobile Search Button -->
               <a
                 href="/search"
-                class="text-gray-800 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 p-2"
+                class="nav-link focus:outline-none focus:ring-2 focus:ring-primary-500 p-2"
                 aria-label="Search"
               >
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -331,7 +315,7 @@ const combinedStructuredData = [
               <!-- Mobile menu button -->
               <button
                 type="button"
-                class="text-gray-800 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 p-2"
+                class="nav-link focus:outline-none focus:ring-2 focus:ring-primary-500 p-2"
                 aria-label="Open mobile menu"
                 id="mobile-menu-button"
               >
@@ -614,13 +598,62 @@ const combinedStructuredData = [
         padding-bottom: 1rem;
       }
 
+      /* Navbar text - white by default */
+      .nav-text,
+      .nav-link {
+        color: white;
+      }
+
+      .nav-link:hover {
+        color: rgba(249, 250, 251, 0.8);
+      }
+
+      /* Search bar - transparent/white initially */
+      .nav-search {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.2);
+        color: white;
+      }
+
+      .nav-search::placeholder {
+        color: rgba(255, 255, 255, 0.6);
+      }
+
+      .nav-search-icon {
+        color: rgba(255, 255, 255, 0.7);
+      }
+
       #main-header.scrolled {
         background-color: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(8px);
         box-shadow:
           0 1px 3px 0 rgba(0, 0, 0, 0.1),
           0 1px 2px 0 rgba(0, 0, 0, 0.06);
-        border-bottom: 1px solid rgba(229, 231, 235, 0.8);
+      }
+
+      /* Navbar text - dark when scrolled */
+      #main-header.scrolled .nav-text,
+      #main-header.scrolled .nav-link {
+        color: #111827;
+      }
+
+      #main-header.scrolled .nav-link:hover {
+        color: #059669;
+      }
+
+      /* Search bar - white with dark text when scrolled */
+      #main-header.scrolled .nav-search {
+        background-color: rgba(255, 255, 255, 1);
+        border-color: rgba(209, 213, 219, 1);
+        color: #111827;
+      }
+
+      #main-header.scrolled .nav-search::placeholder {
+        color: rgba(107, 114, 128, 1);
+      }
+
+      #main-header.scrolled .nav-search-icon {
+        color: rgba(107, 114, 128, 1);
       }
 
       #main-header.scrolled nav {
