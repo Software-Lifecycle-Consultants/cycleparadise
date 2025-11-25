@@ -165,7 +165,7 @@ const structuredData = {
   keywords={['about cycle paradise', 'cycling guides sri lanka', 'sri lanka bike tours company']}
   structuredData={structuredData}
 >
-  <section class="relative -mt-[72px]">
+  <section class="relative -mt-[72px] min-h-[100vh] flex items-center justify-center">
     <!-- Background Image with Overlay -->
     <div class="absolute inset-0 z-0">
       <img
@@ -177,23 +177,23 @@ const structuredData = {
       <div class="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/80"></div>
     </div>
 
-    <div class="relative z-10 mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8 pt-32">
+    <div class="relative z-10 mx-auto max-w-6xl px-8 py-24 pt-32">
       <div class="grid gap-12 lg:grid-cols-2 lg:items-center">
         <div>
           <p class="text-sm uppercase tracking-widest text-primary-400 font-semibold">Who We Are</p>
-          <h1 class="mt-4 font-display text-4xl font-bold text-white sm:text-5xl">
+          <h1 class="reveal mt-4 font-display text-4xl font-semibold text-white sm:text-5xl">
             Riders, storytellers, and guardians of Sri Lanka's open roads.
           </h1>
-          <p class="mt-6 text-lg text-gray-100 leading-relaxed">
+          <p class="reveal reveal-delay-1 mt-6 text-base text-gray-200 leading-relaxed">
             Cycle Paradise was born on a misty morning climb through the Knuckles range. Today we
             operate island-wide cycling expeditions that braid performance riding with deep cultural
             exchange. Our guides, mechanics, nutritionists, and local artisans operate as one studio
             to craft journeys that are safe, soulful, and sustainable.
           </p>
-          <div class="mt-8 flex flex-wrap gap-4">
+          <div class="reveal reveal-delay-2 mt-8 flex flex-wrap gap-4">
             <a
               href="/packages"
-              class="inline-flex items-center rounded-lg bg-primary-600 px-6 py-3 font-semibold text-white shadow hover:bg-primary-700 transition-colors"
+              class="inline-flex items-center rounded-full bg-primary-600 px-6 py-3 font-semibold text-white shadow-lg hover:bg-primary-700 hover:shadow-xl hover:scale-105 transition-all duration-300"
             >
               Browse Tours
               <svg class="ml-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -206,18 +206,20 @@ const structuredData = {
             </a>
             <a
               href="/contact"
-              class="inline-flex items-center rounded-lg border border-gray-300 px-6 py-3 font-semibold text-white hover:border-primary-400 hover:bg-white/10"
+              class="inline-flex items-center rounded-full border border-gray-300 px-6 py-3 font-semibold text-white hover:border-primary-400 hover:bg-white/10 transition-all duration-300"
             >
               Talk to a Trip Designer
             </a>
           </div>
         </div>
-        <div class="rounded-3xl border border-white/20 bg-white/10 shadow-xl backdrop-blur">
+        <div
+          class="reveal reveal-delay-3 rounded-3xl border border-white/20 bg-white/10 shadow-xl backdrop-blur"
+        >
           <div class="grid grid-cols-2 divide-x divide-y divide-white/20">
             {
               missionStats.map((item) => (
                 <div class="p-6">
-                  <p class="text-3xl font-bold text-primary-400">{item.value}</p>
+                  <p class="text-3xl font-semibold text-primary-400">{item.value}</p>
                   <p class="mt-2 text-sm font-semibold uppercase tracking-wide text-gray-300">
                     {item.label}
                   </p>
@@ -232,21 +234,23 @@ const structuredData = {
   </section>
 
   <section class="py-24">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-6xl px-8">
       <div class="grid gap-16 lg:grid-cols-2">
         <div>
-          <p class="text-sm uppercase tracking-widest text-primary-600 font-semibold">
+          <p class="reveal text-sm uppercase tracking-widest text-primary-600 font-semibold">
             Our Mission
           </p>
-          <h2 class="mt-4 font-display text-3xl font-bold text-gray-900 sm:text-4xl">
+          <h2
+            class="reveal reveal-delay-1 mt-4 font-display text-3xl font-semibold text-gray-900 sm:text-4xl lg:text-5xl"
+          >
             Build legendary rides that uplift every village we roll through.
           </h2>
-          <p class="mt-6 text-lg text-gray-700">
+          <p class="reveal reveal-delay-2 mt-6 text-lg text-gray-700">
             We curate every expedition with three guardrails: safety that rivals ProTour support,
             meaningful encounters with craftspeople and conservationists, and regenerative
             operations that keep Sri Lanka thriving for decades of cyclists to come.
           </p>
-          <ul class="mt-8 space-y-4 text-gray-700">
+          <ul class="reveal reveal-delay-3 mt-8 space-y-4 text-gray-700">
             <li class="flex items-start">
               <span
                 class="mt-1 mr-3 inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary-100 text-primary-600"
@@ -279,7 +283,7 @@ const structuredData = {
             </li>
           </ul>
         </div>
-        <div class="rounded-2xl bg-gray-50 p-8">
+        <div class="reveal reveal-delay-4 rounded-2xl bg-gray-50 p-8">
           <h3 class="text-xl font-semibold text-gray-900">Values in Motion</h3>
           <p class="mt-3 text-gray-600">
             These are the promises every Cycle Paradise team member trains to uphold.
@@ -310,23 +314,25 @@ const structuredData = {
   </section>
 
   <section class="bg-gray-900 py-24 text-white">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-6xl px-8">
       <div class="flex flex-col gap-12 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <p class="text-sm uppercase tracking-widest text-primary-300 font-semibold">
+          <p class="reveal text-sm uppercase tracking-widest text-primary-300 font-semibold">
             Leadership Team
           </p>
-          <h2 class="mt-4 font-display text-3xl font-bold sm:text-4xl">
+          <h2
+            class="reveal reveal-delay-1 mt-4 font-display text-3xl font-semibold sm:text-4xl lg:text-5xl"
+          >
             Meet the riders guiding every decision.
           </h2>
-          <p class="mt-4 max-w-2xl text-lg text-gray-300">
+          <p class="reveal reveal-delay-2 mt-4 max-w-2xl text-lg text-gray-300">
             We blend expedition know-how, hospitality craft, and business rigor. Every leader still
             rides at least two tours a quarter to stay close to riders.
           </p>
         </div>
         <a
           href="/contact"
-          class="inline-flex items-center rounded-full border border-white/30 px-6 py-3 text-sm font-semibold text-white hover:bg-white hover:text-gray-900"
+          class="reveal reveal-delay-3 inline-flex items-center rounded-full border border-white/30 px-6 py-3 text-sm font-semibold text-white hover:bg-white hover:text-gray-900 transition-all duration-300"
         >
           Book a discovery call
           <svg class="ml-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -361,11 +367,15 @@ const structuredData = {
   </section>
 
   <section class="py-24">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-6xl px-8">
       <div class="grid gap-12 lg:grid-cols-2">
         <div>
-          <p class="text-sm uppercase tracking-widest text-primary-600 font-semibold">Timeline</p>
-          <h2 class="mt-4 font-display text-3xl font-bold text-gray-900">
+          <p class="reveal text-sm uppercase tracking-widest text-primary-600 font-semibold">
+            Timeline
+          </p>
+          <h2
+            class="reveal reveal-delay-1 mt-4 font-display text-3xl font-semibold text-gray-900 sm:text-4xl"
+          >
             Milestones that shaped us.
           </h2>
           <ol class="mt-8 space-y-6 border-l-2 border-primary-100 pl-6">
@@ -373,8 +383,8 @@ const structuredData = {
               milestones.map((milestone) => (
                 <li>
                   <div class="flex items-start gap-4">
-                    <div class="relative -ml-[43px] mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-white ring-2 ring-primary-200">
-                      <span class="text-sm font-semibold text-primary-600">{milestone.year}</span>
+                    <div class="relative -ml-[51px] mt-0.5 flex h-12 w-12 p-4 items-center justify-center rounded-full bg-white ring-2 ring-primary-200">
+                      <span class="text-xs font-semibold text-primary-600">{milestone.year}</span>
                     </div>
                     <div>
                       <h3 class="text-lg font-semibold text-gray-900">{milestone.title}</h3>
@@ -386,11 +396,11 @@ const structuredData = {
             }
           </ol>
         </div>
-        <div class="rounded-3xl bg-primary-50 p-8">
+        <div class="reveal reveal-delay-2 rounded-3xl bg-primary-50 p-8">
           <p class="text-sm uppercase tracking-widest text-primary-700 font-semibold">
             Impact Snapshots
           </p>
-          <h2 class="mt-4 font-display text-3xl font-bold text-gray-900">
+          <h2 class="mt-4 font-display text-3xl font-semibold text-gray-900">
             Proof that mindful travel works.
           </h2>
           <div class="mt-8 space-y-6">
@@ -409,13 +419,13 @@ const structuredData = {
   </section>
 
   <section class="bg-gray-50 py-24">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-6xl px-8">
       <div class="grid gap-12 lg:grid-cols-2 lg:items-center">
         <div>
           <p class="text-sm uppercase tracking-widest text-primary-600 font-semibold">
             Your Next Ride
           </p>
-          <h2 class="mt-4 font-display text-3xl font-bold text-gray-900">
+          <h2 class="mt-4 font-display text-3xl font-semibold text-gray-900">
             Ready for the story you will tell after your ride?
           </h2>
           <p class="mt-4 text-lg text-gray-700">
@@ -514,3 +524,79 @@ const structuredData = {
     </div>
   </section>
 </Layout>
+
+<style>
+  /* Reveal Animation Keyframes */
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Initial state for elements waiting to be revealed */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  /* Active state when element enters viewport */
+  .reveal-active {
+    animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  /* Staggered delays for sequential reveals */
+  .reveal-delay-1 {
+    animation-delay: 0.1s;
+  }
+  .reveal-delay-2 {
+    animation-delay: 0.2s;
+  }
+  .reveal-delay-3 {
+    animation-delay: 0.3s;
+  }
+  .reveal-delay-4 {
+    animation-delay: 0.4s;
+  }
+  .reveal-delay-5 {
+    animation-delay: 0.5s;
+  }
+  .reveal-delay-6 {
+    animation-delay: 0.6s;
+  }
+</style>
+
+<script>
+  // Intersection Observer for performant scroll-triggered animations
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('reveal-active');
+            // Unobserve after animation to free resources
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        rootMargin: '0px 0px -50px 0px', // Trigger slightly before element is visible
+        threshold: 0.1,
+      }
+    );
+
+    // Observe all elements with reveal class
+    document.querySelectorAll('.reveal').forEach((el) => {
+      observer.observe(el);
+    });
+  } else {
+    // Fallback for browsers without IntersectionObserver support
+    document.querySelectorAll('.reveal').forEach((el) => {
+      el.classList.add('reveal-active');
+    });
+  }
+</script>
