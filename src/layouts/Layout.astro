@@ -14,11 +14,11 @@ export interface Props {
   alternateUrls?: { hreflang: string; href: string }[];
 }
 
-const { 
-  title, 
-  description, 
-  canonicalUrl, 
-  ogImage, 
+const {
+  title,
+  description,
+  canonicalUrl,
+  ogImage,
   ogType = 'website',
   keywords = [],
   author,
@@ -26,7 +26,7 @@ const {
   modifiedTime,
   structuredData,
   noIndex = false,
-  alternateUrls = []
+  alternateUrls = [],
 } = Astro.props;
 
 const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://cycleparadise.lk';
@@ -42,7 +42,7 @@ const defaultKeywords = [
   'adventure travel',
   'eco tourism',
   'guided cycling tours',
-  'sri lanka tourism'
+  'sri lanka tourism',
 ];
 
 const allKeywords = [...new Set([...keywords, ...defaultKeywords])];
@@ -53,118 +53,133 @@ const pathSegments = Astro.url.pathname.split('/').filter(Boolean);
 let currentPath = '';
 
 breadcrumbItems.push({
-  "@type": "ListItem",
-  "position": 1,
-  "name": "Home",
-  "item": siteUrl
+  '@type': 'ListItem',
+  position: 1,
+  name: 'Home',
+  item: siteUrl,
 });
 
 pathSegments.forEach((segment, index) => {
   currentPath += '/' + segment;
   breadcrumbItems.push({
-    "@type": "ListItem",
-    "position": index + 2,
-    "name": segment.charAt(0).toUpperCase() + segment.slice(1).replace('-', ' '),
-    "item": siteUrl + currentPath
+    '@type': 'ListItem',
+    position: index + 2,
+    name: segment.charAt(0).toUpperCase() + segment.slice(1).replace('-', ' '),
+    item: siteUrl + currentPath,
   });
 });
 
 const breadcrumbStructuredData = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": breadcrumbItems
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: breadcrumbItems,
 };
 
 // Organization structured data
 const organizationStructuredData = {
-  "@context": "https://schema.org",
-  "@type": "TravelAgency",
-  "name": "Cycle Paradise",
-  "description": "Premium cycling tours and adventures across Sri Lanka",
-  "url": siteUrl,
-  "logo": `${siteUrl}/images/logo.png`,
-  "image": finalOgImage,
-  "telephone": "+94-77-123-4567",
-  "email": "info@cycleparadise.lk",
-  "address": {
-    "@type": "PostalAddress",
-    "addressCountry": "LK",
-    "addressLocality": "Colombo",
-    "addressRegion": "Western Province"
+  '@context': 'https://schema.org',
+  '@type': 'TravelAgency',
+  name: 'Cycle Paradise',
+  description: 'Premium cycling tours and adventures across Sri Lanka',
+  url: siteUrl,
+  logo: `${siteUrl}/images/logo.png`,
+  image: finalOgImage,
+  telephone: '+94-77-123-4567',
+  email: 'info@cycleparadise.lk',
+  address: {
+    '@type': 'PostalAddress',
+    addressCountry: 'LK',
+    addressLocality: 'Colombo',
+    addressRegion: 'Western Province',
   },
-  "geo": {
-    "@type": "GeoCoordinates",
-    "latitude": "6.9271",
-    "longitude": "79.8612"
+  geo: {
+    '@type': 'GeoCoordinates',
+    latitude: '6.9271',
+    longitude: '79.8612',
   },
-  "sameAs": [
-    "https://www.facebook.com/cycleparadise",
-    "https://www.instagram.com/cycleparadise",
-    "https://www.twitter.com/cycleparadise"
+  sameAs: [
+    'https://www.facebook.com/cycleparadise',
+    'https://www.instagram.com/cycleparadise',
+    'https://www.twitter.com/cycleparadise',
   ],
-  "priceRange": "$$",
-  "servesCuisine": "Cycling Tours",
-  "hasOfferCatalog": {
-    "@type": "OfferCatalog",
-    "name": "Cycling Tour Packages",
-    "itemListElement": [
+  priceRange: '$$',
+  servesCuisine: 'Cycling Tours',
+  hasOfferCatalog: {
+    '@type': 'OfferCatalog',
+    name: 'Cycling Tour Packages',
+    itemListElement: [
       {
-        "@type": "Offer",
-        "itemOffered": {
-          "@type": "TouristTrip",
-          "name": "Hill Country Cycling Tours"
-        }
+        '@type': 'Offer',
+        itemOffered: {
+          '@type': 'TouristTrip',
+          name: 'Hill Country Cycling Tours',
+        },
       },
       {
-        "@type": "Offer", 
-        "itemOffered": {
-          "@type": "TouristTrip",
-          "name": "Coastal Cycling Adventures"
-        }
-      }
-    ]
-  }
+        '@type': 'Offer',
+        itemOffered: {
+          '@type': 'TouristTrip',
+          name: 'Coastal Cycling Adventures',
+        },
+      },
+    ],
+  },
 };
 
 // Combine all structured data
 const combinedStructuredData = [
   organizationStructuredData,
   breadcrumbStructuredData,
-  ...(structuredData ? [structuredData] : [])
+  ...(structuredData ? [structuredData] : []),
 ];
 ---
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" class="h-full">
   <head>
     <meta charset="utf-8" />
-    
+
     <!-- Basic Meta Tags -->
     <title>{title}</title>
-    <meta name="description" content={description || "Discover amazing cycling tours and adventures in Sri Lanka with Cycle Paradise. Premium guided bicycle tours across hill country, coastal routes, and cultural sites."} />
+    <meta
+      name="description"
+      content={description ||
+        'Discover amazing cycling tours and adventures in Sri Lanka with Cycle Paradise. Premium guided bicycle tours across hill country, coastal routes, and cultural sites.'}
+    />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="generator" content={Astro.generator} />
-    
+
     <!-- SEO Meta Tags -->
     <meta name="keywords" content={allKeywords.join(', ')} />
     {author && <meta name="author" content={author} />}
-    <meta name="robots" content={noIndex ? "noindex, nofollow" : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"} />
-    <meta name="googlebot" content={noIndex ? "noindex, nofollow" : "index, follow"} />
-    
+    <meta
+      name="robots"
+      content={noIndex
+        ? 'noindex, nofollow'
+        : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'}
+    />
+    <meta name="googlebot" content={noIndex ? 'noindex, nofollow' : 'index, follow'} />
+
     <!-- Canonical URL -->
     <link rel="canonical" href={currentUrl} />
-    
+
     <!-- Alternate Languages -->
-    {alternateUrls.map(({ hreflang, href }) => (
-      <link rel="alternate" hreflang={hreflang} href={href} />
-    ))}
-    
+    {
+      alternateUrls.map(({ hreflang, href }) => (
+        <link rel="alternate" hreflang={hreflang} href={href} />
+      ))
+    }
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content="Cycle Paradise" />
     <meta property="og:url" content={currentUrl} />
     <meta property="og:title" content={title} />
-    <meta property="og:description" content={description || "Discover amazing cycling tours and adventures in Sri Lanka with Cycle Paradise"} />
+    <meta
+      property="og:description"
+      content={description ||
+        'Discover amazing cycling tours and adventures in Sri Lanka with Cycle Paradise'}
+    />
     <meta property="og:image" content={finalOgImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -180,7 +195,11 @@ const combinedStructuredData = [
     <meta name="twitter:creator" content="@cycleparadise" />
     <meta name="twitter:url" content={currentUrl} />
     <meta name="twitter:title" content={title} />
-    <meta name="twitter:description" content={description || "Discover amazing cycling tours and adventures in Sri Lanka with Cycle Paradise"} />
+    <meta
+      name="twitter:description"
+      content={description ||
+        'Discover amazing cycling tours and adventures in Sri Lanka with Cycle Paradise'}
+    />
     <meta name="twitter:image" content={finalOgImage} />
     <meta name="twitter:image:alt" content={title} />
 
@@ -203,48 +222,62 @@ const combinedStructuredData = [
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="dns-prefetch" href="https://graph.instagram.com" />
-    
+
     <!-- Fonts -->
-    <link 
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" 
-      rel="stylesheet" 
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
     />
 
     <!-- Structured Data -->
     <script type="application/ld+json" set:html={JSON.stringify(combinedStructuredData)} />
   </head>
-  
+
   <body class="h-full bg-white text-gray-900 font-sans">
     <div class="min-h-full">
       <!-- Header -->
-      <header class="bg-white shadow-sm border-b border-gray-200">
-        <nav class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div class="flex h-16 justify-between items-center">
+      <header id="main-header" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+        <nav class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 transition-all duration-100">
+          <div class="flex justify-between items-center">
             <!-- Logo -->
             <div class="flex items-center">
               <a href="/" class="flex items-center space-x-2">
-                <div class="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center">
-                  <span class="text-white font-bold text-sm">CP</span>
+                <div class="w-7 h-7 bg-primary-600 rounded-full flex items-center justify-center">
+                  <span class="text-white font-bold text-xs">CP</span>
                 </div>
-                <span class="font-display font-semibold text-xl text-gray-900">Cycle Paradise</span>
+                <span class="font-display font-semibold text-base text-gray-900 transition-colors"
+                  >Cycle Paradise</span
+                >
               </a>
             </div>
-            
+
             <!-- Desktop Navigation -->
-            <div class="hidden lg:flex items-center space-x-6">
-              <a href="/packages" class="text-gray-600 hover:text-primary-600 transition-colors">
+            <div class="hidden lg:flex items-center space-x-5">
+              <a
+                href="/packages"
+                class="text-sm text-gray-800 hover:text-primary-600 transition-colors font-medium"
+              >
                 Tour Packages
               </a>
-              <a href="/guides" class="text-gray-600 hover:text-primary-600 transition-colors">
+              <a
+                href="/guides"
+                class="text-sm text-gray-800 hover:text-primary-600 transition-colors font-medium"
+              >
                 Cycling Guides
               </a>
-              <a href="/about" class="text-gray-600 hover:text-primary-600 transition-colors">
+              <a
+                href="/about"
+                class="text-sm text-gray-800 hover:text-primary-600 transition-colors font-medium"
+              >
                 About Us
               </a>
-              <a href="/contact" class="text-gray-600 hover:text-primary-600 transition-colors">
+              <a
+                href="/contact"
+                class="text-sm text-gray-800 hover:text-primary-600 transition-colors font-medium"
+              >
                 Contact
               </a>
-              
+
               <!-- Search -->
               <div class="relative hidden md:block">
                 <form id="header-search" action="/search" method="get" class="relative">
@@ -252,57 +285,90 @@ const combinedStructuredData = [
                     type="text"
                     name="q"
                     placeholder="Search tours..."
-                    class="w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                    class="w-48 pl-9 pr-3 py-1.5 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
                   />
                   <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    <svg
+                      class="h-4 w-4 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                     </svg>
                   </div>
                 </form>
               </div>
-              <a 
-                href="/packages" 
-                class="bg-primary-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors"
+              <a
+                href="/packages"
+                class="bg-primary-600 text-white px-5 py-1.5 rounded-full text-sm font-medium hover:bg-primary-700 transition-colors"
               >
                 Book Now
               </a>
             </div>
-            
+
             <!-- Mobile buttons -->
             <div class="flex items-center space-x-2 lg:hidden">
               <!-- Mobile Search Button -->
-              <a 
+              <a
                 href="/search"
-                class="text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 p-2"
+                class="text-gray-800 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 p-2"
                 aria-label="Search"
               >
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>
               </a>
-              
+
               <!-- Mobile menu button -->
-              <button 
-                type="button" 
-                class="text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 p-2"
+              <button
+                type="button"
+                class="text-gray-800 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 p-2"
                 aria-label="Open mobile menu"
                 id="mobile-menu-button"
               >
-                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" id="menu-icon">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                <svg
+                  class="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  id="menu-icon"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 6h16M4 12h16M4 18h16"></path>
                 </svg>
-                <svg class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" id="close-icon">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  class="h-6 w-6 hidden"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  id="close-icon"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
               </button>
             </div>
           </div>
         </nav>
-        
+
         <!-- Mobile Navigation Menu -->
-        <div 
-          class="lg:hidden hidden bg-white border-t border-gray-200 px-4 py-4 space-y-3"
+        <div
+          class="lg:hidden hidden bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-4 space-y-3 shadow-lg"
           id="mobile-menu"
         >
           <!-- Mobile Search -->
@@ -312,16 +378,25 @@ const combinedStructuredData = [
                 type="text"
                 name="q"
                 placeholder="Search tours and guides..."
-                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                <svg
+                  class="h-3.5 w-3.5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>
               </div>
             </form>
           </div>
-          
+
           <!-- Mobile Navigation Links -->
           <div class="space-y-1">
             <a href="/packages" class="block py-2 text-gray-600 hover:text-primary-600 font-medium">
@@ -337,24 +412,24 @@ const combinedStructuredData = [
               Contact
             </a>
           </div>
-          
+
           <!-- Mobile CTA -->
           <div class="pt-3 border-t border-gray-200">
-            <a 
-              href="/packages" 
-              class="block w-full text-center bg-primary-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors"
+            <a
+              href="/packages"
+              class="block w-full text-center bg-primary-600 text-white px-4 py-3 rounded-full font-medium hover:bg-primary-700 transition-colors"
             >
               Book Now
             </a>
           </div>
         </div>
       </header>
-      
+
       <!-- Main Content -->
       <main>
         <slot />
       </main>
-      
+
       <!-- Footer -->
       <footer class="bg-gray-900 text-white">
         <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -368,39 +443,61 @@ const combinedStructuredData = [
                 <span class="font-display font-semibold text-xl">Cycle Paradise</span>
               </div>
               <p class="text-gray-300 mb-4 max-w-md">
-                Experience the breathtaking beauty of Sri Lanka on two wheels. 
-                We offer premium cycling tours across the pearl of the Indian Ocean.
+                Experience the breathtaking beauty of Sri Lanka on two wheels. We offer premium
+                cycling tours across the pearl of the Indian Ocean.
               </p>
               <div class="flex space-x-4">
                 <a href="#" class="text-gray-300 hover:text-white transition-colors">
                   <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
+                    <path
+                      d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"
+                    ></path>
                   </svg>
                 </a>
                 <a href="#" class="text-gray-300 hover:text-white transition-colors">
                   <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.739.1.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.170.271-.402.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.131-2.608 7.462-6.233 7.462-1.214 0-2.357-.629-2.748-1.378 0 0-.599 2.282-.744 2.840-.282 1.079-1.004 2.323-1.516 3.156C9.587 23.815 10.783 24.001 12.017 24.001c6.624 0 11.99-5.367 11.99-11.988C24.007 5.367 18.641.001.012.017 0z"/>
+                    <path
+                      d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.739.1.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.170.271-.402.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.131-2.608 7.462-6.233 7.462-1.214 0-2.357-.629-2.748-1.378 0 0-.599 2.282-.744 2.840-.282 1.079-1.004 2.323-1.516 3.156C9.587 23.815 10.783 24.001 12.017 24.001c6.624 0 11.99-5.367 11.99-11.988C24.007 5.367 18.641.001.012.017 0z"
+                    ></path>
                   </svg>
                 </a>
                 <a href="#" class="text-gray-300 hover:text-white transition-colors">
                   <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                    <path
+                      d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"
+                    ></path>
                   </svg>
                 </a>
               </div>
             </div>
-            
+
             <!-- Quick Links -->
             <div>
               <h3 class="font-semibold mb-4">Quick Links</h3>
               <ul class="space-y-2">
-                <li><a href="/packages" class="text-gray-300 hover:text-white transition-colors">Tour Packages</a></li>
-                <li><a href="/guides" class="text-gray-300 hover:text-white transition-colors">Cycling Guides</a></li>
-                <li><a href="/about" class="text-gray-300 hover:text-white transition-colors">About Us</a></li>
-                <li><a href="/contact" class="text-gray-300 hover:text-white transition-colors">Contact</a></li>
+                <li>
+                  <a href="/packages" class="text-gray-300 hover:text-white transition-colors"
+                    >Tour Packages</a
+                  >
+                </li>
+                <li>
+                  <a href="/guides" class="text-gray-300 hover:text-white transition-colors"
+                    >Cycling Guides</a
+                  >
+                </li>
+                <li>
+                  <a href="/about" class="text-gray-300 hover:text-white transition-colors"
+                    >About Us</a
+                  >
+                </li>
+                <li>
+                  <a href="/contact" class="text-gray-300 hover:text-white transition-colors"
+                    >Contact</a
+                  >
+                </li>
               </ul>
             </div>
-            
+
             <!-- Contact Info -->
             <div>
               <h3 class="font-semibold mb-4">Contact Us</h3>
@@ -411,26 +508,26 @@ const combinedStructuredData = [
               </ul>
             </div>
           </div>
-          
+
           <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
             <p>&copy; 2024 Cycle Paradise. All rights reserved.</p>
           </div>
         </div>
       </footer>
     </div>
-    
+
     <!-- Header functionality script -->
     <script>
-      document.addEventListener('DOMContentLoaded', function() {
+      document.addEventListener('DOMContentLoaded', function () {
         // Mobile menu toggle
         const menuButton = document.getElementById('mobile-menu-button');
         const mobileMenu = document.getElementById('mobile-menu');
         const menuIcon = document.getElementById('menu-icon');
         const closeIcon = document.getElementById('close-icon');
-        
-        menuButton?.addEventListener('click', function() {
+
+        menuButton?.addEventListener('click', function () {
           const isHidden = mobileMenu?.classList.contains('hidden');
-          
+
           if (isHidden) {
             mobileMenu?.classList.remove('hidden');
             menuIcon?.classList.add('hidden');
@@ -443,7 +540,7 @@ const combinedStructuredData = [
         });
 
         // Close mobile menu when clicking outside
-        document.addEventListener('click', function(event) {
+        document.addEventListener('click', function (event) {
           const target = event.target as Element;
           if (!menuButton?.contains(target) && !mobileMenu?.contains(target)) {
             mobileMenu?.classList.add('hidden');
@@ -455,10 +552,10 @@ const combinedStructuredData = [
         // Header search functionality
         const headerSearch = document.getElementById('header-search');
         if (headerSearch) {
-          headerSearch.addEventListener('submit', function(e) {
+          headerSearch.addEventListener('submit', function (e) {
             const formData = new FormData(headerSearch as HTMLFormElement);
             const query = formData.get('q')?.toString().trim();
-            
+
             if (!query) {
               e.preventDefault();
               return;
@@ -467,20 +564,89 @@ const combinedStructuredData = [
         }
 
         // Close mobile menu on window resize
-        window.addEventListener('resize', function() {
-          if (window.innerWidth >= 1024) { // lg breakpoint
+        window.addEventListener('resize', function () {
+          if (window.innerWidth >= 1024) {
+            // lg breakpoint
             mobileMenu?.classList.add('hidden');
             menuIcon?.classList.remove('hidden');
             closeIcon?.classList.add('hidden');
           }
         });
+
+        // Navbar scroll animation
+        const header = document.getElementById('main-header');
+        let ticking = false;
+
+        function updateNavbar() {
+          const scrollY = window.scrollY;
+
+          if (scrollY > 50) {
+            header?.classList.add('scrolled');
+          } else {
+            header?.classList.remove('scrolled');
+          }
+
+          ticking = false;
+        }
+
+        function requestTick() {
+          if (!ticking) {
+            requestAnimationFrame(updateNavbar);
+            ticking = true;
+          }
+        }
+
+        window.addEventListener('scroll', requestTick, { passive: true });
+
+        // Initial check
+        updateNavbar();
       });
     </script>
 
+    <!-- Navbar scroll styles -->
+    <style>
+      #main-header {
+        background-color: transparent;
+      }
+
+      #main-header nav {
+        padding-top: 1.5rem;
+        padding-bottom: 1rem;
+      }
+
+      #main-header.scrolled {
+        background-color: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(8px);
+        box-shadow:
+          0 1px 3px 0 rgba(0, 0, 0, 0.1),
+          0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        border-bottom: 1px solid rgba(229, 231, 235, 0.8);
+      }
+
+      #main-header.scrolled nav {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+      }
+
+      /* Add padding to body to compensate for fixed header */
+      body {
+        padding-top: 72px; /* Adjusted for larger initial header */
+      }
+    </style>
+
     <!-- Performance Monitoring -->
     <script>
+      // Extend Window interface
+      interface ResourceMetrics {
+        count: number;
+        totalSize: number;
+        totalTime: number;
+      }
+
       // Core Web Vitals monitoring
       class PerformanceMonitor {
+        metrics: Record<string, any>;
+
         constructor() {
           this.metrics = {};
           this.init();
@@ -493,14 +659,16 @@ const combinedStructuredData = [
           this.measureFID();
           this.measureCLS();
           this.monitorResources();
-          
+
           // Send metrics when page unloads
           window.addEventListener('beforeunload', () => this.sendMetrics());
         }
 
         measureTTFB() {
           if ('navigation' in performance) {
-            const navTiming = performance.getEntriesByType('navigation')[0];
+            const navTiming = performance.getEntriesByType(
+              'navigation'
+            )[0] as PerformanceNavigationTiming;
             if (navTiming) {
               this.metrics.ttfb = navTiming.responseStart - navTiming.requestStart;
             }
@@ -529,7 +697,7 @@ const combinedStructuredData = [
               this.metrics.lcp = lastEntry.startTime;
             });
             observer.observe({ entryTypes: ['largest-contentful-paint'] });
-            
+
             window.addEventListener('load', () => {
               setTimeout(() => observer.disconnect(), 0);
             });
@@ -540,7 +708,8 @@ const combinedStructuredData = [
           if ('PerformanceObserver' in window) {
             const observer = new PerformanceObserver((list) => {
               for (const entry of list.getEntries()) {
-                this.metrics.fid = entry.processingStart - entry.startTime;
+                const fidEntry = entry as any; // PerformanceEventTiming
+                this.metrics.fid = fidEntry.processingStart - fidEntry.startTime;
                 observer.disconnect();
               }
             });
@@ -551,16 +720,17 @@ const combinedStructuredData = [
         measureCLS() {
           if ('PerformanceObserver' in window) {
             let clsValue = 0;
-            
+
             const observer = new PerformanceObserver((list) => {
               for (const entry of list.getEntries()) {
-                if (!entry.hadRecentInput) {
-                  clsValue += entry.value;
+                const clsEntry = entry as any; // LayoutShift
+                if (!clsEntry.hadRecentInput) {
+                  clsValue += clsEntry.value;
                 }
               }
               this.metrics.cls = clsValue;
             });
-            
+
             observer.observe({ entryTypes: ['layout-shift'] });
           }
         }
@@ -568,15 +738,16 @@ const combinedStructuredData = [
         monitorResources() {
           if ('PerformanceObserver' in window) {
             const observer = new PerformanceObserver((list) => {
-              const resources = {};
+              const resources: Record<string, ResourceMetrics> = {};
               for (const entry of list.getEntries()) {
-                const resourceType = entry.initiatorType || 'other';
+                const resourceEntry = entry as PerformanceResourceTiming;
+                const resourceType = resourceEntry.initiatorType || 'other';
                 if (!resources[resourceType]) {
                   resources[resourceType] = { count: 0, totalSize: 0, totalTime: 0 };
                 }
                 resources[resourceType].count++;
-                resources[resourceType].totalSize += entry.transferSize || 0;
-                resources[resourceType].totalTime += entry.duration || 0;
+                resources[resourceType].totalSize += resourceEntry.transferSize || 0;
+                resources[resourceType].totalTime += resourceEntry.duration || 0;
               }
               this.metrics.resources = resources;
             });
@@ -592,9 +763,9 @@ const combinedStructuredData = [
                 url: window.location.href,
                 userAgent: navigator.userAgent,
                 timestamp: Date.now(),
-                metrics: this.metrics
+                metrics: this.metrics,
               });
-              
+
               navigator.sendBeacon('/api/analytics/performance', data);
             }
 
@@ -606,6 +777,13 @@ const combinedStructuredData = [
         }
       }
 
+      // Declare global
+      declare global {
+        interface Window {
+          performanceMonitor: PerformanceMonitor;
+        }
+      }
+
       // Initialize performance monitoring
       document.addEventListener('DOMContentLoaded', () => {
         window.performanceMonitor = new PerformanceMonitor();
@@ -614,11 +792,12 @@ const combinedStructuredData = [
       // Service Worker registration for caching
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(registration => {
+          navigator.serviceWorker
+            .register('/sw.js')
+            .then((registration) => {
               console.log('SW registered: ', registration);
             })
-            .catch(registrationError => {
+            .catch((registrationError) => {
               console.log('SW registration failed: ', registrationError);
             });
         });
