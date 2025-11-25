@@ -61,16 +61,18 @@ if (hasDatabaseConnection) {
           crafted cycling tours. From mountain trails to coastal routes, adventure awaits at every
           turn.
         </p>
-        <div class="reveal reveal-delay-3 mt-10 flex items-center gap-x-6">
+        <div
+          class="reveal reveal-delay-3 mt-10 flex flex-col sm:flex-row items-center gap-y-4 sm:gap-y-0 sm:gap-x-6"
+        >
           <a
             href="/packages"
-            class="rounded-full bg-primary-600 px-8 py-4 text-lg font-semibold text-white shadow-lg hover:bg-primary-700 hover:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 transition-all"
+            class="w-full sm:w-auto text-center rounded-full bg-primary-600 px-8 py-4 text-lg font-semibold text-white shadow-lg hover:bg-primary-700 hover:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 transition-all"
           >
             Explore Packages
           </a>
           <a
             href="/guides"
-            class="glassy-btn text-lg font-semibold leading-6 text-white transition-all"
+            class="w-full sm:w-auto text-center glassy-btn text-lg font-semibold leading-6 text-white transition-all"
           >
             Cycling Guides <span aria-hidden="true">→</span>
           </a>
@@ -196,7 +198,7 @@ if (hasDatabaseConnection) {
         </div>
         <a
           href="/packages"
-          class="mt-4 sm:mt-0 inline-flex items-center text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors group"
+          class="hidden sm:inline-flex mt-4 sm:mt-0 items-center text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors group"
         >
           View All Packages
           <svg
@@ -217,6 +219,28 @@ if (hasDatabaseConnection) {
       <!-- Featured packages using PackageCard component -->
       <div class="reveal reveal-delay-1 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
         {featuredPackages.map((tourPackage) => <PackageCard package={tourPackage} />)}
+      </div>
+
+      <!-- Mobile View All Link -->
+      <div class="mt-8 text-center sm:hidden">
+        <a
+          href="/packages"
+          class="inline-flex items-center text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors group"
+        >
+          View All Packages
+          <svg
+            class="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+          </svg>
+        </a>
       </div>
     </div>
   </section>
