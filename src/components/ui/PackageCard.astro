@@ -39,11 +39,11 @@ const packageUrl = `/packages/${tourPackage.slug}`;
 ---
 
 <div
-  class={`group bg-white rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 ${className}`}
+  class={`group relative bg-white rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 ${className}`}
 >
   <!-- Image Section -->
   <div class="relative overflow-hidden">
-    <a href={packageUrl}>
+    <a href={packageUrl} class="block">
       <img
         src={firstImage}
         alt={tourPackage.title}
@@ -53,7 +53,7 @@ const packageUrl = `/packages/${tourPackage.slug}`;
     </a>
 
     <!-- Price Badge - Top Left -->
-    <div class="absolute top-4 left-4">
+    <div class="absolute top-4 left-4 pointer-events-none">
       <div class="bg-white/95 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg">
         <span class="text-lg font-bold text-gray-900">${tourPackage.basePrice}</span>
         <span class="text-xs text-gray-600 ml-1">/ person</span>
@@ -121,13 +121,36 @@ const packageUrl = `/packages/${tourPackage.slug}`;
       <span class="line-clamp-1">Route: {tourPackage.region}</span>
     </div>
 
-    <!-- View Details Button -->
+    <!-- View Details Button (Triggers Expansion) -->
     <a
       href={packageUrl}
-      class="block w-full text-center bg-white border-2 border-primary-600 text-primary-600 px-4 py-2.5 rounded-full font-semibold text-sm hover:bg-primary-600 hover:text-white transition-all duration-300"
+      class="peer block w-full text-center bg-white border-2 border-primary-600 text-primary-600 px-4 py-2.5 rounded-full font-semibold text-sm hover:bg-primary-600 hover:text-white transition-all duration-300"
     >
-      View Details
+      View More Details
     </a>
+
+    <!-- Included Services Preview (Expands on Button Hover) -->
+    {
+      tourPackage.includedServices && tourPackage.includedServices.length > 0 && (
+        <div class="lg:max-h-0 lg:opacity-0 peer-hover:lg:max-h-[200px] peer-hover:lg:opacity-100 transition-all duration-500 ease-in-out overflow-hidden hover:lg:max-h-[200px] hover:lg:opacity-100">
+          <div class="pt-4 mt-4 border-t border-gray-100">
+            <p class="text-xs text-gray-500 mb-2 font-medium">Includes:</p>
+            <div class="flex flex-wrap gap-2">
+              {tourPackage.includedServices.slice(0, 3).map((service: string) => (
+                <span class="bg-neutral-200 text-gray-700 text-xs px-2.5 py-1.5 rounded-md border border-gray-100">
+                  {service}
+                </span>
+              ))}
+              {tourPackage.includedServices.length > 3 && (
+                <span class="text-xs text-gray-500 flex items-center">
+                  +{tourPackage.includedServices.length - 3} more
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      )
+    }
   </div>
 </div>
 
