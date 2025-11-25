@@ -90,9 +90,9 @@ if (hasDatabaseConnection) {
     if (Array.isArray(result)) {
       guides = result;
       totalCount = result.length;
-    } else {
-      guides = result.guides ?? [];
-      totalCount = result.totalCount ?? guides.length;
+    } else if (result && typeof result === 'object') {
+      guides = (result as any).guides ?? [];
+      totalCount = (result as any).totalCount ?? guides.length;
     }
 
     regions = await cyclingGuideRepository.getRegions();
@@ -124,17 +124,29 @@ function getDifficultyColor(level: string): string {
   description="Discover the best cycling routes in Sri Lanka with our comprehensive guides. From easy coastal rides to challenging mountain trails, find your perfect cycling adventure."
 >
   <!-- Page Header -->
-  <section class="bg-gradient-to-b from-primary-50 to-white py-16">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+  <section class="relative py-16 -mt-[72px]">
+    <!-- Background Image with Overlay -->
+    <div class="absolute inset-0 z-0">
+      <img
+        src="https://images.unsplash.com/photo-1541625602330-2277a4c46182?q=80&w=2070&auto=format&fit=crop"
+        alt="Cyclist riding through scenic Sri Lankan landscape"
+        class="w-full h-full object-cover"
+      />
+      <!-- Dark overlay for better text contrast -->
+      <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30"></div>
+    </div>
+
+    <!-- Header Content -->
+    <div class="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-32">
       <div class="text-center">
-        <h1 class="font-display font-bold text-4xl text-gray-900 sm:text-5xl">
+        <h1 class="font-display font-bold text-4xl text-white sm:text-5xl">
           Cycling Guides
         </h1>
-        <p class="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
+        <p class="mt-4 text-lg text-gray-100 max-w-3xl mx-auto">
           Explore Sri Lanka's most beautiful cycling routes with our detailed guides. 
           Each route includes maps, difficulty ratings, safety tips, and local attractions.
         </p>
-        <p class="mt-2 text-gray-600">
+        <p class="mt-2 text-gray-100">
           Showing {guides.length} of {totalCount} routes
         </p>
       </div>
@@ -235,8 +247,8 @@ function getDifficultyColor(level: string): string {
                 <!-- Header -->
                 <div class="flex items-start justify-between mb-3">
                   <div class="flex items-center gap-2">
-                    <span class={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(guide.difficultyLevel)}`}>
-                      {guide.difficultyLevel.toLowerCase()}
+                    <span class={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(guide.difficultyLevel || 'EASY')}`}>
+                      {guide.difficultyLevel?.toLowerCase() || 'easy'}
                     </span>
                     <span class="text-sm text-gray-600">{guide.region}</span>
                   </div>
@@ -277,7 +289,7 @@ function getDifficultyColor(level: string): string {
                 </div>
 
                 <!-- Highlights -->
-                {guide.highlights.length > 0 && (
+                {guide.highlights && guide.highlights.length > 0 && (
                   <div class="mb-4">
                     <div class="flex flex-wrap gap-1">
                       {guide.highlights.slice(0, 3).map((highlight) => (
@@ -418,7 +430,7 @@ function getDifficultyColor(level: string): string {
     const clearFiltersBtn = document.getElementById('clear-filters');
     const clearAllFiltersBtn = document.getElementById('clear-all-filters');
 
-    if (filterForm) {
+    if (filterForm && filterForm instanceof HTMLFormElement) {
       filterForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
@@ -454,7 +466,9 @@ function getDifficultyColor(level: string): string {
     const selectInputs = filterForm?.querySelectorAll('select');
     selectInputs?.forEach(select => {
       select.addEventListener('change', function() {
-        filterForm.dispatchEvent(new Event('submit'));
+        if (filterForm instanceof HTMLFormElement) {
+          filterForm.dispatchEvent(new Event('submit'));
+        }
       });
     });
   });

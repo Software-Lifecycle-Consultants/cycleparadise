@@ -10,10 +10,13 @@ const hasDatabaseConnection = Boolean(getDatabaseUrl());
 
 // Get search parameters from URL
 const url = new URL(Astro.request.url);
+const difficultyParam = url.searchParams.get('difficulty');
 const searchParams: PackageSearchParams = {
   search: url.searchParams.get('search') || undefined,
   region: url.searchParams.get('region') || undefined,
-  difficultyLevel: url.searchParams.get('difficulty') as 'EASY' | 'INTERMEDIATE' | 'CHALLENGING' | undefined,
+  difficultyLevel: difficultyParam && ['EASY', 'INTERMEDIATE', 'CHALLENGING'].includes(difficultyParam)
+    ? (difficultyParam as any)
+    : undefined,
   minPrice: url.searchParams.get('minPrice') ? Number(url.searchParams.get('minPrice')) : undefined,
   maxPrice: url.searchParams.get('maxPrice') ? Number(url.searchParams.get('maxPrice')) : undefined,
   minDuration: url.searchParams.get('minDuration') ? Number(url.searchParams.get('minDuration')) : undefined,
@@ -125,18 +128,30 @@ const currentPage = searchParams.page || 1;
   description="Explore our comprehensive collection of cycling tour packages in Sri Lanka. From easy coastal rides to challenging mountain adventures, find your perfect cycling holiday."
 >
   <!-- Page Header -->
-  <section class="bg-gradient-to-b from-primary-50 to-white py-16">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+  <section class="relative py-16 -mt-[72px]">
+    <!-- Background Image with Overlay -->
+    <div class="absolute inset-0 z-0">
+      <img
+        src="https://images.unsplash.com/photo-1541625602330-2277a4c46182?q=80&w=2070&auto=format&fit=crop"
+        alt="Cyclist riding through scenic Sri Lankan landscape"
+        class="w-full h-full object-cover"
+      />
+      <!-- Dark overlay for better text contrast -->
+      <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30"></div>
+    </div>
+
+    <!-- Header Content -->
+    <div class="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-32">
       <div class="text-center">
-        <h1 class="font-display font-bold text-4xl text-gray-900 sm:text-5xl">
+        <h1 class="font-display font-bold text-4xl text-white sm:text-5xl">
           {searchParams.search ? `Search Results` : 'Tour Packages'}
         </h1>
         {searchParams.search && (
-          <p class="mt-4 text-lg text-gray-600">
-            Results for "<span class="font-semibold text-primary-600">{searchParams.search}</span>"
+          <p class="mt-4 text-lg text-gray-100">
+            Results for "<span class="font-semibold text-primary-400">{searchParams.search}</span>"
           </p>
         )}
-        <p class="mt-2 text-gray-600">
+        <p class="mt-2 text-gray-100">
           Showing {packages.length} of {totalCount} packages
         </p>
       </div>
@@ -193,9 +208,9 @@ const currentPage = searchParams.page || 1;
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             >
               <option value="">All Levels</option>
-              <option value="EASY" selected={searchParams.difficultyLevel === 'EASY'}>Easy</option>
-              <option value="INTERMEDIATE" selected={searchParams.difficultyLevel === 'INTERMEDIATE'}>Intermediate</option>
-              <option value="CHALLENGING" selected={searchParams.difficultyLevel === 'CHALLENGING'}>Challenging</option>
+              <option value="EASY" selected={searchParams.difficultyLevel?.toString() === 'EASY'}>Easy</option>
+              <option value="INTERMEDIATE" selected={searchParams.difficultyLevel?.toString() === 'INTERMEDIATE'}>Intermediate</option>
+              <option value="CHALLENGING" selected={searchParams.difficultyLevel?.toString() === 'CHALLENGING'}>Challenging</option>
             </select>
           </div>
 
@@ -367,7 +382,7 @@ const currentPage = searchParams.page || 1;
     const clearFiltersBtn = document.getElementById('clear-filters');
     const clearAllFiltersBtn = document.getElementById('clear-all-filters');
 
-    if (filterForm) {
+    if (filterForm && filterForm instanceof HTMLFormElement) {
       filterForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
@@ -403,7 +418,9 @@ const currentPage = searchParams.page || 1;
     const selectInputs = filterForm?.querySelectorAll('select');
     selectInputs?.forEach(select => {
       select.addEventListener('change', function() {
-        filterForm.dispatchEvent(new Event('submit'));
+        if (filterForm && filterForm instanceof HTMLFormElement) {
+          filterForm.dispatchEvent(new Event('submit'));
+        }
       });
     });
   });
