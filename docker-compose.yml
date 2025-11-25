@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: cycleparadise-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: cycleparadise
+      POSTGRES_PASSWORD: cycleparadise_dev
+      POSTGRES_DB: cycleparadise
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cycleparadise -d cycleparadise"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cycleparadise-network
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cycleparadise-web
+    restart: unless-stopped
+    ports:
+      - "4321:4321"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://cycleparadise:cycleparadise_dev@db:5432/cycleparadise
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - cycleparadise-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  cycleparadise-network:
+    driver: bridge

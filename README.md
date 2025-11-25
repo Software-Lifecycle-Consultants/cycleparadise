@@ -258,17 +258,43 @@ npx prisma studio
 
 ### Option 2: Docker PostgreSQL (Recommended for Dev)
 
+The project includes a `docker-compose.yml` with **PostgreSQL 15** (latest stable) pre-configured.
+
 ```powershell
-# Start database with Docker Compose
+# Start PostgreSQL container
 docker-compose up -d db
 
 # Set DATABASE_URL in .env
-DATABASE_URL="postgresql://cycleparadise_user:secure_password_change_me@localhost:5432/cycleparadise"
+DATABASE_URL="postgresql://cycleparadise:cycleparadise_dev@localhost:5432/cycleparadise"
 
 # Run migrations and seed
-npx prisma db push
+npx prisma migrate dev
 npm run db:seed
+
+# View database (optional)
+npx prisma studio
 ```
+
+**Docker Compose Configuration:**
+- **Image**: `postgres:15-alpine` (latest stable)
+- **Port**: `5432` (mapped to host)
+- **User**: `cycleparadise`
+- **Password**: `cycleparadise_dev` (change for production)
+- **Database**: `cycleparadise`
+- **Volume**: Persistent storage at `postgres_data`
+- **Health checks**: Ensures database is ready before app starts
+
+**To run both database and web app:**
+```powershell
+docker-compose up --build
+```
+
+**Database credentials (for tools like pgAdmin, DBeaver):**
+- Host: `localhost`
+- Port: `5432`
+- Username: `cycleparadise`
+- Password: `cycleparadise_dev`
+- Database: `cycleparadise`
 
 ### Option 3: Cloud Database (Production)
 
@@ -371,27 +397,66 @@ docker run --rm -p 4321:4321 \
 
 ### Docker Compose (Site + PostgreSQL)
 
-For full database functionality:
+For full database functionality with **PostgreSQL 15** (latest stable):
 
 ```powershell
 # Start both database and web server
 docker-compose up --build
 
-# Run in background
-docker-compose up -d
+# Or run just the database
+docker-compose up -d db
 
 # Stop services
 docker-compose down
 
+# Stop and remove volumes (⚠️ deletes database data)
+docker-compose down -v
+
 # View logs
 docker-compose logs -f web
+docker-compose logs -f db
 ```
 
 **What Docker Compose includes:**
-- PostgreSQL 15 with persistent volume
-- Automatic database migrations on startup
-- Database health checks
-- Web server on port 4321
+- **PostgreSQL 15-alpine** with persistent storage (`postgres_data` volume)
+- **Health checks** ensuring database is ready before app starts
+- **Automatic restarts** on container failure
+- **Isolated network** for service communication
+- **Web server** on port `4321`
+- **Database access** on port `5432` (localhost)
+
+**Connection details:**
+```env
+DATABASE_URL="postgresql://cycleparadise:cycleparadise_dev@localhost:5432/cycleparadise"
+```
+
+**First-time setup with Docker Compose:**
+```powershell
+# 1. Start database
+docker-compose up -d db
+
+# 2. Wait for database to be ready (health check passes)
+docker-compose ps
+
+# 3. Run migrations
+$env:DATABASE_URL="postgresql://cycleparadise:cycleparadise_dev@localhost:5432/cycleparadise"
+npx prisma migrate dev
+
+# 4. Seed data
+npm run db:seed
+
+# 5. Start web app
+docker-compose up web
+```
+
+**Access database with tools (pgAdmin, DBeaver, etc.):**
+- Host: `localhost`
+- Port: `5432`
+- Username: `cycleparadise`
+- Password: `cycleparadise_dev`
+- Database: `cycleparadise`
+
+> ⚠️ **Production Note**: Change default credentials in `docker-compose.yml` before deploying to production.
 - Environment variables from `.env` file
 
 **File structure:**
