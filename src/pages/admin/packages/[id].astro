@@ -1,5 +1,6 @@
 ---
 import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { prisma } from '../../../lib/db/connection';
 
 const user = Astro.locals.user;
 if (!user) {
@@ -15,10 +16,11 @@ let error = '';
 // Fetch package data if editing
 if (isEdit) {
   try {
-    const response = await fetch(`${Astro.url.origin}/api/admin/packages/${packageId}`);
-    if (response.ok) {
-      packageData = await response.json();
-    } else {
+    packageData = await prisma.tourPackage.findUnique({
+      where: { id: packageId },
+    });
+    
+    if (!packageData) {
       error = 'Package not found';
     }
   } catch (err) {
@@ -26,6 +28,7 @@ if (isEdit) {
     error = 'Failed to load package';
   }
 }
+
 
 const title = isEdit ? 'Edit Package' : 'Create Package';
 const difficultyLevels = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'];
@@ -326,6 +329,7 @@ const difficultyLevels = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'];
           headers: {
             'Content-Type': 'application/json',
           },
+          credentials: 'include',
           body: JSON.stringify(data),
         });
 
