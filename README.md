@@ -367,7 +367,140 @@ npm run lint             # ESLint
 npm run check-all        # Run all checks + build
 ```
 
-## 🐳 Docker
+## � Admin Panel
+
+Cycle Paradise includes a comprehensive admin panel for managing tour packages, cycling guides, bookings, and media. The admin panel requires a PostgreSQL database to function.
+
+### Admin Features
+
+- **Authentication System**: Secure session-based login with bcrypt password hashing
+- **Dashboard**: Real-time metrics (bookings, revenue, active packages)
+- **Tour Package Management**: Full CRUD operations for tour packages
+- **Cycling Guide Management**: Manage cycling guides and routes
+- **Booking Management**: View and manage customer bookings with status tracking
+- **Media Library**: Upload and manage images
+- **User Management**: Manage admin users and permissions
+
+### Quick Start
+
+#### 1. Create Admin User
+
+First, ensure your database is running:
+
+```powershell
+# Start database (if using Docker)
+docker-compose up -d db
+
+# Set database connection
+$env:DATABASE_URL="postgresql://cycleparadise:cycleparadise_dev@localhost:5432/cycleparadise"
+
+# Push schema to database
+npx prisma db push
+
+# Create your first admin user
+npx tsx scripts/create-admin.ts
+```
+
+The script will create an admin user with these credentials:
+- **Email**: `admin@cycleparadise.lk`
+- **Password**: `Admin123!`
+- **Role**: EDITOR
+
+#### 2. Access Admin Panel
+
+```powershell
+# Start dev server
+npm run dev
+
+# Visit http://localhost:4321/admin/login
+# Login with the credentials above
+```
+
+#### 3. Admin Routes
+
+| Route | Description |
+|-------|-------------|
+| `/admin/login` | Admin login page |
+| `/admin` | Dashboard with metrics and recent bookings |
+| `/admin/packages` | Tour package management (list, create, edit, delete) |
+| `/admin/packages/new` | Create new tour package |
+| `/admin/packages/[id]` | Edit existing tour package |
+| `/admin/guides` | Cycling guide management |
+| `/admin/bookings` | Booking management with filters |
+| `/admin/media` | Media library for image management |
+| `/admin/users` | Admin user management |
+
+### Security Features
+
+- **Session-based authentication**: HTTP-only cookies with configurable expiration
+- **Password hashing**: bcrypt with 10 salt rounds
+- **Route protection**: Middleware blocks unauthenticated access to `/admin/*`
+- **Remember me**: Optional 14-day session duration
+- **Secure cookies**: HttpOnly, SameSite=Lax attributes
+
+### Creating Additional Admin Users
+
+```powershell
+# Run the admin creation script
+npx tsx scripts/create-admin.ts
+
+# Or create manually via Prisma Studio
+npx prisma studio
+# Navigate to AdminUser table and add a new record
+# Important: Hash the password using bcrypt before saving
+```
+
+### Environment Variables for Admin
+
+```env
+# Database (required for admin panel)
+DATABASE_URL="postgresql://cycleparadise:cycleparadise_dev@localhost:5432/cycleparadise"
+DIRECT_URL="postgresql://cycleparadise:cycleparadise_dev@localhost:5432/cycleparadise"
+
+# Session secret (optional - auto-generated if not set)
+SESSION_SECRET="your-secret-key-here"
+```
+
+### Admin Panel Architecture
+
+- **Frontend**: Astro pages with Tailwind CSS
+- **Backend**: Astro API routes
+- **Authentication**: Custom session-based auth (no external dependencies)
+- **Database**: PostgreSQL with Prisma ORM
+- **Middleware**: Route protection for `/admin/*` paths
+
+### Customizing Admin Panel
+
+**Change admin path:**
+Edit `src/middleware.ts` to change the protected path from `/admin` to your preferred path.
+
+**Add custom roles:**
+Update the `AdminRole` enum in `prisma/schema.prisma`:
+```prisma
+enum AdminRole {
+  ADMIN
+  EDITOR
+  VIEWER  // Add new role
+}
+```
+
+**Modify session duration:**
+Edit `src/pages/api/admin/auth/login.ts`:
+```typescript
+const maxAge = rememberMe ? 60 * 60 * 24 * 14 : 60 * 60 * 24; // 14 days or 24 hours
+```
+
+### Admin Panel Screenshots
+
+The admin panel features:
+- 📊 **Dashboard**: Metrics cards, recent bookings table, quick actions
+- 📦 **Package Management**: Sortable table, inline edit/delete, empty states
+- 📝 **Forms**: Multi-section forms with validation, auto-save, SEO fields
+- 🎨 **Design**: Emerald color scheme, responsive layout, mobile-friendly sidebar
+
+See `specs/002-admin-panel/` for complete specifications and implementation details.
+
+## �🐳 Docker
 
 ### Quick Start (Static Site Only)
 

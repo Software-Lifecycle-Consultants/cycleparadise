@@ -4,6 +4,7 @@
 
 ## Table of Contents
 
+- [Admin Panel (Recommended)](#admin-panel-recommended)
 - [Overview](#overview)
 - [Data Management Approaches](#data-management-approaches)
 - [Managing Tour Packages](#managing-tour-packages)
@@ -14,6 +15,224 @@
 - [Instagram Feed Management](#instagram-feed-management)
 - [Email Configuration](#email-configuration)
 - [Troubleshooting](#troubleshooting)
+
+---
+
+## Admin Panel (Recommended)
+
+Cycle Paradise now includes a comprehensive web-based admin panel for managing all content without editing code files. This is the **recommended approach** for content management.
+
+### 🚀 Quick Start
+
+#### 1. Setup Database
+
+The admin panel requires a PostgreSQL database. Use Docker for quick setup:
+
+```powershell
+# Start database
+docker-compose up -d db
+
+# Set environment variable
+$env:DATABASE_URL="postgresql://cycleparadise:cycleparadise_dev@localhost:5432/cycleparadise"
+
+# Initialize database schema
+npx prisma db push
+```
+
+#### 2. Create Admin User
+
+```powershell
+# Run the admin creation script
+npx tsx scripts/create-admin.ts
+```
+
+Default credentials created:
+- **Email**: `admin@cycleparadise.lk`
+- **Password**: `Admin123!`
+
+**Important**: Change this password after first login!
+
+#### 3. Access Admin Panel
+
+```powershell
+# Start development server
+npm run dev
+
+# Visit http://localhost:4321/admin/login
+# Login with credentials above
+```
+
+### 📊 Admin Panel Features
+
+#### Dashboard (`/admin`)
+- **Metrics Overview**: Total bookings, pending bookings, active packages, revenue
+- **Recent Bookings**: Latest customer bookings with status
+- **Quick Actions**: Shortcuts to create packages, guides, upload media
+
+#### Tour Package Management (`/admin/packages`)
+- **List All Packages**: Sortable table with title, region, duration, difficulty, price, status
+- **Create Package**: Multi-section form with validation
+  - Basic info (title, region, duration, difficulty, price, max participants)
+  - Full description (detailed package information)
+  - Status & visibility (active/inactive, featured toggle)
+  - SEO settings (meta title, meta description)
+- **Edit Package**: Update existing packages with pre-filled forms
+- **Delete Package**: Remove packages with confirmation modal
+- **Auto-slug generation**: SEO-friendly URLs created automatically from titles
+
+#### Cycling Guide Management (`/admin/guides`)
+- **List All Guides**: Table view with region, difficulty, distance filters
+- **Create Guide**: Form for routes, segments, points of interest
+- **Edit Guide**: Update route details, safety information, gear lists
+- **Delete Guide**: Remove guides with confirmation
+
+#### Booking Management (`/admin/bookings`)
+- **View Bookings**: Filter by status (pending, confirmed, paid, cancelled, completed)
+- **Booking Details**: Customer information, tour dates, pricing, special requests
+- **Update Status**: Change booking status and add confirmation notes
+- **Payment Tracking**: Mark payments as paid/pending/partial/refunded
+
+#### Media Library (`/admin/media`)
+- **Upload Images**: Drag-and-drop or browse to upload
+- **Image Gallery**: Grid view of all uploaded media
+- **Image Details**: View file info, dimensions, URL
+- **Delete Images**: Remove unused media files
+
+#### User Management (`/admin/users`)
+- **Admin Users List**: All admin accounts with roles and status
+- **Create Admin**: Add new admin users
+- **Edit Permissions**: Change user roles (Admin, Editor)
+- **Deactivate Users**: Disable access without deletion
+
+### 🔒 Security Features
+
+- **Session-based Authentication**: Secure HTTP-only cookies
+- **Password Hashing**: bcrypt with 10 salt rounds
+- **Route Protection**: Middleware blocks unauthorized access
+- **Remember Me**: Optional 14-day session or 24-hour default
+- **Automatic Logout**: Session expiration enforced
+
+### ✏️ Content Management Workflow
+
+#### Creating a Tour Package
+
+1. Navigate to `/admin/packages`
+2. Click "Create Package"
+3. Fill in required fields:
+   - Title (e.g., "Hill Country Adventure")
+   - Region (dropdown selection)
+   - Duration in days
+   - Difficulty level
+   - Base price in LKR
+   - Max participants
+4. Add optional fields:
+   - Short description (tagline)
+   - Full description (detailed information)
+   - YouTube video ID
+   - Meta title and description for SEO
+5. Toggle status:
+   - ✓ Active (visible to customers)
+   - ✓ Featured (show on homepage)
+6. Click "Create Package"
+
+The package is immediately live on the website!
+
+#### Editing a Tour Package
+
+1. Navigate to `/admin/packages`
+2. Click "Edit" on the package you want to modify
+3. Update any fields
+4. Click "Update Package"
+
+Changes are reflected immediately on the public site.
+
+#### Managing Bookings
+
+1. Navigate to `/admin/bookings`
+2. Use filters to find bookings:
+   - Filter by status (pending, confirmed, etc.)
+   - Search by customer name or email
+3. Click on a booking to view details
+4. Update booking status:
+   - Pending → Confirmed (after verification)
+   - Confirmed → Paid (after payment received)
+   - Any status → Cancelled (if needed)
+   - Paid → Completed (after tour completion)
+5. Add confirmation notes for customer communication
+
+### 🎨 Customizing the Admin Panel
+
+#### Change Admin User Password
+
+```typescript
+// In Prisma Studio (http://localhost:5555)
+// 1. Navigate to AdminUser table
+// 2. Find your user
+// 3. Update the password field with a bcrypt hash
+
+// Or use the auth library:
+import { hashPassword } from './src/lib/auth';
+const newHash = await hashPassword('NewSecurePassword123!');
+// Update in database
+```
+
+#### Add New Admin Users
+
+```powershell
+# Option 1: Run the creation script
+npx tsx scripts/create-admin.ts
+
+# Option 2: Use Prisma Studio
+npx prisma studio
+# Navigate to AdminUser table
+# Click "Add record"
+# Fill in: email, firstName, lastName, passwordHash (use bcrypt), role
+```
+
+#### Modify Admin Permissions
+
+Edit `prisma/schema.prisma`:
+
+```prisma
+enum AdminRole {
+  ADMIN       // Full access to everything
+  EDITOR      // Can edit content but not manage users
+  VIEWER      // Read-only access (add this if needed)
+}
+```
+
+After changes, run:
+```powershell
+npx prisma db push
+```
+
+### 📱 Mobile-Friendly Design
+
+The admin panel is fully responsive:
+- **Mobile**: Hamburger menu, stacked forms
+- **Tablet**: Adaptive sidebar, optimized tables
+- **Desktop**: Full sidebar navigation, wide forms
+
+### 🔧 Troubleshooting Admin Panel
+
+**Can't access /admin/login**
+- Ensure dev server is running: `npm run dev`
+- Check database is running: `docker-compose ps`
+- Verify DATABASE_URL is set in `.env`
+
+**Login fails with correct credentials**
+- Check bcrypt hash in database is correct
+- Verify AdminUser record exists: `npx prisma studio`
+- Check browser console for errors
+
+**Changes not appearing**
+- For database mode: Changes are instant (refresh page)
+- For fallback mode: Run `npm run build` to rebuild
+
+**Database connection errors**
+- Verify PostgreSQL is running: `docker-compose ps db`
+- Check DATABASE_URL format is correct
+- Test connection: `npx prisma db pull`
 
 ---
 
