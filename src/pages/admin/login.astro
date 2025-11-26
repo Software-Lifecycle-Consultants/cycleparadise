@@ -1,6 +1,4 @@
 ---
-import '../../../styles/global.css';
-
 const error = Astro.url.searchParams.get('error');
 const message = Astro.url.searchParams.get('message');
 
@@ -11,181 +9,246 @@ if (session) {
 }
 ---
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Login - Cycle Paradise</title>
-  <meta name="robots" content="noindex, nofollow">
-</head>
-<body class="bg-gradient-to-br from-emerald-50 to-teal-50 min-h-screen flex items-center justify-center p-4">
-  <div class="w-full max-w-md">
-    <!-- Logo -->
-    <div class="text-center mb-8">
-      <a href="/" class="inline-block">
-        <h1 class="text-3xl font-bold text-emerald-600">Cycle Paradise</h1>
-        <p class="text-gray-600 mt-1">Admin Panel</p>
-      </a>
-    </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Login - Cycle Paradise</title>
+    <meta name="robots" content="noindex, nofollow" />
+  </head>
+  <body
+    class="bg-gradient-to-br from-emerald-50 to-teal-50 min-h-screen flex items-center justify-center p-4"
+  >
+    <div class="w-full max-w-md">
+      <!-- Logo -->
+      <div class="text-center mb-8">
+        <a href="/" class="inline-block">
+          <h1 class="text-3xl font-bold text-emerald-600">Cycle Paradise</h1>
+          <p class="text-gray-600 mt-1">Admin Panel</p>
+        </a>
+      </div>
 
-    <!-- Login Card -->
-    <div class="bg-white rounded-lg shadow-xl p-8">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">Sign In</h2>
+      <!-- Login Card -->
+      <div class="bg-white rounded-lg shadow-xl p-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Sign In</h2>
 
-      <!-- Error Message -->
-      {error && (
-        <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <div class="flex items-start">
-            <svg class="w-5 h-5 text-red-600 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-            </svg>
-            <div>
-              <p class="text-sm font-medium text-red-800">
-                {error === 'invalid' && 'Invalid email or password. Please try again.'}
-                {error === 'required' && 'Email and password are required.'}
-                {error === 'unauthorized' && 'You must be logged in to access this page.'}
-                {error === 'session_expired' && 'Your session has expired. Please log in again.'}
-              </p>
+        <!-- Error Message -->
+        {
+          error && (
+            <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div class="flex items-start">
+                <svg
+                  class="w-5 h-5 text-red-600 mt-0.5 mr-3"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <div>
+                  <p class="text-sm font-medium text-red-800">
+                    {error === 'invalid' && 'Invalid email or password. Please try again.'}
+                    {error === 'required' && 'Email and password are required.'}
+                    {error === 'unauthorized' && 'You must be logged in to access this page.'}
+                    {error === 'session_expired' &&
+                      'Your session has expired. Please log in again.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )
+        }
+
+        <!-- Success Message -->
+        {
+          message && (
+            <div class="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+              <div class="flex items-start">
+                <svg
+                  class="w-5 h-5 text-emerald-600 mt-0.5 mr-3"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <p class="text-sm font-medium text-emerald-800">
+                  {message === 'logged_out' && 'You have been logged out successfully.'}
+                </p>
+              </div>
+            </div>
+          )
+        }
+
+        <!-- Login Form -->
+        <form action="/api/admin/auth/login" method="POST" id="loginForm">
+          <!-- Email Field -->
+          <div class="mb-4">
+            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+              Email Address
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              autocomplete="email"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition"
+              placeholder="admin@cycleparadise.lk"
+            />
+          </div>
+
+          <!-- Password Field -->
+          <div class="mb-4">
+            <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+              Password
+            </label>
+            <div class="relative">
+              <input
+                type="password"
+                id="password"
+                name="password"
+                required
+                autocomplete="current-password"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition pr-10"
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                id="togglePassword"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                aria-label="Toggle password visibility"
+              >
+                <svg
+                  id="eyeIcon"
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  ></path>
+                </svg>
+                <svg
+                  id="eyeOffIcon"
+                  class="w-5 h-5 hidden"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                  ></path>
+                </svg>
+              </button>
             </div>
           </div>
-        </div>
-      )}
 
-      <!-- Success Message -->
-      {message && (
-        <div class="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
-          <div class="flex items-start">
-            <svg class="w-5 h-5 text-emerald-600 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-            </svg>
-            <p class="text-sm font-medium text-emerald-800">
-              {message === 'logged_out' && 'You have been logged out successfully.'}
-            </p>
+          <!-- Remember Me -->
+          <div class="mb-6 flex items-center justify-between">
+            <label class="flex items-center">
+              <input
+                type="checkbox"
+                name="remember"
+                value="true"
+                class="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+              />
+              <span class="ml-2 text-sm text-gray-700">Remember me for 14 days</span>
+            </label>
           </div>
-        </div>
-      )}
 
-      <!-- Login Form -->
-      <form action="/api/admin/auth/login" method="POST" id="loginForm">
-        <!-- Email Field -->
-        <div class="mb-4">
-          <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
-            Email Address
-          </label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            required
-            autocomplete="email"
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition"
-            placeholder="admin@cycleparadise.lk"
-          />
-        </div>
-
-        <!-- Password Field -->
-        <div class="mb-4">
-          <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
-            Password
-          </label>
-          <div class="relative">
-            <input
-              type="password"
-              id="password"
-              name="password"
-              required
-              autocomplete="current-password"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition pr-10"
-              placeholder="••••••••"
-            />
-            <button
-              type="button"
-              id="togglePassword"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-              aria-label="Toggle password visibility"
+          <!-- Submit Button -->
+          <button
+            type="submit"
+            id="submitBtn"
+            class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+          >
+            <span id="btnText">Sign In</span>
+            <svg
+              id="btnSpinner"
+              class="hidden animate-spin h-5 w-5 mx-auto"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
             >
-              <svg id="eyeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-              </svg>
-              <svg id="eyeOffIcon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
-              </svg>
-            </button>
-          </div>
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+          </button>
+        </form>
+
+        <!-- Footer -->
+        <div class="mt-6 text-center">
+          <a href="/" class="text-sm text-gray-600 hover:text-emerald-600 transition">
+            ← Back to website
+          </a>
         </div>
+      </div>
 
-        <!-- Remember Me -->
-        <div class="mb-6 flex items-center justify-between">
-          <label class="flex items-center">
-            <input
-              type="checkbox"
-              name="remember"
-              value="true"
-              class="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
-            />
-            <span class="ml-2 text-sm text-gray-700">Remember me for 14 days</span>
-          </label>
-        </div>
-
-        <!-- Submit Button -->
-        <button
-          type="submit"
-          id="submitBtn"
-          class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
-        >
-          <span id="btnText">Sign In</span>
-          <svg id="btnSpinner" class="hidden animate-spin h-5 w-5 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-        </button>
-      </form>
-
-      <!-- Footer -->
-      <div class="mt-6 text-center">
-        <a href="/" class="text-sm text-gray-600 hover:text-emerald-600 transition">
-          ← Back to website
-        </a>
+      <!-- Security Notice -->
+      <div class="mt-6 text-center text-xs text-gray-500">
+        <p>This is a secure area. All login attempts are logged.</p>
       </div>
     </div>
 
-    <!-- Security Notice -->
-    <div class="mt-6 text-center text-xs text-gray-500">
-      <p>This is a secure area. All login attempts are logged.</p>
-    </div>
-  </div>
+    <script>
+      // Toggle password visibility
+      const togglePassword = document.getElementById('togglePassword');
+      const passwordInput = document.getElementById('password') as HTMLInputElement;
+      const eyeIcon = document.getElementById('eyeIcon');
+      const eyeOffIcon = document.getElementById('eyeOffIcon');
 
-  <script>
-    // Toggle password visibility
-    const togglePassword = document.getElementById('togglePassword');
-    const passwordInput = document.getElementById('password') as HTMLInputElement;
-    const eyeIcon = document.getElementById('eyeIcon');
-    const eyeOffIcon = document.getElementById('eyeOffIcon');
+      togglePassword?.addEventListener('click', () => {
+        const type = passwordInput.type === 'password' ? 'text' : 'password';
+        passwordInput.type = type;
+        eyeIcon?.classList.toggle('hidden');
+        eyeOffIcon?.classList.toggle('hidden');
+      });
 
-    togglePassword?.addEventListener('click', () => {
-      const type = passwordInput.type === 'password' ? 'text' : 'password';
-      passwordInput.type = type;
-      eyeIcon?.classList.toggle('hidden');
-      eyeOffIcon?.classList.toggle('hidden');
-    });
+      // Form submission with loading state
+      const loginForm = document.getElementById('loginForm') as HTMLFormElement;
+      const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+      const btnText = document.getElementById('btnText');
+      const btnSpinner = document.getElementById('btnSpinner');
 
-    // Form submission with loading state
-    const loginForm = document.getElementById('loginForm') as HTMLFormElement;
-    const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
-    const btnText = document.getElementById('btnText');
-    const btnSpinner = document.getElementById('btnSpinner');
+      loginForm?.addEventListener('submit', () => {
+        submitBtn.disabled = true;
+        btnText?.classList.add('hidden');
+        btnSpinner?.classList.remove('hidden');
+      });
 
-    loginForm?.addEventListener('submit', () => {
-      submitBtn.disabled = true;
-      btnText?.classList.add('hidden');
-      btnSpinner?.classList.remove('hidden');
-    });
-
-    // Auto-focus email field
-    const emailInput = document.getElementById('email') as HTMLInputElement;
-    emailInput?.focus();
-  </script>
-</body>
+      // Auto-focus email field
+      const emailInput = document.getElementById('email') as HTMLInputElement;
+      emailInput?.focus();
+    </script>
+  </body>
 </html>
