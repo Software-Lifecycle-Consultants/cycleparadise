@@ -1,0 +1,237 @@
+---
+interface Props {
+  title: string;
+  user: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+}
+
+const { title, user } = Astro.props;
+const currentPath = Astro.url.pathname;
+
+const navItems = [
+  { href: '/admin', label: 'Dashboard', icon: 'home' },
+  { href: '/admin/packages', label: 'Tour Packages', icon: 'map' },
+  { href: '/admin/guides', label: 'Cycling Guides', icon: 'book' },
+  { href: '/admin/bookings', label: 'Bookings', icon: 'calendar' },
+  { href: '/admin/media', label: 'Media Library', icon: 'image' },
+  { href: '/admin/users', label: 'Admin Users', icon: 'users' },
+];
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title} - Cycle Paradise Admin</title>
+  <meta name="robots" content="noindex, nofollow">
+</head>
+<body class="bg-gray-100">
+  <div class="min-h-screen flex">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-64 bg-white shadow-lg fixed inset-y-0 left-0 transform -translate-x-full lg:translate-x-0 lg:static transition-transform duration-300 ease-in-out z-30">
+      <div class="h-full flex flex-col">
+        <!-- Logo -->
+        <div class="px-6 py-5 border-b">
+          <a href="/" class="flex items-center space-x-2 text-emerald-600 hover:text-emerald-700 transition">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            <div>
+              <div class="font-bold text-lg leading-tight">Cycle Paradise</div>
+              <div class="text-xs text-gray-600">Admin Panel</div>
+            </div>
+          </a>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+          {navItems.map((item) => {
+            const isActive = currentPath === item.href || (item.href !== '/admin' && currentPath.startsWith(item.href));
+            return (
+              <a 
+                href={item.href}
+                class={`flex items-center space-x-3 px-4 py-3 rounded-lg transition ${
+                  isActive 
+                    ? 'bg-emerald-50 text-emerald-700 font-medium' 
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                {item.icon === 'home' && (
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                  </svg>
+                )}
+                {item.icon === 'map' && (
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+                  </svg>
+                )}
+                {item.icon === 'book' && (
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                  </svg>
+                )}
+                {item.icon === 'calendar' && (
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                  </svg>
+                )}
+                {item.icon === 'image' && (
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                  </svg>
+                )}
+                {item.icon === 'users' && (
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                  </svg>
+                )}
+                <span>{item.label}</span>
+              </a>
+            );
+          })}
+        </nav>
+
+        <!-- User Info -->
+        <div class="p-4 border-t">
+          <div class="flex items-center space-x-3 px-4 py-3 bg-gray-50 rounded-lg">
+            <div class="flex-shrink-0 w-10 h-10 bg-emerald-600 rounded-full flex items-center justify-center text-white font-semibold">
+              {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="font-medium text-gray-900 text-sm truncate">
+                {user.firstName} {user.lastName}
+              </div>
+              <div class="text-xs text-gray-500 truncate">{user.email}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden hidden"></div>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col min-w-0">
+      <!-- Header -->
+      <header class="bg-white shadow-sm z-10">
+        <div class="px-4 sm:px-6 lg:px-8 py-4">
+          <div class="flex items-center justify-between">
+            <!-- Mobile Menu Button -->
+            <button 
+              id="mobile-menu-btn"
+              class="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition"
+              aria-label="Toggle menu"
+            >
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+              </svg>
+            </button>
+
+            <!-- Page Title -->
+            <h1 class="text-2xl font-bold text-gray-900 hidden sm:block">{title}</h1>
+
+            <!-- Header Actions -->
+            <div class="flex items-center space-x-4">
+              <!-- View Site -->
+              <a 
+                href="/" 
+                target="_blank"
+                class="hidden sm:flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                </svg>
+                <span class="text-sm">View Site</span>
+              </a>
+
+              <!-- User Menu Dropdown -->
+              <div class="relative">
+                <button 
+                  id="user-menu-btn"
+                  class="flex items-center space-x-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition"
+                >
+                  <div class="w-8 h-8 bg-emerald-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                    {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+                  </div>
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                  </svg>
+                </button>
+
+                <!-- Dropdown Menu -->
+                <div 
+                  id="user-menu-dropdown"
+                  class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 border"
+                >
+                  <div class="px-4 py-2 border-b">
+                    <div class="font-medium text-gray-900 text-sm">{user.firstName} {user.lastName}</div>
+                    <div class="text-xs text-gray-500 truncate">{user.email}</div>
+                  </div>
+                  <a href="/admin/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    Profile Settings
+                  </a>
+                  <form action="/api/admin/auth/logout" method="POST">
+                    <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                      Sign Out
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <slot />
+      </main>
+
+      <!-- Footer -->
+      <footer class="bg-white border-t py-4 px-4 sm:px-6 lg:px-8">
+        <div class="text-center text-sm text-gray-600">
+          &copy; {new Date().getFullYear()} Cycle Paradise. All rights reserved.
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    // Mobile menu toggle
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+    mobileMenuBtn?.addEventListener('click', () => {
+      sidebar?.classList.toggle('-translate-x-full');
+      sidebarOverlay?.classList.toggle('hidden');
+    });
+
+    sidebarOverlay?.addEventListener('click', () => {
+      sidebar?.classList.add('-translate-x-full');
+      sidebarOverlay?.classList.add('hidden');
+    });
+
+    // User menu dropdown
+    const userMenuBtn = document.getElementById('user-menu-btn');
+    const userMenuDropdown = document.getElementById('user-menu-dropdown');
+
+    userMenuBtn?.addEventListener('click', () => {
+      userMenuDropdown?.classList.toggle('hidden');
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!userMenuBtn?.contains(e.target as Node) && !userMenuDropdown?.contains(e.target as Node)) {
+        userMenuDropdown?.classList.add('hidden');
+      }
+    });
+  </script>
+</body>
+</html>
