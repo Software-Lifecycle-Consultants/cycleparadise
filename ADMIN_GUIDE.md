@@ -177,7 +177,7 @@ Files:
 
 ### Using Database
 
-**Prerequisites:** Database must be connected (see README.md Database Setup section)
+**Prerequisites:** Database must be connected (see  .md Database Setup section)
 
 #### Using Prisma Studio (Visual Database Editor)
 
@@ -399,6 +399,56 @@ npx @squoosh/cli --webp auto images/source/*.jpg -d public/images/optimized/
 ---
 
 ## Database Operations
+
+### Quick Database Setup with Docker
+
+The fastest way to get a PostgreSQL database running locally:
+
+```powershell
+# Start PostgreSQL 15 container
+docker-compose up -d db
+
+# Set environment variable
+$env:DATABASE_URL="postgresql://cycleparadise:cycleparadise_dev@localhost:5432/cycleparadise"
+
+# Run migrations
+npx prisma migrate dev
+
+# Seed initial data
+npm run db:seed
+
+# Open Prisma Studio to view/edit data
+npx prisma studio
+```
+
+**Docker Compose includes:**
+- PostgreSQL 15-alpine (latest stable version)
+- Persistent volume for data storage
+- Health checks for reliability
+- Default credentials: `cycleparadise` / `cycleparadise_dev`
+- Port 5432 exposed for database tools
+
+**Access with database clients (pgAdmin, DBeaver, TablePlus):**
+- Host: `localhost`
+- Port: `5432`
+- Username: `cycleparadise`
+- Password: `cycleparadise_dev`
+- Database: `cycleparadise`
+
+**Useful Docker commands:**
+```powershell
+# View database logs
+docker-compose logs -f db
+
+# Stop database
+docker-compose stop db
+
+# Restart database
+docker-compose restart db
+
+# Stop and remove (⚠️ deletes data)
+docker-compose down -v
+```
 
 ### Backup Database
 
@@ -634,7 +684,11 @@ npx prisma db push            # Push schema changes (dev only)
 # Docker
 docker build -t cycleparadise .                    # Build image
 docker run -p 4321:4321 cycleparadise             # Run container
-docker-compose up -d                               # Start with database
+docker-compose up -d                               # Start all services
+docker-compose up -d db                            # Start database only
+docker-compose down                                # Stop services
+docker-compose logs -f db                          # View database logs
+docker-compose restart db                          # Restart database
 
 # Validation
 npm run validate              # Check for code issues
@@ -653,4 +707,4 @@ For additional help:
 
 ---
 
-**Last Updated:** November 23, 2024
+**Last Updated:** November 25, 2025
