@@ -1,0 +1,244 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+
+const user = Astro.locals.user;
+if (!user) {
+  return Astro.redirect('/admin/login');
+}
+
+// Fetch all packages
+let packages: any[] = [];
+let error = '';
+
+try {
+  const response = await fetch(`${Astro.url.origin}/api/admin/packages`);
+  if (response.ok) {
+    packages = await response.json();
+  } else {
+    error = 'Failed to load packages';
+  }
+} catch (err) {
+  console.error('Failed to load packages:', err);
+  error = 'Failed to load packages';
+}
+
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('en-LK', {
+    style: 'currency',
+    currency: 'LKR',
+    minimumFractionDigits: 0,
+  }).format(amount);
+};
+
+const getDifficultyColor = (level: string) => {
+  const colors: Record<string, string> = {
+    BEGINNER: 'bg-green-100 text-green-800',
+    INTERMEDIATE: 'bg-blue-100 text-blue-800',
+    ADVANCED: 'bg-orange-100 text-orange-800',
+    EXPERT: 'bg-red-100 text-red-800',
+  };
+  return colors[level] || 'bg-gray-100 text-gray-800';
+};
+---
+
+<AdminLayout title="Tour Packages" user={user}>
+  <!-- Header with Actions -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Tour Packages</h1>
+      <p class="text-gray-600 mt-1">Manage cycling tour packages and itineraries</p>
+    </div>
+    <a 
+      href="/admin/packages/new"
+      class="inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition font-medium"
+    >
+      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      Create Package
+    </a>
+  </div>
+
+  {error && (
+    <div class="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
+      {error}
+    </div>
+  )}
+
+  <!-- Packages Grid -->
+  {packages.length === 0 ? (
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+      <svg class="mx-auto w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+      </svg>
+      <h3 class="text-xl font-semibold text-gray-900 mb-2">No packages yet</h3>
+      <p class="text-gray-600 mb-6">Get started by creating your first tour package.</p>
+      <a 
+        href="/admin/packages/new"
+        class="inline-flex items-center px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition font-medium"
+      >
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Create Your First Package
+      </a>
+    </div>
+  ) : (
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Package
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Region
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Duration
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Difficulty
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Price
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+              <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {packages.map((pkg) => (
+              <tr class="hover:bg-gray-50 transition">
+                <td class="px-6 py-4">
+                  <div class="flex items-center">
+                    <div>
+                      <div class="font-medium text-gray-900">{pkg.title}</div>
+                      {pkg.shortDescription && (
+                        <div class="text-sm text-gray-500 line-clamp-1">{pkg.shortDescription}</div>
+                      )}
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">{pkg.region}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">{pkg.duration} days</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getDifficultyColor(pkg.difficultyLevel)}`}>
+                    {pkg.difficultyLevel}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-medium text-gray-900">{formatCurrency(pkg.basePrice)}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  {pkg.isActive ? (
+                    <span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                      <span class="w-1.5 h-1.5 bg-green-600 rounded-full mr-1.5"></span>
+                      Active
+                    </span>
+                  ) : (
+                    <span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                      <span class="w-1.5 h-1.5 bg-gray-600 rounded-full mr-1.5"></span>
+                      Inactive
+                    </span>
+                  )}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
+                  <a href={`/admin/packages/${pkg.id}`} class="text-emerald-600 hover:text-emerald-900">
+                    Edit
+                  </a>
+                  <button 
+                    onclick={`confirmDelete('${pkg.id}', '${pkg.title}')`}
+                    class="text-red-600 hover:text-red-900"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )}
+
+  <!-- Delete Confirmation Modal -->
+  <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl max-w-md w-full p-6">
+      <div class="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mx-auto mb-4">
+        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+      </div>
+      <h3 class="text-lg font-semibold text-gray-900 text-center mb-2">Delete Package</h3>
+      <p class="text-gray-600 text-center mb-6">
+        Are you sure you want to delete <strong id="packageName"></strong>? This action cannot be undone.
+      </p>
+      <div class="flex space-x-3">
+        <button 
+          onclick="closeDeleteModal()"
+          class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium"
+        >
+          Cancel
+        </button>
+        <button 
+          id="confirmDeleteBtn"
+          class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let packageToDelete = '';
+
+    function confirmDelete(id: string, name: string) {
+      packageToDelete = id;
+      const modal = document.getElementById('deleteModal');
+      const packageNameEl = document.getElementById('packageName');
+      if (packageNameEl) packageNameEl.textContent = name;
+      modal?.classList.remove('hidden');
+    }
+
+    function closeDeleteModal() {
+      const modal = document.getElementById('deleteModal');
+      modal?.classList.add('hidden');
+      packageToDelete = '';
+    }
+
+    // Make functions globally available
+    (window as any).confirmDelete = confirmDelete;
+    (window as any).closeDeleteModal = closeDeleteModal;
+
+    // Handle delete confirmation
+    document.getElementById('confirmDeleteBtn')?.addEventListener('click', async () => {
+      if (!packageToDelete) return;
+
+      try {
+        const response = await fetch(`/api/admin/packages/${packageToDelete}`, {
+          method: 'DELETE',
+        });
+
+        if (response.ok) {
+          window.location.reload();
+        } else {
+          alert('Failed to delete package');
+        }
+      } catch (error) {
+        console.error('Delete error:', error);
+        alert('Failed to delete package');
+      }
+    });
+  </script>
+</AdminLayout>
