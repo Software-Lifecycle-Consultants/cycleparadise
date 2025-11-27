@@ -10,10 +10,13 @@ const hasDatabaseConnection = Boolean(getDatabaseUrl());
 
 // Get search parameters from URL
 const url = new URL(Astro.request.url);
+const difficultyParam = url.searchParams.get('difficulty');
 const searchParams: PackageSearchParams = {
   search: url.searchParams.get('search') || undefined,
   region: url.searchParams.get('region') || undefined,
-  difficultyLevel: url.searchParams.get('difficulty') as 'EASY' | 'INTERMEDIATE' | 'CHALLENGING' | undefined,
+  difficultyLevel: difficultyParam && ['EASY', 'INTERMEDIATE', 'CHALLENGING'].includes(difficultyParam)
+    ? (difficultyParam as any)
+    : undefined,
   minPrice: url.searchParams.get('minPrice') ? Number(url.searchParams.get('minPrice')) : undefined,
   maxPrice: url.searchParams.get('maxPrice') ? Number(url.searchParams.get('maxPrice')) : undefined,
   minDuration: url.searchParams.get('minDuration') ? Number(url.searchParams.get('minDuration')) : undefined,
@@ -125,18 +128,30 @@ const currentPage = searchParams.page || 1;
   description="Explore our comprehensive collection of cycling tour packages in Sri Lanka. From easy coastal rides to challenging mountain adventures, find your perfect cycling holiday."
 >
   <!-- Page Header -->
-  <section class="bg-gradient-to-b from-primary-50 to-white py-16">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+  <section class="relative py-16 -mt-[72px]">
+    <!-- Background Image with Overlay -->
+    <div class="absolute inset-0 z-0">
+      <img
+        src="https://images.unsplash.com/photo-1541625602330-2277a4c46182?q=80&w=2070&auto=format&fit=crop"
+        alt="Cyclist riding through scenic Sri Lankan landscape"
+        class="w-full h-full object-cover"
+      />
+      <!-- Dark overlay for better text contrast -->
+      <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30"></div>
+    </div>
+
+    <!-- Header Content -->
+    <div class="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-32">
       <div class="text-center">
-        <h1 class="font-display font-bold text-4xl text-gray-900 sm:text-5xl">
+        <h1 class="font-display font-bold text-4xl text-white sm:text-5xl">
           {searchParams.search ? `Search Results` : 'Tour Packages'}
         </h1>
         {searchParams.search && (
-          <p class="mt-4 text-lg text-gray-600">
-            Results for "<span class="font-semibold text-primary-600">{searchParams.search}</span>"
+          <p class="mt-4 text-lg text-gray-100">
+            Results for "<span class="font-semibold text-primary-400">{searchParams.search}</span>"
           </p>
         )}
-        <p class="mt-2 text-gray-600">
+        <p class="mt-2 text-gray-100">
           Showing {packages.length} of {totalCount} packages
         </p>
       </div>
@@ -144,9 +159,28 @@ const currentPage = searchParams.page || 1;
   </section>
 
   <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+    <!-- Mobile Filter Toggle Button -->
+    <div class="mb-4 lg:hidden">
+      <button
+        type="button"
+        id="mobile-filter-toggle"
+        class="w-full flex items-center justify-between px-4 py-3 bg-white border-2 border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all focus:outline-none focus:ring-2 focus:ring-primary-500"
+      >
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+          </svg>
+          <span class="font-semibold text-gray-900">Filters</span>
+        </div>
+        <svg id="filter-chevron" class="w-5 h-5 text-gray-600 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+        </svg>
+      </button>
+    </div>
+
     <div class="lg:grid lg:grid-cols-4 lg:gap-8">
       <!-- Filters Sidebar -->
-      <div class="mb-8 lg:mb-0">
+      <div id="filter-sidebar" class="mb-8 lg:mb-0 hidden lg:block">
         <form id="filter-form" class="space-y-6">
           <!-- Search -->
           <div>
@@ -193,9 +227,9 @@ const currentPage = searchParams.page || 1;
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             >
               <option value="">All Levels</option>
-              <option value="EASY" selected={searchParams.difficultyLevel === 'EASY'}>Easy</option>
-              <option value="INTERMEDIATE" selected={searchParams.difficultyLevel === 'INTERMEDIATE'}>Intermediate</option>
-              <option value="CHALLENGING" selected={searchParams.difficultyLevel === 'CHALLENGING'}>Challenging</option>
+              <option value="EASY" selected={searchParams.difficultyLevel?.toString() === 'EASY'}>Easy</option>
+              <option value="INTERMEDIATE" selected={searchParams.difficultyLevel?.toString() === 'INTERMEDIATE'}>Intermediate</option>
+              <option value="CHALLENGING" selected={searchParams.difficultyLevel?.toString() === 'CHALLENGING'}>Challenging</option>
             </select>
           </div>
 
@@ -204,59 +238,61 @@ const currentPage = searchParams.page || 1;
             <label class="block text-sm font-medium text-gray-700 mb-2">
               Price Range (USD)
             </label>
-            <div class="grid grid-cols-2 gap-2">
-              <input
-                type="number"
-                name="minPrice"
-                placeholder="Min"
-                value={searchParams.minPrice || ''}
-                min={priceRange.min}
-                max={priceRange.max}
-                class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              />
-              <input
-                type="number"
-                name="maxPrice"
-                placeholder="Max"
-                value={searchParams.maxPrice || ''}
-                min={priceRange.min}
-                max={priceRange.max}
-                class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              />
+            <div class="px-2 pt-2">
+              <div class="flex justify-between mb-3">
+                <span class="text-sm font-semibold text-primary-600" id="price-min-display">${searchParams.minPrice || priceRange.min}</span>
+                <span class="text-sm font-semibold text-primary-600" id="price-max-display">${searchParams.maxPrice || priceRange.max}</span>
+              </div>
+              <div class="relative">
+                <input
+                  type="range"
+                  id="minPrice"
+                  name="minPrice"
+                  min={priceRange.min}
+                  max={priceRange.max}
+                  value={searchParams.minPrice || priceRange.min}
+                  class="price-range-slider w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                />
+                <input
+                  type="range"
+                  id="maxPrice"
+                  name="maxPrice"
+                  min={priceRange.min}
+                  max={priceRange.max}
+                  value={searchParams.maxPrice || priceRange.max}
+                  class="price-range-slider w-full h-2 bg-transparent rounded-lg appearance-none cursor-pointer absolute top-0 left-0"
+                />
+              </div>
             </div>
-            <p class="text-xs text-gray-500 mt-1">
-              Range: ${priceRange.min} - ${priceRange.max}
+            <p class="text-xs text-gray-500 mt-3 px-2">
+              Available: ${priceRange.min} - ${priceRange.max}
             </p>
           </div>
 
-          <!-- Duration Range -->
+          <!-- Duration Filter -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
               Duration (Days)
             </label>
-            <div class="grid grid-cols-2 gap-2">
-              <input
-                type="number"
-                name="minDuration"
-                placeholder="Min"
-                value={searchParams.minDuration || ''}
-                min={durationRange.min}
-                max={durationRange.max}
-                class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              />
-              <input
-                type="number"
-                name="maxDuration"
-                placeholder="Max"
-                value={searchParams.maxDuration || ''}
-                min={durationRange.min}
-                max={durationRange.max}
-                class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              />
+            <div class="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                data-duration="4"
+                class="duration-btn px-4 py-3 border-2 border-gray-300 rounded-lg text-center hover:border-primary-500 hover:bg-primary-50 transition-all focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
+                <div class="text-xl font-semibold text-gray-900">4</div>
+                <div class="text-xs text-gray-600 mt-1">days</div>
+              </button>
+              <button
+                type="button"
+                data-duration="5"
+                class="duration-btn px-4 py-3 border-2 border-gray-300 rounded-lg text-center hover:border-primary-500 hover:bg-primary-50 transition-all focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
+                <div class="text-xl font-semibold text-gray-900">5</div>
+                <div class="text-xs text-gray-600 mt-1">days</div>
+              </button>
             </div>
-            <p class="text-xs text-gray-500 mt-1">
-              Range: {durationRange.min} - {durationRange.max} days
-            </p>
+            <input type="hidden" id="duration" name="duration" value="" />
           </div>
 
           <!-- Filter Actions -->
@@ -367,7 +403,26 @@ const currentPage = searchParams.page || 1;
     const clearFiltersBtn = document.getElementById('clear-filters');
     const clearAllFiltersBtn = document.getElementById('clear-all-filters');
 
-    if (filterForm) {
+    // Mobile filter toggle
+    const mobileFilterToggle = document.getElementById('mobile-filter-toggle');
+    const filterSidebar = document.getElementById('filter-sidebar');
+    const filterChevron = document.getElementById('filter-chevron');
+
+    if (mobileFilterToggle && filterSidebar && filterChevron) {
+      mobileFilterToggle.addEventListener('click', function() {
+        const isHidden = filterSidebar.classList.contains('hidden');
+        
+        if (isHidden) {
+          filterSidebar.classList.remove('hidden');
+          filterChevron.classList.add('rotate-180');
+        } else {
+          filterSidebar.classList.add('hidden');
+          filterChevron.classList.remove('rotate-180');
+        }
+      });
+    }
+
+    if (filterForm && filterForm instanceof HTMLFormElement) {
       filterForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
@@ -403,8 +458,165 @@ const currentPage = searchParams.page || 1;
     const selectInputs = filterForm?.querySelectorAll('select');
     selectInputs?.forEach(select => {
       select.addEventListener('change', function() {
-        filterForm.dispatchEvent(new Event('submit'));
+        if (filterForm && filterForm instanceof HTMLFormElement) {
+          filterForm.dispatchEvent(new Event('submit'));
+        }
       });
     });
+
+    // Duration button handling
+    const durationButtons = document.querySelectorAll('.duration-btn');
+    const durationInput = document.getElementById('duration');
+    
+    durationButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const duration = this.getAttribute('data-duration');
+        
+        // Toggle selection
+        if (this.classList.contains('active-duration')) {
+          this.classList.remove('active-duration', 'border-primary-600', 'bg-primary-100');
+          this.classList.add('border-gray-300');
+          if (durationInput) durationInput.value = '';
+        } else {
+          // Remove active from all buttons
+          durationButtons.forEach(btn => {
+            btn.classList.remove('active-duration', 'border-primary-600', 'bg-primary-100');
+            btn.classList.add('border-gray-300');
+          });
+          
+          // Add active to clicked button
+          this.classList.add('active-duration', 'border-primary-600', 'bg-primary-100');
+          this.classList.remove('border-gray-300');
+          if (durationInput) durationInput.value = duration;
+        }
+      });
+    });
+
+    // Range slider functionality
+    function setupRangeSlider(minId, maxId, minDisplayId, maxDisplayId, prefix = '') {
+      const minSlider = document.getElementById(minId);
+      const maxSlider = document.getElementById(maxId);
+      const minDisplay = document.getElementById(minDisplayId);
+      const maxDisplay = document.getElementById(maxDisplayId);
+
+      if (!minSlider || !maxSlider || !minDisplay || !maxDisplay) return;
+
+      function updateValues() {
+        let minVal = parseInt(minSlider.value);
+        let maxVal = parseInt(maxSlider.value);
+
+        // Ensure min doesn't exceed max
+        if (minVal > maxVal) {
+          minSlider.value = maxVal;
+          minVal = maxVal;
+        }
+
+        // Enable pointer events on the appropriate slider
+        if (minVal === maxVal) {
+          maxSlider.style.pointerEvents = 'all';
+          minSlider.style.pointerEvents = 'none';
+        } else {
+          maxSlider.style.pointerEvents = 'all';
+          minSlider.style.pointerEvents = 'all';
+        }
+
+        // Update displays
+        minDisplay.textContent = prefix + minVal;
+        maxDisplay.textContent = prefix + maxVal;
+
+        // Update the visual track fill
+        updateSliderTrack(minSlider, maxSlider);
+      }
+
+      function updateSliderTrack(minSlider, maxSlider) {
+        const min = parseInt(minSlider.min);
+        const max = parseInt(minSlider.max);
+        const minVal = parseInt(minSlider.value);
+        const maxVal = parseInt(maxSlider.value);
+
+        const percentMin = ((minVal - min) / (max - min)) * 100;
+        const percentMax = ((maxVal - min) / (max - min)) * 100;
+
+        // Apply gradient to show selected range with primary green color
+        minSlider.style.background = `linear-gradient(to right, #e5e7eb 0%, #e5e7eb ${percentMin}%, #22c57a ${percentMin}%, #22c57a ${percentMax}%, #e5e7eb ${percentMax}%, #e5e7eb 100%)`;
+      }
+
+      minSlider.addEventListener('input', updateValues);
+      maxSlider.addEventListener('input', updateValues);
+
+      // Initialize
+      updateValues();
+    }
+
+    // Setup price range slider
+    setupRangeSlider('minPrice', 'maxPrice', 'price-min-display', 'price-max-display', '$');
   });
 </script>
+
+<style>
+  /* Custom range slider styling */
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #22c57a;
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    pointer-events: all;
+    position: relative;
+    z-index: 100;
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #22c57a;
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    pointer-events: all;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover {
+    background: #0F6745;
+    transform: scale(1.1);
+  }
+
+  input[type="range"]::-moz-range-thumb:hover {
+    background: #0F6745;
+    transform: scale(1.1);
+  }
+
+  input[type="range"]:focus {
+    outline: none;
+  }
+
+  input[type="range"]:focus::-webkit-slider-thumb {
+    box-shadow: 0 0 0 3px rgba(34, 197, 122, 0.3);
+  }
+
+  input[type="range"]:focus::-moz-range-thumb {
+    box-shadow: 0 0 0 3px rgba(34, 197, 122, 0.3);
+  }
+
+  /* Track styling for Firefox */
+  input[type="range"]::-moz-range-track {
+    background: #e5e7eb;
+    height: 8px;
+    border-radius: 4px;
+  }
+
+  input[type="range"]::-moz-range-progress {
+    background: #22c57a;
+    height: 8px;
+    border-radius: 4px;
+  }

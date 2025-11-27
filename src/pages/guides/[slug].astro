@@ -4,7 +4,7 @@ import { cyclingGuideRepository } from '../../lib/db/repositories/cycling-guides
 import {
   getFallbackGuideBySlug,
   getFallbackGuideSlugs,
-  getRelatedFallbackGuides
+  getRelatedFallbackGuides,
 } from '../../data/fallback-cycling-guides.ts';
 import type { CyclingGuide } from '../../types/models.js';
 
@@ -18,7 +18,7 @@ export async function getStaticPaths() {
   if (hasDatabaseConnection) {
     try {
       const result = await cyclingGuideRepository.findMany({ limit: 100 });
-      const guides = Array.isArray(result) ? result : result.guides ?? [];
+      const guides = Array.isArray(result) ? result : (result.guides ?? []);
       if (guides.length > 0) {
         return guides.map((guide) => ({
           params: { slug: guide.slug },
@@ -50,9 +50,9 @@ if (databaseAvailable) {
     if (guideData) {
       const related = await cyclingGuideRepository.findMany({
         region: guideData.region,
-        limit: 4
+        limit: 4,
       });
-      const relatedList = Array.isArray(related) ? related : related.guides ?? [];
+      const relatedList = Array.isArray(related) ? related : (related.guides ?? []);
       relatedGuides = relatedList.filter((g) => g.slug !== guideData.slug).slice(0, 3);
     }
   } catch (error) {
@@ -73,7 +73,7 @@ if (usingFallbackData || relatedGuides.length === 0) {
   relatedGuides = getRelatedFallbackGuides(guideData.slug, guideData.region, 3);
 }
 
-const ensureArray = <T = any>(value: any): T[] => {
+const ensureArray = <T = any,>(value: any): T[] => {
   if (!value) return [];
   if (Array.isArray(value)) return value as T[];
   if (typeof value === 'string') {
@@ -97,8 +97,12 @@ const highlightList = ensureArray<string>(guideData.highlights);
 const safetyTips = ensureArray<string>(guideData.safetyTips);
 const nearbyAttractions = ensureArray<string>(guideData.nearbyAttractions);
 const galleryImages = ensureArray<string>(guideData.images);
-const routeSegments = ensureArray<{ title: string; distance?: string; description?: string }>(guideData.routeSegments);
-const hydrationStops = ensureArray<{ name: string; type: string; notes?: string }>(guideData.hydrationStops);
+const routeSegments = ensureArray<{ title: string; distance?: string; description?: string }>(
+  guideData.routeSegments
+);
+const hydrationStops = ensureArray<{ name: string; type: string; notes?: string }>(
+  guideData.hydrationStops
+);
 const gearChecklist = ensureArray<string>(guideData.gearChecklist);
 const faqItems = ensureArray<{ question: string; answer: string }>(guideData.faqs);
 const heroImage = galleryImages[0] || '/images/default-route.jpg';
@@ -107,8 +111,11 @@ const canonicalUrl = `${siteUrl}/guides/${guideData.slug}`;
 const heroImageAbsolute = heroImage.startsWith('http') ? heroImage : `${siteUrl}${heroImage}`;
 const startingPoint = (guideData as any).startingPoint || 'Flexible meet-up point';
 const endingPoint = (guideData as any).endingPoint || 'Returns to base';
-const bestTimeToVisit = guideData.bestTimeToVisit || guideData.bestSeason || 'Seasonal availability';
-const distanceLabel = guideData.estimatedDistance ? `${guideData.estimatedDistance} km` : 'Distance varies';
+const bestTimeToVisit =
+  guideData.bestTimeToVisit || guideData.bestSeason || 'Seasonal availability';
+const distanceLabel = guideData.estimatedDistance
+  ? `${guideData.estimatedDistance} km`
+  : 'Distance varies';
 const durationLabel = guideData.estimatedDuration || 'Flexible duration';
 const terrainLabel = guideData.terrainType || 'Mixed terrain';
 const getGuideThumbnail = (guide: CyclingGuide) => {
@@ -119,66 +126,70 @@ const getGuideThumbnail = (guide: CyclingGuide) => {
 // Helper function to get difficulty badge color
 function getDifficultyColor(level: string): string {
   switch (level) {
-    case 'EASY': return 'bg-green-100 text-green-800';
-    case 'INTERMEDIATE': return 'bg-yellow-100 text-yellow-800';
-    case 'CHALLENGING': return 'bg-red-100 text-red-800';
-    default: return 'bg-gray-100 text-gray-800';
+    case 'EASY':
+      return 'bg-green-100 text-green-800';
+    case 'INTERMEDIATE':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'CHALLENGING':
+      return 'bg-red-100 text-red-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
   }
 }
 
 // Generate structured data for SEO
 const structuredData = {
-  "@context": "https://schema.org",
-  "@type": "Article",
-  "headline": guideData.title,
-  "description": guideData.description,
-  "image": heroImageAbsolute,
-  "url": canonicalUrl,
-  "author": {
-    "@type": "Organization",
-    "name": "Cycle Paradise"
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: guideData.title,
+  description: guideData.description,
+  image: heroImageAbsolute,
+  url: canonicalUrl,
+  author: {
+    '@type': 'Organization',
+    name: 'Cycle Paradise',
   },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Cycle Paradise",
-    "logo": {
-      "@type": "ImageObject",
-      "url": `${siteUrl}/images/logo.png`
-    }
+  publisher: {
+    '@type': 'Organization',
+    name: 'Cycle Paradise',
+    logo: {
+      '@type': 'ImageObject',
+      url: `${siteUrl}/images/logo.png`,
+    },
   },
-  "datePublished": guideData.createdAt?.toISOString() || new Date().toISOString(),
-  "dateModified": guideData.updatedAt?.toISOString() || new Date().toISOString(),
-  "articleSection": "Cycling Guides",
-  "keywords": [
+  datePublished: guideData.createdAt?.toISOString() || new Date().toISOString(),
+  dateModified: guideData.updatedAt?.toISOString() || new Date().toISOString(),
+  articleSection: 'Cycling Guides',
+  keywords: [
     guideData.title,
     `${guideData.region} cycling`,
     `${difficultyLevel} cycling route`,
     'cycling guide',
     'Sri Lanka cycling',
-    'bicycle route'
+    'bicycle route',
   ].join(', '),
-  "about": {
-    "@type": "Place",
-    "name": guideData.region,
-  "description": `${difficultyLevel} level cycling route in ${guideData.region}`
+  about: {
+    '@type': 'Place',
+    name: guideData.region,
+    description: `${difficultyLevel} level cycling route in ${guideData.region}`,
   },
-  "hasPart": routeSegments.length
+  hasPart: routeSegments.length
     ? routeSegments.map((segment) => ({
-        "@type": "TouristAttraction",
-        "name": segment.title,
-        "description": segment.description,
-        "distance": segment.distance
+        '@type': 'TouristAttraction',
+        name: segment.title,
+        description: segment.description,
+        distance: segment.distance,
       }))
     : undefined,
-  "offers": {
-    "@type": "Offer",
-    "price": "0",
-    "priceCurrency": "USD",
-    "description": "Free cycling guide and route information"
-  }
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD',
+    description: 'Free cycling guide and route information',
+  },
 };
 
-// SEO keywords based on guide data  
+// SEO keywords based on guide data
 const seoKeywords = [
   guideData.title.toLowerCase(),
   `${guideData.region.toLowerCase()} cycling guide`,
@@ -187,14 +198,14 @@ const seoKeywords = [
   'bicycle route',
   guideData.region.toLowerCase(),
   'cycling tips',
-  'route planning'
+  'route planning',
 ];
 
 // Calculate estimated reading time
 const readingTime = Math.ceil((guideData.content?.length || 0) / 1000) || 5;
 ---
 
-<Layout 
+<Layout
   title={`${guideData.title} - Cycling Guide - Cycle Paradise`}
   description={guideData.shortDescription || guideData.description}
   canonicalUrl={canonicalUrl}
@@ -207,59 +218,69 @@ const readingTime = Math.ceil((guideData.content?.length || 0) / 1000) || 5;
   structuredData={structuredData}
 >
   <!-- Guide Hero Section -->
-  <section class="relative">
+  <section class="relative -mt-[72px]">
     <!-- Hero Image -->
     <div class="aspect-w-16 aspect-h-6">
-      <img 
-        src={heroImage} 
+      <img
+        src={heroImage}
         alt={guideData.title}
         class="w-full h-96 lg:h-[500px] object-cover"
         loading="eager"
       />
     </div>
-    
+
+    <!-- Dark Gradient Overlay -->
+    <div class="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/70 z-10">
+    </div>
+
     <!-- Guide Info Overlay -->
-    <div class="absolute inset-0 bg-black bg-opacity-40 flex items-end">
+    <div class="absolute inset-0 flex items-end z-20 pt-32">
       <div class="w-full p-6 lg:p-8">
-        <div class="mx-auto max-w-7xl">
-          <div class="bg-white bg-opacity-95 backdrop-blur-sm rounded-lg p-6 lg:p-8 max-w-3xl">
+        <div class="mx-auto max-w-6xl">
+          <div
+            class="bg-white/10 backdrop-blur-lg rounded-lg p-6 lg:p-8 max-w-3xl shadow-xl ring-1 ring-white/20"
+          >
             <div class="flex items-center gap-3 mb-4">
-              <span class={`px-3 py-1 rounded-full text-sm font-medium ${getDifficultyColor(difficultyLevel)}`}>
+              <span
+                class={`px-3 py-1 rounded-full text-sm font-medium ${getDifficultyColor(difficultyLevel)}`}
+              >
                 {difficultyLevel.toLowerCase()}
               </span>
               <span class="text-sm text-gray-600">{guideData.region}</span>
-              {guideData.featured && (
-                <span class="bg-primary-100 text-primary-800 px-3 py-1 rounded-full text-sm font-medium">
-                  Featured Route
-                </span>
-              )}
+              {
+                guideData.featured && (
+                  <span class="bg-primary-100 text-primary-800 px-3 py-1 rounded-full text-sm font-medium">
+                    Featured Route
+                  </span>
+                )
+              }
             </div>
-            
-            <h1 class="font-display font-bold text-2xl lg:text-4xl text-gray-900 mb-4">
+
+            <h1 class="font-display font-semibold text-2xl lg:text-4xl text-white mb-4">
               {guideData.title}
             </h1>
-            
-            <p class="text-gray-600 mb-6 lg:text-lg">
+
+            <p class="text-gray-100 mb-6 lg:text-lg">
               {guideData.shortDescription}
             </p>
-            
+
             <!-- Quick Stats -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div class="text-center lg:text-left">
                 <div class="text-2xl font-bold text-primary-600">{distanceLabel}</div>
-                <div class="text-sm text-gray-600">Kilometers</div>
+                <div class="text-sm text-gray-100">Kilometers</div>
               </div>
               <div class="text-center lg:text-left">
                 <div class="text-2xl font-bold text-primary-600">{durationLabel}</div>
-                <div class="text-sm text-gray-600">Duration</div>
+                <div class="text-sm text-gray-100">Duration</div>
               </div>
               <div class="text-center lg:text-left">
-                <div class="text-lg font-bold text-gray-900">{startingPoint}</div>
-                <div class="text-sm text-gray-600">Starting Point</div>
+                <div class="text-lg font-bold text-white">{startingPoint}</div>
+                <div class="text-sm text-gray-100">Starting Point</div>
               </div>
               <div class="text-center lg:text-left">
-                <div class="text-lg font-bold text-gray-900">{terrainLabel}</div>
-                <div class="text-sm text-gray-600">Terrain</div>
+                <div class="text-lg font-bold text-white">{terrainLabel}</div>
+                <div class="text-sm text-gray-100">Terrain</div>
               </div>
             </div>
           </div>
@@ -268,15 +289,13 @@ const readingTime = Math.ceil((guideData.content?.length || 0) / 1000) || 5;
     </div>
   </section>
 
-  <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+  <div class="mx-auto max-w-6xl px-8 py-12">
     <div class="lg:grid lg:grid-cols-3 lg:gap-8">
       <!-- Main Content -->
       <div class="lg:col-span-2">
         <!-- Route Description -->
         <section class="mb-12">
-          <h2 class="font-display font-bold text-2xl text-gray-900 mb-6">
-            About This Route
-          </h2>
+          <h2 class="font-display font-semibold text-2xl text-gray-900 mb-6">About This Route</h2>
           <p class="text-sm text-gray-500 mb-4">
             Estimated reading time: {readingTime} min
           </p>
@@ -284,86 +303,111 @@ const readingTime = Math.ceil((guideData.content?.length || 0) / 1000) || 5;
             <p class="text-gray-600 leading-relaxed mb-6">
               {guideData.description}
             </p>
-            
-            {guideData.content && (
-              <div class="text-gray-700 leading-relaxed">
-                {guideData.content}
-              </div>
-            )}
+
+            {
+              guideData.content && (
+                <div class="text-gray-700 leading-relaxed">{guideData.content}</div>
+              )
+            }
           </div>
         </section>
 
         <!-- Route Map -->
-        {guideData.mapImageUrl && (
-          <section class="mb-12">
-            <h2 class="font-display font-bold text-2xl text-gray-900 mb-6">
-              Route Map
-            </h2>
-            <div class="bg-gray-100 rounded-lg overflow-hidden">
-              <img 
-                src={guideData.mapImageUrl || '/images/default-route.jpg'} 
-                alt={`${guideData.title} route map`}
-                class="w-full h-auto"
-                loading="lazy"
-              />
-            </div>
-            
-            {guideData.gpxFileUrl && (
-              <div class="mt-4 text-center">
-                <a 
-                  href={guideData.gpxFileUrl}
-                  download
-                  class="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors"
-                >
-                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                  </svg>
-                  Download GPX File
-                </a>
+        {
+          guideData.mapImageUrl && (
+            <section class="mb-12">
+              <h2 class="font-display font-semibold text-2xl text-gray-900 mb-6">Route Map</h2>
+              <div class="bg-gray-100 rounded-lg overflow-hidden">
+                <img
+                  src={guideData.mapImageUrl || '/images/default-route.jpg'}
+                  alt={`${guideData.title} route map`}
+                  class="w-full h-auto"
+                  loading="lazy"
+                />
               </div>
-            )}
-          </section>
-        )}
+
+              {guideData.gpxFileUrl && (
+                <div class="mt-4 text-center">
+                  <a
+                    href={guideData.gpxFileUrl}
+                    download
+                    class="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors"
+                  >
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    Download GPX File
+                  </a>
+                </div>
+              )}
+            </section>
+          )
+        }
 
         <!-- Route Highlights -->
-        {highlightList.length > 0 && (
-          <section class="mb-12">
-            <h2 class="font-display font-bold text-2xl text-gray-900 mb-6">
-              Route Highlights
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {highlightList.map((highlight, index) => (
-                <div class="flex items-start" key={`highlight-${index}`}>
-                  <svg class="w-5 h-5 text-primary-600 mt-1 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                  </svg>
-                  <span class="text-gray-700">{highlight}</span>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-          {routeSegments.length > 0 && (
+        {
+          highlightList.length > 0 && (
             <section class="mb-12">
-              <h2 class="font-display font-bold text-2xl text-gray-900 mb-6">
-                Route Segments
+              <h2 class="font-display font-semibold text-2xl text-gray-900 mb-6">
+                Route Highlights
               </h2>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {highlightList.map((highlight, index) => (
+                  <div class="flex items-start" key={`highlight-${index}`}>
+                    <svg
+                      class="w-5 h-5 text-primary-600 mt-1 mr-3 flex-shrink-0"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                    <span class="text-gray-700">{highlight}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )
+        }
+
+        {
+          routeSegments.length > 0 && (
+            <section class="mb-12">
+              <h2 class="font-display font-semibold text-2xl text-gray-900 mb-6">Route Segments</h2>
               <ol class="space-y-4">
                 {routeSegments.map((segment, index) => (
-                  <li class="relative border border-gray-200 rounded-lg p-5 pl-12 bg-white shadow-sm" key={`segment-${index}`}>
+                  <li
+                    class="relative border border-gray-200 rounded-lg p-5 pl-12 bg-white shadow-sm"
+                    key={`segment-${index}`}
+                  >
                     <div class="absolute left-4 top-5 text-primary-600 font-semibold text-sm">
                       #{index + 1}
                     </div>
                     <div class="flex flex-col gap-2">
                       <div class="flex flex-wrap items-center gap-3">
-                        <h3 class="font-semibold text-lg text-gray-900">
-                          {segment.title}
-                        </h3>
+                        <h3 class="font-semibold text-lg text-gray-900">{segment.title}</h3>
                         {segment.distance && (
                           <span class="inline-flex items-center gap-1 text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                            <svg
+                              class="w-3.5 h-3.5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                              />
                             </svg>
                             {segment.distance}
                           </span>
@@ -375,81 +419,139 @@ const readingTime = Math.ceil((guideData.content?.length || 0) / 1000) || 5;
                 ))}
               </ol>
             </section>
-          )}
+          )
+        }
 
-          {gearChecklist.length > 0 && (
+        {
+          gearChecklist.length > 0 && (
             <section class="mb-12">
-              <h2 class="font-display font-bold text-2xl text-gray-900 mb-6">
-                Gear Checklist
-              </h2>
+              <h2 class="font-display font-semibold text-2xl text-gray-900 mb-6">Gear Checklist</h2>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {gearChecklist.map((gear, index) => (
-                  <div class="flex items-start gap-3 bg-gray-50 border border-gray-100 rounded-lg p-3" key={`gear-${index}`}>
-                    <svg class="w-5 h-5 text-primary-600 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  <div
+                    class="flex items-start gap-3 bg-gray-50 border border-gray-100 rounded-lg p-3"
+                    key={`gear-${index}`}
+                  >
+                    <svg
+                      class="w-5 h-5 text-primary-600 mt-1"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                     <p class="text-gray-700 text-sm">{gear}</p>
                   </div>
                 ))}
               </div>
             </section>
-          )}
+          )
+        }
 
         <!-- Safety Tips -->
-        {safetyTips.length > 0 && (
-          <section class="mb-12">
-            <h2 class="font-display font-bold text-2xl text-gray-900 mb-6">
-              Safety Tips
-            </h2>
-            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-              <div class="flex items-start mb-4">
-                <svg class="w-6 h-6 text-yellow-600 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.728-.833-2.498 0L4.316 16.5c-.77.833.192 2.5 1.732 2.5z"/>
-                </svg>
-                <h3 class="font-semibold text-lg text-yellow-800">Important Safety Information</h3>
+        {
+          safetyTips.length > 0 && (
+            <section class="mb-12">
+              <h2 class="font-display font-semibold text-2xl text-gray-900 mb-6">Safety Tips</h2>
+              <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                <div class="flex items-start mb-4">
+                  <svg
+                    class="w-6 h-6 text-yellow-600 mr-3 mt-1 flex-shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.728-.833-2.498 0L4.316 16.5c-.77.833.192 2.5 1.732 2.5z"
+                    />
+                  </svg>
+                  <h3 class="font-semibold text-lg text-yellow-800">
+                    Important Safety Information
+                  </h3>
+                </div>
+                <ul class="space-y-2">
+                  {safetyTips.map((tip, index) => (
+                    <li class="flex items-start" key={`safety-${index}`}>
+                      <svg
+                        class="w-4 h-4 text-yellow-600 mt-1 mr-2 flex-shrink-0"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                      <span class="text-yellow-800">{tip}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <ul class="space-y-2">
-                {safetyTips.map((tip, index) => (
-                  <li class="flex items-start" key={`safety-${index}`}>
-                    <svg class="w-4 h-4 text-yellow-600 mt-1 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                    </svg>
-                    <span class="text-yellow-800">{tip}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </section>
-        )}
+            </section>
+          )
+        }
 
         <!-- Nearby Attractions -->
-        {nearbyAttractions.length > 0 && (
-          <section class="mb-12">
-            <h2 class="font-display font-bold text-2xl text-gray-900 mb-6">
-              Nearby Attractions
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {nearbyAttractions.map((attraction, index) => (
-                <div class="flex items-center p-4 bg-gray-50 rounded-lg" key={`attraction-${index}`}>
-                  <svg class="w-5 h-5 text-primary-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                  </svg>
-                  <span class="text-gray-900 font-medium">{attraction}</span>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-          {hydrationStops.length > 0 && (
+        {
+          nearbyAttractions.length > 0 && (
             <section class="mb-12">
-              <h2 class="font-display font-bold text-2xl text-gray-900 mb-6">
+              <h2 class="font-display font-semibold text-2xl text-gray-900 mb-6">
+                Nearby Attractions
+              </h2>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {nearbyAttractions.map((attraction, index) => (
+                  <div
+                    class="flex items-center p-4 bg-gray-50 rounded-lg"
+                    key={`attraction-${index}`}
+                  >
+                    <svg
+                      class="w-5 h-5 text-primary-600 mr-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                      />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                    </svg>
+                    <span class="text-gray-900 font-medium">{attraction}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )
+        }
+
+        {
+          hydrationStops.length > 0 && (
+            <section class="mb-12">
+              <h2 class="font-display font-semibold text-2xl text-gray-900 mb-6">
                 Hydration & Support Stops
               </h2>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {hydrationStops.map((stop, index) => (
-                  <div class="border border-emerald-100 bg-emerald-50 rounded-lg p-4" key={`hydration-${index}`}>
+                  <div
+                    class="border border-emerald-100 bg-emerald-50 rounded-lg p-4"
+                    key={`hydration-${index}`}
+                  >
                     <div class="flex items-center justify-between mb-1">
                       <h3 class="font-semibold text-gray-900">{stop.name}</h3>
                       <span class="text-xs font-medium text-emerald-700 bg-white px-2 py-0.5 rounded-full">
@@ -461,61 +563,72 @@ const readingTime = Math.ceil((guideData.content?.length || 0) / 1000) || 5;
                 ))}
               </div>
             </section>
-          )}
+          )
+        }
 
         <!-- Image Gallery -->
-        {galleryImages.length > 1 && (
-          <section class="mb-12">
-            <h2 class="font-display font-bold text-2xl text-gray-900 mb-6">
-              Route Gallery
-            </h2>
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {galleryImages.slice(1).map((image, index) => (
-                <div class="aspect-w-4 aspect-h-3" key={`gallery-${index}`}>
-                  <img 
-                    src={image} 
-                    alt={`${guideData.title} - Image ${index + 2}`}
-                    class="w-full h-48 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
-                    data-gallery-image="true"
-                    loading="lazy"
-                  />
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
+        {
+          galleryImages.length > 1 && (
+            <section class="mb-12">
+              <h2 class="font-display font-semibold text-2xl text-gray-900 mb-6">Route Gallery</h2>
+              <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {galleryImages.slice(1).map((image, index) => (
+                  <div class="aspect-w-4 aspect-h-3" key={`gallery-${index}`}>
+                    <img
+                      src={image}
+                      alt={`${guideData.title} - Image ${index + 2}`}
+                      class="w-full h-48 object-cover rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
+                      data-gallery-image="true"
+                      loading="lazy"
+                    />
+                  </div>
+                ))}
+              </div>
+            </section>
+          )
+        }
 
-        {faqItems.length > 0 && (
-          <section class="mb-12">
-            <h2 class="font-display font-bold text-2xl text-gray-900 mb-6">
-              Frequently Asked Questions
-            </h2>
-            <div class="divide-y divide-gray-200 border border-gray-200 rounded-lg bg-white">
-              {faqItems.map((faq, index) => (
-                <details class="group" open={index === 0} key={`faq-${index}`}>
-                  <summary class="flex items-start justify-between gap-4 cursor-pointer px-5 py-4">
-                    <div>
-                      <p class="font-semibold text-gray-900">{faq.question}</p>
-                      <p class="mt-2 text-sm text-gray-600">{faq.answer}</p>
-                    </div>
-                    <svg class="w-5 h-5 text-gray-400 group-open:rotate-45 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                  </summary>
-                </details>
-              ))}
-            </div>
-          </section>
-        )}
+        {
+          faqItems.length > 0 && (
+            <section class="mb-12">
+              <h2 class="font-display font-semibold text-2xl text-gray-900 mb-6">
+                Frequently Asked Questions
+              </h2>
+              <div class="divide-y divide-gray-200 border border-gray-200 rounded-lg bg-white">
+                {faqItems.map((faq, index) => (
+                  <details class="group" open={index === 0} key={`faq-${index}`}>
+                    <summary class="flex items-start justify-between gap-4 cursor-pointer px-5 py-4">
+                      <div>
+                        <p class="font-semibold text-gray-900">{faq.question}</p>
+                        <p class="mt-2 text-sm text-gray-600">{faq.answer}</p>
+                      </div>
+                      <svg
+                        class="w-5 h-5 text-gray-400 group-open:rotate-45 transition-transform"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 4v16m8-8H4"
+                        />
+                      </svg>
+                    </summary>
+                  </details>
+                ))}
+              </div>
+            </section>
+          )
+        }
       </div>
 
       <!-- Sidebar -->
       <div class="mt-12 lg:mt-0">
         <!-- Route Info Card -->
-        <div class="bg-white border border-gray-200 rounded-lg shadow-lg p-6 sticky top-4 mb-8">
-          <h3 class="font-display font-bold text-lg text-gray-900 mb-4">
-            Route Information
-          </h3>
+        <div class="bg-white border border-gray-200 rounded-lg shadow-lg p-6 sticky top-24 mb-8">
+          <h3 class="font-display font-semibold text-lg text-gray-900 mb-4">Route Information</h3>
 
           <!-- Route Details -->
           <div class="space-y-4">
@@ -529,7 +642,9 @@ const readingTime = Math.ceil((guideData.content?.length || 0) / 1000) || 5;
             </div>
             <div class="flex justify-between text-sm">
               <span class="text-gray-600">Difficulty:</span>
-              <span class={`px-2 py-1 rounded text-xs font-medium ${getDifficultyColor(difficultyLevel)}`}>
+              <span
+                class={`px-2 py-1 rounded text-xs font-medium ${getDifficultyColor(difficultyLevel)}`}
+              >
                 {difficultyLevel.toLowerCase()}
               </span>
             </div>
@@ -557,22 +672,29 @@ const readingTime = Math.ceil((guideData.content?.length || 0) / 1000) || 5;
 
           <!-- Action Buttons -->
           <div class="mt-6 space-y-3">
-            {guideData.gpxFileUrl && (
-              <a 
-                href={guideData.gpxFileUrl}
-                download
-                class="w-full bg-primary-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors flex items-center justify-center"
-              >
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-                Download GPX
-              </a>
-            )}
-            
-            <a 
+            {
+              guideData.gpxFileUrl && (
+                <a
+                  href={guideData.gpxFileUrl}
+                  download
+                  class="w-full bg-primary-600 text-white py-3 px-4 rounded-full font-semibold hover:bg-primary-700 hover:scale-105 shadow-lg hover:shadow-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 flex items-center justify-center"
+                >
+                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                  Download GPX
+                </a>
+              )
+            }
+
+            <a
               href="/packages"
-              class="w-full border border-primary-600 text-primary-600 py-3 px-4 rounded-lg font-semibold hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors flex items-center justify-center"
+              class="w-full border-2 border-primary-600 text-primary-600 py-3 px-4 rounded-full font-semibold hover:bg-primary-50 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 flex items-center justify-center"
             >
               Join Guided Tour
             </a>
@@ -580,58 +702,69 @@ const readingTime = Math.ceil((guideData.content?.length || 0) / 1000) || 5;
 
           <!-- Contact Info -->
           <div class="mt-6 pt-6 border-t border-gray-200 text-center">
-            <p class="text-sm text-gray-600 mb-2">
-              Need route assistance?
-            </p>
+            <p class="text-sm text-gray-600 mb-2">Need route assistance?</p>
             <p class="text-sm font-medium text-gray-900">
-              Call: <a href="tel:+94123456789" class="text-primary-600 hover:text-primary-700">+94 12 345 6789</a>
+              Call: <a href="tel:+94123456789" class="text-primary-600 hover:text-primary-700"
+                >+94 12 345 6789</a
+              >
             </p>
           </div>
         </div>
 
-  <!-- Related Routes -->
-        {relatedGuides.length > 0 && (
-          <div>
-            <h3 class="font-display font-bold text-xl text-gray-900 mb-4">
-              More Routes in {guideData.region}
-            </h3>
-            <div class="space-y-4">
-              {relatedGuides.map((relatedGuide) => (
-                <a href={`/guides/${relatedGuide.slug}`} class="block bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <div class="flex items-center space-x-4">
-                    <img 
-                      src={getGuideThumbnail(relatedGuide)} 
-                      alt={relatedGuide.title}
-                      class="w-16 h-16 object-cover rounded-lg"
-                      loading="lazy"
-                    />
-                    <div class="flex-1 min-w-0">
-                      <h4 class="font-semibold text-gray-900 truncate mb-1">
-                        {relatedGuide.title}
-                      </h4>
-                      <div class="flex items-center space-x-2 text-sm text-gray-600">
-                        <span>{relatedGuide.estimatedDistance ? `${relatedGuide.estimatedDistance} km` : 'Distance varies'}</span>
-                        <span>•</span>
-                        <span class={`px-2 py-0.5 rounded text-xs ${getDifficultyColor(relatedGuide.difficultyLevel || 'INTERMEDIATE')}`}>
-                          {(relatedGuide.difficultyLevel || 'INTERMEDIATE').toLowerCase()}
-                        </span>
+        <!-- Related Routes -->
+        {
+          relatedGuides.length > 0 && (
+            <div>
+              <h3 class="font-display font-semibold text-xl text-gray-900 mb-4">
+                More Routes in {guideData.region}
+              </h3>
+              <div class="space-y-4">
+                {relatedGuides.map((relatedGuide) => (
+                  <a
+                    href={`/guides/${relatedGuide.slug}`}
+                    class="block bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                  >
+                    <div class="flex items-center space-x-4">
+                      <img
+                        src={getGuideThumbnail(relatedGuide)}
+                        alt={relatedGuide.title}
+                        class="w-16 h-16 object-cover rounded-lg"
+                        loading="lazy"
+                      />
+                      <div class="flex-1 min-w-0">
+                        <h4 class="font-semibold text-gray-900 truncate mb-1">
+                          {relatedGuide.title}
+                        </h4>
+                        <div class="flex items-center space-x-2 text-sm text-gray-600">
+                          <span>
+                            {relatedGuide.estimatedDistance
+                              ? `${relatedGuide.estimatedDistance} km`
+                              : 'Distance varies'}
+                          </span>
+                          <span>•</span>
+                          <span
+                            class={`px-2 py-0.5 rounded text-xs ${getDifficultyColor(relatedGuide.difficultyLevel || 'INTERMEDIATE')}`}
+                          >
+                            {(relatedGuide.difficultyLevel || 'INTERMEDIATE').toLowerCase()}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </a>
+                ))}
+              </div>
+
+              <div class="mt-4 text-center">
+                <a
+                  href="/guides"
+                  class="text-primary-600 hover:text-primary-700 font-medium text-sm"
+                >
+                  View All Guides →
                 </a>
-              ))}
+              </div>
             </div>
-            
-            <div class="mt-4 text-center">
-              <a 
-                href="/guides"
-                class="text-primary-600 hover:text-primary-700 font-medium text-sm"
-              >
-                View All Guides →
-              </a>
-            </div>
-          </div>
-        )}
+          )
+        }
       </div>
     </div>
   </div>
@@ -639,14 +772,15 @@ const readingTime = Math.ceil((guideData.content?.length || 0) / 1000) || 5;
 
 <script>
   // Image gallery functionality
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function () {
     // Simple lightbox functionality for route gallery images
     const galleryImages = document.querySelectorAll('img[data-gallery-image="true"]');
-    
+
     galleryImages.forEach((img) => {
-      img.addEventListener('click', function() {
+      img.addEventListener('click', function () {
         const modal = document.createElement('div');
-        modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4';
+        modal.className =
+          'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4';
         modal.innerHTML = `
           <div class="relative max-w-4xl max-h-full">
             <img src="${this.src}" alt="${this.alt}" class="max-w-full max-h-full object-contain rounded-lg">
@@ -658,7 +792,7 @@ const readingTime = Math.ceil((guideData.content?.length || 0) / 1000) || 5;
           </div>
         `;
 
-        modal.addEventListener('click', function(e) {
+        modal.addEventListener('click', function (e) {
           if (e.target === modal || e.target.closest('button')) {
             document.body.removeChild(modal);
           }

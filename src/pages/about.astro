@@ -1,199 +1,232 @@
 ---
-import Layout from "../layouts/Layout.astro";
+import Layout from '../layouts/Layout.astro';
 
 const missionStats = [
   {
-    label: "Guided Tours Delivered",
-    value: "12,400+",
-    detail: "Across 34 signature routes and micro-adventures"
+    label: 'Guided Tours Delivered',
+    value: '12,400+',
+    detail: 'Across 34 signature routes and micro-adventures',
   },
   {
-    label: "Average Rider Rating",
-    value: "4.9/5",
-    detail: "Based on post-tour surveys since 2016"
+    label: 'Average Rider Rating',
+    value: '4.9/5',
+    detail: 'Based on post-tour surveys since 2016',
   },
   {
-    label: "Communities Supported",
-    value: "58",
-    detail: "Local partners, artisans, and eco-lodges we invest in"
+    label: 'Communities Supported',
+    value: '58',
+    detail: 'Local partners, artisans, and eco-lodges we invest in',
   },
   {
-    label: "Kilometers Covered",
-    value: "480,000",
-    detail: "Collective distance ridden with our guests"
-  }
+    label: 'Kilometers Covered',
+    value: '480,000',
+    detail: 'Collective distance ridden with our guests',
+  },
 ];
 
 const values = [
   {
-    title: "People First",
-    description: "We design rider-centric experiences with safety briefings, bilingual guides, and curated rest stops that match different fitness levels.",
-    icon: "M12 1L8 5H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V7a2 2 0 00-2-2h-4l-4-4z"
+    title: 'People First',
+    description:
+      'We design rider-centric experiences with safety briefings, bilingual guides, and curated rest stops that match different fitness levels.',
+    icon: 'M12 1L8 5H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V7a2 2 0 00-2-2h-4l-4-4z',
   },
   {
-    title: "Sustainable Footprints",
-    description: "Every itinerary offsets carbon, supports conservation partners, and follows Leave No Trace guidelines.",
-    icon: "M12 3v18m6-14l-6 6-6-6"
+    title: 'Sustainable Footprints',
+    description:
+      'Every itinerary offsets carbon, supports conservation partners, and follows Leave No Trace guidelines.',
+    icon: 'M12 3v18m6-14l-6 6-6-6',
   },
   {
-    title: "Local Stewardship",
-    description: "80% of the experience fee stays with Sri Lankan-owned businesses, homestays, and craft cooperatives.",
-    icon: "M3 12l2-2 4 4 10-10 2 2-12 12z"
+    title: 'Local Stewardship',
+    description:
+      '80% of the experience fee stays with Sri Lankan-owned businesses, homestays, and craft cooperatives.',
+    icon: 'M3 12l2-2 4 4 10-10 2 2-12 12z',
   },
   {
-    title: "Relentless Learning",
-    description: "Guides complete quarterly training in first aid, bicycle mechanics, cultural sensitivity, and storytelling.",
-    icon: "M12 6v6h4m6 4a10 10 0 11-20 0 10 10 0 0120 0z"
-  }
+    title: 'Relentless Learning',
+    description:
+      'Guides complete quarterly training in first aid, bicycle mechanics, cultural sensitivity, and storytelling.',
+    icon: 'M12 6v6h4m6 4a10 10 0 11-20 0 10 10 0 0120 0z',
+  },
 ];
 
 const leadershipTeam = [
   {
-    name: "Anushka Senanayake",
-    role: "Founder & Lead Guide",
-    experience: "14 years guiding performance and leisure cyclists across Asia.",
-    focus: "Route design, guide academy, safety strategy.",
-    badges: ["Wilderness First Responder", "UCI Level 2 Coach", "Sinhala · English"]
+    name: 'Anushka Senanayake',
+    role: 'Founder & Lead Guide',
+    experience: '14 years guiding performance and leisure cyclists across Asia.',
+    focus: 'Route design, guide academy, safety strategy.',
+    badges: ['Wilderness First Responder', 'UCI Level 2 Coach', 'Sinhala · English'],
   },
   {
-    name: "Devika Perera",
-    role: "Head of Operations",
-    experience: "Built our partner network of boutique stays, bike techs, and farm-to-table kitchens.",
-    focus: "Vendor quality, sustainability metrics, traveler concierge.",
-    badges: ["PMI · Agile", "Zero Waste Facilitator", "Tamil · English"]
+    name: 'Devika Perera',
+    role: 'Head of Operations',
+    experience:
+      'Built our partner network of boutique stays, bike techs, and farm-to-table kitchens.',
+    focus: 'Vendor quality, sustainability metrics, traveler concierge.',
+    badges: ['PMI · Agile', 'Zero Waste Facilitator', 'Tamil · English'],
   },
   {
-    name: "Kasun Jayawardena",
-    role: "Experience Architect",
-    experience: "Former national cyclist crafting story-rich cultural immersions with VR route planning.",
-    focus: "Product innovation, accessibility, experiential tech.",
-    badges: ["GIS Mapping", "CPR & Advanced First Aid", "Sinhala · English"]
-  }
+    name: 'Kasun Jayawardena',
+    role: 'Experience Architect',
+    experience:
+      'Former national cyclist crafting story-rich cultural immersions with VR route planning.',
+    focus: 'Product innovation, accessibility, experiential tech.',
+    badges: ['GIS Mapping', 'CPR & Advanced First Aid', 'Sinhala · English'],
+  },
 ];
 
 const milestones = [
   {
-    year: "2014",
-    title: "First Hill Country Expedition",
-    description: "Cycle Paradise is registered as Sri Lanka's first specialist cycling tour operator with a 4-guide crew."
+    year: '2014',
+    title: 'First Hill Country Expedition',
+    description:
+      "Cycle Paradise is registered as Sri Lanka's first specialist cycling tour operator with a 4-guide crew.",
   },
   {
-    year: "2017",
-    title: "Community Impact Fund",
-    description: "Launched a rider-matched contribution program that has financed 38 micro-business upgrades."
+    year: '2017',
+    title: 'Community Impact Fund',
+    description:
+      'Launched a rider-matched contribution program that has financed 38 micro-business upgrades.',
   },
   {
-    year: "2020",
-    title: "Digital Ride Lab",
-    description: "Shifted to hybrid operations with indoor training plans, remote wellness coaching, and VR route previews."
+    year: '2020',
+    title: 'Digital Ride Lab',
+    description:
+      'Shifted to hybrid operations with indoor training plans, remote wellness coaching, and VR route previews.',
   },
   {
-    year: "2023",
-    title: "Sustainability Certification",
-    description: "Achieved Travelife Partner status and published our regenerative travel playbook."
-  }
+    year: '2023',
+    title: 'Sustainability Certification',
+    description:
+      'Achieved Travelife Partner status and published our regenerative travel playbook.',
+  },
 ];
 
 const impactHighlights = [
   {
-    title: "62% Repeat & Referral Riders",
-    description: "Multi-day rides become annual reunions for friend groups, alumni chapters, and corporate wellness squads."
+    title: '62% Repeat & Referral Riders',
+    description:
+      'Multi-day rides become annual reunions for friend groups, alumni chapters, and corporate wellness squads.',
   },
   {
-    title: "Zero Major Incidents",
-    description: "Layered safety protocols, satellite tracking, and medical rapid-response partners since launch."
+    title: 'Zero Major Incidents',
+    description:
+      'Layered safety protocols, satellite tracking, and medical rapid-response partners since launch.',
   },
   {
-    title: "Women Ride Further",
-    description: "Dedicated women-led departures now represent 41% of our annual departures."
-  }
+    title: 'Women Ride Further',
+    description: 'Dedicated women-led departures now represent 41% of our annual departures.',
+  },
 ];
 
 const structuredData = {
-  "@context": "https://schema.org",
-  "@type": "AboutPage",
-  "name": "About Cycle Paradise",
-  "description": "Meet the guides, makers, and sustainability partners behind Cycle Paradise cycling tours in Sri Lanka.",
-  "url": "https://cycleparadise.lk/about",
-  "breadcrumb": {
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://cycleparadise.lk" },
-      { "@type": "ListItem", "position": 2, "name": "About" }
-    ]
-  },
-  "mainEntity": {
-    "@type": "Organization",
-    "name": "Cycle Paradise",
-    "foundingDate": "2014-02-01",
-    "founders": [
-      { "@type": "Person", "name": "Anushka Senanayake" }
+  '@context': 'https://schema.org',
+  '@type': 'AboutPage',
+  name: 'About Cycle Paradise',
+  description:
+    'Meet the guides, makers, and sustainability partners behind Cycle Paradise cycling tours in Sri Lanka.',
+  url: 'https://cycleparadise.lk/about',
+  breadcrumb: {
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://cycleparadise.lk' },
+      { '@type': 'ListItem', position: 2, name: 'About' },
     ],
-    "address": {
-      "@type": "PostalAddress",
-      "addressCountry": "LK",
-      "addressLocality": "Colombo",
-      "addressRegion": "Western Province"
+  },
+  mainEntity: {
+    '@type': 'Organization',
+    name: 'Cycle Paradise',
+    foundingDate: '2014-02-01',
+    founders: [{ '@type': 'Person', name: 'Anushka Senanayake' }],
+    address: {
+      '@type': 'PostalAddress',
+      addressCountry: 'LK',
+      addressLocality: 'Colombo',
+      addressRegion: 'Western Province',
     },
-    "numberOfEmployees": 24,
-    "knowsAbout": ["Cycling holidays", "Adventure travel", "Sri Lanka tours"],
-    "slogan": "Ride Sri Lanka Differently",
-    "contactPoint": {
-      "@type": "ContactPoint",
-      "contactType": "customer support",
-      "email": "info@cycleparadise.lk",
-      "telephone": "+94-77-123-4567"
-    }
-  }
+    numberOfEmployees: 24,
+    knowsAbout: ['Cycling holidays', 'Adventure travel', 'Sri Lanka tours'],
+    slogan: 'Ride Sri Lanka Differently',
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'customer support',
+      email: 'info@cycleparadise.lk',
+      telephone: '+94-77-123-4567',
+    },
+  },
 };
 ---
 
 <Layout
   title="About Cycle Paradise | Cycling Tour Experts in Sri Lanka"
   description="Meet the guides, makers, and sustainability partners behind Cycle Paradise. Discover our mission, values, rider care standards, and community impact across Sri Lanka."
-  keywords={["about cycle paradise", "cycling guides sri lanka", "sri lanka bike tours company"]}
+  keywords={['about cycle paradise', 'cycling guides sri lanka', 'sri lanka bike tours company']}
   structuredData={structuredData}
 >
-  <section class="bg-gradient-to-b from-primary-50 via-white to-white">
-    <div class="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
+  <section class="relative -mt-[72px] min-h-[100vh] flex items-center justify-center">
+    <!-- Background Image with Overlay -->
+    <div class="absolute inset-0 z-0">
+      <img
+        src="https://images.unsplash.com/photo-1541625602330-2277a4c46182?q=80&w=2070&auto=format&fit=crop"
+        alt="Cyclist riding through scenic Sri Lankan landscape"
+        class="w-full h-full object-cover"
+      />
+      <!-- Dark overlay for better text contrast -->
+      <div class="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/80"></div>
+    </div>
+
+    <div class="relative z-10 mx-auto max-w-6xl px-8 py-24 pt-32">
       <div class="grid gap-12 lg:grid-cols-2 lg:items-center">
         <div>
-          <p class="text-sm uppercase tracking-widest text-primary-600 font-semibold">Who We Are</p>
-          <h1 class="mt-4 font-display text-4xl font-bold text-gray-900 sm:text-5xl">
+          <p class="text-sm uppercase tracking-widest text-primary-400 font-semibold">Who We Are</p>
+          <h1 class="reveal mt-4 font-display text-4xl font-semibold text-white sm:text-5xl">
             Riders, storytellers, and guardians of Sri Lanka's open roads.
           </h1>
-          <p class="mt-6 text-lg text-gray-700 leading-relaxed">
-            Cycle Paradise was born on a misty morning climb through the Knuckles range. Today we operate island-wide cycling expeditions
-            that braid performance riding with deep cultural exchange. Our guides, mechanics, nutritionists, and local artisans operate as one
-            studio to craft journeys that are safe, soulful, and sustainable.
+          <p class="reveal reveal-delay-1 mt-6 text-base text-gray-200 leading-relaxed">
+            Cycle Paradise was born on a misty morning climb through the Knuckles range. Today we
+            operate island-wide cycling expeditions that braid performance riding with deep cultural
+            exchange. Our guides, mechanics, nutritionists, and local artisans operate as one studio
+            to craft journeys that are safe, soulful, and sustainable.
           </p>
-          <div class="mt-8 flex flex-wrap gap-4">
+          <div class="reveal reveal-delay-2 mt-8 flex flex-wrap gap-4">
             <a
               href="/packages"
-              class="inline-flex items-center rounded-lg bg-primary-600 px-6 py-3 font-semibold text-white shadow hover:bg-primary-700 transition-colors"
+              class="inline-flex items-center rounded-full bg-primary-600 px-6 py-3 font-semibold text-white shadow-lg hover:bg-primary-700 hover:shadow-xl hover:scale-105 transition-all duration-300"
             >
               Browse Tours
               <svg class="ml-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
               </svg>
             </a>
             <a
               href="/contact"
-              class="inline-flex items-center rounded-lg border border-gray-300 px-6 py-3 font-semibold text-gray-900 hover:border-primary-400 hover:text-primary-600"
+              class="inline-flex items-center rounded-full border border-gray-300 px-6 py-3 font-semibold text-white hover:border-primary-400 hover:bg-white/10 transition-all duration-300"
             >
               Talk to a Trip Designer
             </a>
           </div>
         </div>
-        <div class="rounded-3xl border border-primary-100 bg-white/80 shadow-xl backdrop-blur">
-          <div class="grid grid-cols-2 divide-x divide-y divide-gray-100">
-            {missionStats.map((item) => (
-              <div class="p-6">
-                <p class="text-3xl font-bold text-primary-600">{item.value}</p>
-                <p class="mt-2 text-sm font-semibold uppercase tracking-wide text-gray-500">{item.label}</p>
-                <p class="mt-3 text-sm text-gray-600">{item.detail}</p>
-              </div>
-            ))}
+        <div
+          class="reveal reveal-delay-3 rounded-3xl border border-white/20 bg-white/10 shadow-xl backdrop-blur"
+        >
+          <div class="grid grid-cols-2 divide-x divide-y divide-white/20">
+            {
+              missionStats.map((item) => (
+                <div class="p-6">
+                  <p class="text-3xl font-semibold text-primary-400">{item.value}</p>
+                  <p class="mt-2 text-sm font-semibold uppercase tracking-wide text-gray-300">
+                    {item.label}
+                  </p>
+                  <p class="mt-3 text-sm text-gray-200">{item.detail}</p>
+                </div>
+              ))
+            }
           </div>
         </div>
       </div>
@@ -201,47 +234,79 @@ const structuredData = {
   </section>
 
   <section class="py-24">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-6xl px-8">
       <div class="grid gap-16 lg:grid-cols-2">
         <div>
-          <p class="text-sm uppercase tracking-widest text-primary-600 font-semibold">Our Mission</p>
-          <h2 class="mt-4 font-display text-3xl font-bold text-gray-900 sm:text-4xl">
+          <p class="reveal text-sm uppercase tracking-widest text-primary-600 font-semibold">
+            Our Mission
+          </p>
+          <h2
+            class="reveal reveal-delay-1 mt-4 font-display text-3xl font-semibold text-gray-900 sm:text-4xl lg:text-5xl"
+          >
             Build legendary rides that uplift every village we roll through.
           </h2>
-          <p class="mt-6 text-lg text-gray-700">
-            We curate every expedition with three guardrails: safety that rivals ProTour support, meaningful encounters with craftspeople and
-            conservationists, and regenerative operations that keep Sri Lanka thriving for decades of cyclists to come.
+          <p class="reveal reveal-delay-2 mt-6 text-lg text-gray-700">
+            We curate every expedition with three guardrails: safety that rivals ProTour support,
+            meaningful encounters with craftspeople and conservationists, and regenerative
+            operations that keep Sri Lanka thriving for decades of cyclists to come.
           </p>
-          <ul class="mt-8 space-y-4 text-gray-700">
+          <ul class="reveal reveal-delay-3 mt-8 space-y-4 text-gray-700">
             <li class="flex items-start">
-              <span class="mt-1 mr-3 inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary-100 text-primary-600">1</span>
-              <p>Dynamic route intelligence that adapts weather, traffic, and rider energy in real time.</p>
+              <span
+                class="mt-1 mr-3 inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary-100 text-primary-600"
+                >1</span
+              >
+              <p>
+                Dynamic route intelligence that adapts weather, traffic, and rider energy in real
+                time.
+              </p>
             </li>
             <li class="flex items-start">
-              <span class="mt-1 mr-3 inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary-100 text-primary-600">2</span>
-              <p>Hands-on cultural playbooks co-created with historians, tea masters, and wildlife trackers.</p>
+              <span
+                class="mt-1 mr-3 inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary-100 text-primary-600"
+                >2</span
+              >
+              <p>
+                Hands-on cultural playbooks co-created with historians, tea masters, and wildlife
+                trackers.
+              </p>
             </li>
             <li class="flex items-start">
-              <span class="mt-1 mr-3 inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary-100 text-primary-600">3</span>
-              <p>Impact commitments that track carbon, fair wages, and rider wellbeing metrics each quarter.</p>
+              <span
+                class="mt-1 mr-3 inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary-100 text-primary-600"
+                >3</span
+              >
+              <p>
+                Impact commitments that track carbon, fair wages, and rider wellbeing metrics each
+                quarter.
+              </p>
             </li>
           </ul>
         </div>
-        <div class="rounded-2xl bg-gray-50 p-8">
+        <div class="reveal reveal-delay-4 rounded-2xl bg-gray-50 p-8">
           <h3 class="text-xl font-semibold text-gray-900">Values in Motion</h3>
-          <p class="mt-3 text-gray-600">These are the promises every Cycle Paradise team member trains to uphold.</p>
+          <p class="mt-3 text-gray-600">
+            These are the promises every Cycle Paradise team member trains to uphold.
+          </p>
           <div class="mt-8 grid gap-6 md:grid-cols-2">
-            {values.map((value) => (
-              <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
-                <div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary-50 text-primary-600">
-                  <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={value.icon}></path>
-                  </svg>
+            {
+              values.map((value) => (
+                <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+                  <div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary-50 text-primary-600">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d={value.icon}
+                      />
+                    </svg>
+                  </div>
+                  <h4 class="mt-4 text-lg font-semibold text-gray-900">{value.title}</h4>
+                  <p class="mt-2 text-sm text-gray-600">{value.description}</p>
                 </div>
-                <h4 class="mt-4 text-lg font-semibold text-gray-900">{value.title}</h4>
-                <p class="mt-2 text-sm text-gray-600">{value.description}</p>
-              </div>
-            ))}
+              ))
+            }
           </div>
         </div>
       </div>
@@ -249,74 +314,104 @@ const structuredData = {
   </section>
 
   <section class="bg-gray-900 py-24 text-white">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-6xl px-8">
       <div class="flex flex-col gap-12 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <p class="text-sm uppercase tracking-widest text-primary-300 font-semibold">Leadership Team</p>
-          <h2 class="mt-4 font-display text-3xl font-bold sm:text-4xl">Meet the riders guiding every decision.</h2>
-          <p class="mt-4 max-w-2xl text-lg text-gray-300">
-            We blend expedition know-how, hospitality craft, and business rigor. Every leader still rides at least two tours a quarter to stay close to riders.
+          <p class="reveal text-sm uppercase tracking-widest text-primary-300 font-semibold">
+            Leadership Team
+          </p>
+          <h2
+            class="reveal reveal-delay-1 mt-4 font-display text-3xl font-semibold sm:text-4xl lg:text-5xl"
+          >
+            Meet the riders guiding every decision.
+          </h2>
+          <p class="reveal reveal-delay-2 mt-4 max-w-2xl text-lg text-gray-300">
+            We blend expedition know-how, hospitality craft, and business rigor. Every leader still
+            rides at least two tours a quarter to stay close to riders.
           </p>
         </div>
-        <a href="/contact" class="inline-flex items-center rounded-full border border-white/30 px-6 py-3 text-sm font-semibold text-white hover:bg-white hover:text-gray-900">
+        <a
+          href="/contact"
+          class="reveal reveal-delay-3 inline-flex items-center rounded-full border border-white/30 px-6 py-3 text-sm font-semibold text-white hover:bg-white hover:text-gray-900 transition-all duration-300"
+        >
           Book a discovery call
           <svg class="ml-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
           </svg>
         </a>
       </div>
       <div class="mt-12 grid gap-8 md:grid-cols-3">
-        {leadershipTeam.map((lead) => (
-          <div class="rounded-2xl bg-white/5 p-6 ring-1 ring-white/10">
-            <p class="text-sm uppercase tracking-wide text-primary-200">{lead.role}</p>
-            <h3 class="mt-2 text-2xl font-semibold text-white">{lead.name}</h3>
-            <p class="mt-3 text-gray-200">{lead.experience}</p>
-            <p class="mt-4 text-sm text-gray-300">Focus: {lead.focus}</p>
-            <div class="mt-6 flex flex-wrap gap-2">
-              {lead.badges.map((badge) => (
-                <span class="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-primary-100">
-                  {badge}
-                </span>
-              ))}
+        {
+          leadershipTeam.map((lead) => (
+            <div class="rounded-2xl bg-white/5 p-6 ring-1 ring-white/10">
+              <p class="text-sm uppercase tracking-wide text-primary-200">{lead.role}</p>
+              <h3 class="mt-2 text-2xl font-semibold text-white">{lead.name}</h3>
+              <p class="mt-3 text-gray-200">{lead.experience}</p>
+              <p class="mt-4 text-sm text-gray-300">Focus: {lead.focus}</p>
+              <div class="mt-6 flex flex-wrap gap-2">
+                {lead.badges.map((badge) => (
+                  <span class="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-primary-100">
+                    {badge}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        }
       </div>
     </div>
   </section>
 
   <section class="py-24">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-6xl px-8">
       <div class="grid gap-12 lg:grid-cols-2">
         <div>
-          <p class="text-sm uppercase tracking-widest text-primary-600 font-semibold">Timeline</p>
-          <h2 class="mt-4 font-display text-3xl font-bold text-gray-900">Milestones that shaped us.</h2>
+          <p class="reveal text-sm uppercase tracking-widest text-primary-600 font-semibold">
+            Timeline
+          </p>
+          <h2
+            class="reveal reveal-delay-1 mt-4 font-display text-3xl font-semibold text-gray-900 sm:text-4xl"
+          >
+            Milestones that shaped us.
+          </h2>
           <ol class="mt-8 space-y-6 border-l-2 border-primary-100 pl-6">
-            {milestones.map((milestone) => (
-              <li>
-                <div class="flex items-start gap-4">
-                  <div class="relative -ml-[43px] mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-white ring-2 ring-primary-200">
-                    <span class="text-sm font-semibold text-primary-600">{milestone.year}</span>
+            {
+              milestones.map((milestone) => (
+                <li>
+                  <div class="flex items-start gap-4">
+                    <div class="relative -ml-[51px] mt-0.5 flex h-12 w-12 p-4 items-center justify-center rounded-full bg-white ring-2 ring-primary-200">
+                      <span class="text-xs font-semibold text-primary-600">{milestone.year}</span>
+                    </div>
+                    <div>
+                      <h3 class="text-lg font-semibold text-gray-900">{milestone.title}</h3>
+                      <p class="mt-2 text-sm text-gray-600">{milestone.description}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 class="text-lg font-semibold text-gray-900">{milestone.title}</h3>
-                    <p class="mt-2 text-sm text-gray-600">{milestone.description}</p>
-                  </div>
-                </div>
-              </li>
-            ))}
+                </li>
+              ))
+            }
           </ol>
         </div>
-        <div class="rounded-3xl bg-primary-50 p-8">
-          <p class="text-sm uppercase tracking-widest text-primary-700 font-semibold">Impact Snapshots</p>
-          <h2 class="mt-4 font-display text-3xl font-bold text-gray-900">Proof that mindful travel works.</h2>
+        <div class="reveal reveal-delay-2 rounded-3xl bg-primary-50 p-8">
+          <p class="text-sm uppercase tracking-widest text-primary-700 font-semibold">
+            Impact Snapshots
+          </p>
+          <h2 class="mt-4 font-display text-3xl font-semibold text-gray-900">
+            Proof that mindful travel works.
+          </h2>
           <div class="mt-8 space-y-6">
-            {impactHighlights.map((impact) => (
-              <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-primary-100">
-                <h3 class="text-xl font-semibold text-primary-700">{impact.title}</h3>
-                <p class="mt-3 text-gray-600">{impact.description}</p>
-              </div>
-            ))}
+            {
+              impactHighlights.map((impact) => (
+                <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-primary-100">
+                  <h3 class="text-xl font-semibold text-primary-700">{impact.title}</h3>
+                  <p class="mt-3 text-gray-600">{impact.description}</p>
+                </div>
+              ))
+            }
           </div>
         </div>
       </div>
@@ -324,47 +419,90 @@ const structuredData = {
   </section>
 
   <section class="bg-gray-50 py-24">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-6xl px-8">
       <div class="grid gap-12 lg:grid-cols-2 lg:items-center">
         <div>
-          <p class="text-sm uppercase tracking-widest text-primary-600 font-semibold">Your Next Ride</p>
-          <h2 class="mt-4 font-display text-3xl font-bold text-gray-900">Ready for the story you will tell after your ride?</h2>
+          <p class="text-sm uppercase tracking-widest text-primary-600 font-semibold">
+            Your Next Ride
+          </p>
+          <h2 class="mt-4 font-display text-3xl font-semibold text-gray-900">
+            Ready for the story you will tell after your ride?
+          </h2>
           <p class="mt-4 text-lg text-gray-700">
-            Whether you are planning a corporate retreat, celebrating a milestone, or testing your endurance, our trip designers build a ride narrative that matches your why.
+            Whether you are planning a corporate retreat, celebrating a milestone, or testing your
+            endurance, our trip designers build a ride narrative that matches your why.
           </p>
           <ul class="mt-6 space-y-3 text-gray-700">
             <li class="flex items-center">
-              <svg class="mr-3 h-5 w-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              <svg
+                class="mr-3 h-5 w-5 text-primary-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"></path>
               </svg>
               Multilingual guides and cultural hosts
             </li>
             <li class="flex items-center">
-              <svg class="mr-3 h-5 w-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              <svg
+                class="mr-3 h-5 w-5 text-primary-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"></path>
               </svg>
               Nutrition, recovery, and gear concierge
             </li>
             <li class="flex items-center">
-              <svg class="mr-3 h-5 w-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              <svg
+                class="mr-3 h-5 w-5 text-primary-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"></path>
               </svg>
               Community investments built into every booking
             </li>
           </ul>
           <div class="mt-8 flex flex-wrap gap-4">
-            <a href="/contact" class="inline-flex items-center rounded-lg bg-primary-600 px-6 py-3 font-semibold text-white shadow hover:bg-primary-700">
+            <a
+              href="/contact"
+              class="inline-flex items-center rounded-lg bg-primary-600 px-6 py-3 font-semibold text-white shadow hover:bg-primary-700"
+            >
               Plan a Custom Tour
             </a>
-            <a href="/guides" class="inline-flex items-center rounded-lg border border-gray-300 px-6 py-3 font-semibold text-gray-900 hover:text-primary-600">
+            <a
+              href="/guides"
+              class="inline-flex items-center rounded-lg border border-gray-300 px-6 py-3 font-semibold text-gray-900 hover:text-primary-600"
+            >
               Explore Route Guides
             </a>
           </div>
         </div>
         <div class="rounded-[32px] bg-white p-10 shadow-xl ring-1 ring-gray-100">
           <p class="text-sm uppercase tracking-widest text-gray-500 font-semibold">Talk to us</p>
-          <h3 class="mt-4 text-2xl font-semibold text-gray-900">Schedule a free planning session</h3>
-          <p class="mt-3 text-gray-600">Share your riding style, time frame, and dream scenery. We will send a customized ride playbook within 48 hours.</p>
+          <h3 class="mt-4 text-2xl font-semibold text-gray-900">
+            Schedule a free planning session
+          </h3>
+          <p class="mt-3 text-gray-600">
+            Share your riding style, time frame, and dream scenery. We will send a customized ride
+            playbook within 48 hours.
+          </p>
           <dl class="mt-6 space-y-4">
             <div>
               <dt class="text-sm font-semibold text-gray-500">Email</dt>
@@ -376,7 +514,9 @@ const structuredData = {
             </div>
             <div>
               <dt class="text-sm font-semibold text-gray-500">Studio</dt>
-              <dd class="text-lg font-semibold text-gray-900">38/12 Temple Lane, Colombo 05, Sri Lanka</dd>
+              <dd class="text-lg font-semibold text-gray-900">
+                38/12 Temple Lane, Colombo 05, Sri Lanka
+              </dd>
             </div>
           </dl>
         </div>
@@ -384,3 +524,79 @@ const structuredData = {
     </div>
   </section>
 </Layout>
+
+<style>
+  /* Reveal Animation Keyframes */
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Initial state for elements waiting to be revealed */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  /* Active state when element enters viewport */
+  .reveal-active {
+    animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  /* Staggered delays for sequential reveals */
+  .reveal-delay-1 {
+    animation-delay: 0.1s;
+  }
+  .reveal-delay-2 {
+    animation-delay: 0.2s;
+  }
+  .reveal-delay-3 {
+    animation-delay: 0.3s;
+  }
+  .reveal-delay-4 {
+    animation-delay: 0.4s;
+  }
+  .reveal-delay-5 {
+    animation-delay: 0.5s;
+  }
+  .reveal-delay-6 {
+    animation-delay: 0.6s;
+  }
+</style>
+
+<script>
+  // Intersection Observer for performant scroll-triggered animations
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('reveal-active');
+            // Unobserve after animation to free resources
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        rootMargin: '0px 0px -50px 0px', // Trigger slightly before element is visible
+        threshold: 0.1,
+      }
+    );
+
+    // Observe all elements with reveal class
+    document.querySelectorAll('.reveal').forEach((el) => {
+      observer.observe(el);
+    });
+  } else {
+    // Fallback for browsers without IntersectionObserver support
+    document.querySelectorAll('.reveal').forEach((el) => {
+      el.classList.add('reveal-active');
+    });
+  }
+</script>

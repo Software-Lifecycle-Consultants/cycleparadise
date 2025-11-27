@@ -31,112 +31,126 @@ function getDifficultyLabel(level: string): string {
 }
 
 // Get first image from gallery or use placeholder
-const firstImage = tourPackage.mediaGallery?.images?.[0]?.url || '/images/package-placeholder.jpg';
+const firstImage =
+  // tourPackage.mediaGallery?.images?.[0]?.url ||
+  // '/images/package-placeholder.jpg' ||
+  'https://plus.unsplash.com/premium_photo-1730145749791-28fc538d7203?q=80&w=1035&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; // TODO: remove placeholder image
 const packageUrl = `/packages/${tourPackage.slug}`;
 ---
 
-<div class={`bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 ${className}`}>
+<div
+  class={`group relative bg-white rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 ${className}`}
+>
   <!-- Image Section -->
-  <div class="relative aspect-w-16 aspect-h-9">
-    <a href={packageUrl}>
-      <img 
-        src={firstImage} 
+  <div class="relative overflow-hidden">
+    <a href={packageUrl} class="block">
+      <img
+        src={firstImage}
         alt={tourPackage.title}
-        class="w-full h-48 object-cover"
+        class="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-500"
         loading="lazy"
       />
     </a>
-    
-    <!-- Featured Badge -->
-    {featured && (
-      <div class="absolute top-3 left-3">
-        <span class="bg-primary-600 text-white px-2 py-1 rounded-full text-xs font-semibold">
-          Featured
-        </span>
+
+    <!-- Price Badge - Top Left -->
+    <div class="absolute top-4 left-4 pointer-events-none">
+      <div class="bg-white/95 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg">
+        <span class="text-lg font-bold text-gray-900">${tourPackage.basePrice}</span>
+        <span class="text-xs text-gray-600 ml-1">/ person</span>
       </div>
-    )}
-    
-    <!-- Difficulty Badge -->
-    <div class="absolute top-3 right-3">
-      <span class={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(tourPackage.difficultyLevel)}`}>
-        {getDifficultyLabel(tourPackage.difficultyLevel)}
-      </span>
     </div>
   </div>
 
   <!-- Content Section -->
   <div class="p-6">
+    <!-- Difficulty and Duration Row -->
+    <div class="flex items-center justify-between mb-3">
+      <span
+        class={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${getDifficultyColor(tourPackage.difficultyLevel)}`}
+      >
+        {getDifficultyLabel(tourPackage.difficultyLevel)}
+      </span>
+      <div class="flex items-center text-sm text-gray-500">
+        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <span>{tourPackage.duration} {tourPackage.duration === 1 ? 'Day' : 'Days'}</span>
+      </div>
+    </div>
+
     <!-- Title -->
-    <h3 class="font-semibold text-xl text-gray-900 mb-2 line-clamp-2">
+    <h3 class="font-bold text-xl text-gray-900 mb-2 line-clamp-2 min-h-[3.5rem]">
       <a href={packageUrl} class="hover:text-primary-600 transition-colors">
         {tourPackage.title}
       </a>
     </h3>
-    
+
     <!-- Short Description -->
-    {tourPackage.shortDescription && (
-      <p class="text-gray-600 text-sm mb-4 line-clamp-3">
-        {tourPackage.shortDescription}
-      </p>
-    )}
-    
-    <!-- Package Details -->
-    <div class="flex items-center justify-between mb-4 text-sm text-gray-500">
-      <div class="flex items-center space-x-4">
-        <!-- Duration -->
-        <div class="flex items-center">
-          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span>{tourPackage.duration} days</span>
-        </div>
-        
-        <!-- Region -->
-        <div class="flex items-center">
-          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-          <span class="truncate">{tourPackage.region}</span>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Price and Action -->
-    <div class="flex items-center justify-between">
-      <div class="flex flex-col">
-        <span class="text-2xl font-bold text-primary-600">
-          ${tourPackage.basePrice}
-        </span>
-        <span class="text-xs text-gray-500">per person</span>
-      </div>
-      
-      <a 
-        href={packageUrl}
-        class="bg-primary-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors"
+    {
+      tourPackage.shortDescription && (
+        <p class="text-sm text-gray-600 mb-4 line-clamp-2 leading-relaxed">
+          {tourPackage.shortDescription}
+        </p>
+      )
+    }
+
+    <!-- Region and Route Info -->
+    <div class="flex items-start text-xs text-gray-500 mb-4">
+      <svg
+        class="w-3.5 h-3.5 mr-1.5 mt-0.5 flex-shrink-0"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
       >
-        View Details
-      </a>
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+        ></path>
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+      </svg>
+      <span class="line-clamp-1">Route: {tourPackage.region}</span>
     </div>
-    
-    <!-- Included Services Preview -->
-    {tourPackage.includedServices && tourPackage.includedServices.length > 0 && (
-      <div class="mt-4 pt-4 border-t border-gray-200">
-        <p class="text-xs text-gray-500 mb-2">Includes:</p>
-        <div class="flex flex-wrap gap-1">
-          {tourPackage.includedServices.slice(0, 3).map((service: string) => (
-            <span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
-              {service}
-            </span>
-          ))}
-          {tourPackage.includedServices.length > 3 && (
-            <span class="text-xs text-gray-500">
-              +{tourPackage.includedServices.length - 3} more
-            </span>
-          )}
+
+    <!-- View Details Button (Triggers Expansion) -->
+    <a
+      href={packageUrl}
+      class="peer block w-full text-center bg-white border-2 border-primary-600 text-primary-600 px-4 py-2.5 rounded-full font-semibold text-sm hover:bg-primary-600 hover:text-white transition-all duration-300"
+    >
+      View More Details
+    </a>
+
+    <!-- Included Services Preview (Expands on Button Hover) -->
+    {
+      tourPackage.includedServices && tourPackage.includedServices.length > 0 && (
+        <div class="lg:max-h-0 lg:opacity-0 peer-hover:lg:max-h-[200px] peer-hover:lg:opacity-100 transition-all duration-500 ease-in-out overflow-hidden hover:lg:max-h-[200px] hover:lg:opacity-100">
+          <div class="pt-4 mt-4 border-t border-gray-100">
+            <p class="text-xs text-gray-500 mb-2 font-medium">Includes:</p>
+            <div class="flex flex-wrap gap-2">
+              {tourPackage.includedServices.slice(0, 3).map((service: string) => (
+                <span class="bg-neutral-200 text-gray-700 text-xs px-2.5 py-1.5 rounded-md border border-gray-100">
+                  {service}
+                </span>
+              ))}
+              {tourPackage.includedServices.length > 3 && (
+                <span class="text-xs text-gray-500 flex items-center">
+                  +{tourPackage.includedServices.length - 3} more
+                </span>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
-    )}
+      )
+    }
   </div>
 </div>
 
@@ -148,19 +162,19 @@ const packageUrl = `/packages/${tourPackage.slug}`;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  
+
   .line-clamp-3 {
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  
+
   .aspect-w-16 {
     position: relative;
     padding-bottom: 56.25%; /* 16:9 aspect ratio */
   }
-  
+
   .aspect-w-16 > * {
     position: absolute;
     height: 100%;
