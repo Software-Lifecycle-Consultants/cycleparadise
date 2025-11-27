@@ -1,26 +1,41 @@
 ---
 import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { prisma } from '../../../lib/db/connection';
 
 const user = Astro.locals.user;
 if (!user) {
   return Astro.redirect('/admin/login');
 }
 
-// Fetch all packages
+// Fetch all packages directly from database
 let packages: any[] = [];
 let error = '';
 
 try {
-  const response = await fetch(`${Astro.url.origin}/api/admin/packages`);
-  if (response.ok) {
-    packages = await response.json();
-  } else {
-    error = 'Failed to load packages';
-  }
+  packages = await prisma.tourPackage.findMany({
+    orderBy: {
+      createdAt: 'desc',
+    },
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      shortDescription: true,
+      duration: true,
+      difficultyLevel: true,
+      region: true,
+      basePrice: true,
+      maxParticipants: true,
+      isActive: true,
+      featured: true,
+      createdAt: true,
+    },
+  });
 } catch (err) {
   console.error('Failed to load packages:', err);
   error = 'Failed to load packages';
 }
+
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-LK', {
@@ -228,6 +243,7 @@ const getDifficultyColor = (level: string) => {
       try {
         const response = await fetch(`/api/admin/packages/${packageToDelete}`, {
           method: 'DELETE',
+          credentials: 'include',
         });
 
         if (response.ok) {

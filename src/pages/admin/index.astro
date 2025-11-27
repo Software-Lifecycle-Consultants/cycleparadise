@@ -1,28 +1,82 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import { prisma } from '../../lib/db/connection';
 
 const user = Astro.locals.user;
 if (!user) {
   return Astro.redirect('/admin/login');
 }
 
-// Fetch dashboard stats
+// Fetch dashboard stats directly from database
 let stats = {
   totalBookings: 0,
   pendingBookings: 0,
   activePackages: 0,
   totalRevenue: 0,
-  recentBookings: [],
+  recentBookings: [] as any[],
 };
 
 try {
-  const response = await fetch(`${Astro.url.origin}/api/admin/dashboard/stats`);
-  if (response.ok) {
-    stats = await response.json();
-  }
+  // Get total bookings count
+  const totalBookings = await prisma.booking.count();
+
+  // Get pending bookings count
+  const pendingBookings = await prisma.booking.count({
+    where: { status: 'PENDING' },
+  });
+
+  // Get active packages count
+  const activePackages = await prisma.tourPackage.count({
+    where: { isActive: true },
+  });
+
+  // Calculate total revenue from PAID bookings
+  const revenueData = await prisma.booking.aggregate({
+    where: { paymentStatus: 'PAID' },
+    _sum: { totalAmount: true },
+  });
+  const totalRevenue = revenueData._sum?.totalAmount || 0;
+
+  // Get recent bookings (last 10)
+  const recentBookingsData = await prisma.booking.findMany({
+    take: 10,
+    orderBy: { createdAt: 'desc' },
+    include: {
+      package: {
+        select: { title: true },
+      },
+    },
+  });
+
+  // Format recent bookings for display
+  const recentBookings = recentBookingsData.map((booking) => {
+    const nameParts = booking.customerName.split(' ');
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.slice(1).join(' ') || nameParts[0] || '';
+    
+    return {
+      id: booking.id,
+      customerFirstName: firstName,
+      customerLastName: lastName,
+      customerEmail: booking.customerEmail,
+      packageName: booking.package.title,
+      tourStartDate: booking.startDate.toISOString(),
+      totalAmount: booking.totalAmount,
+      status: booking.status,
+    };
+  });
+
+  stats = {
+    totalBookings,
+    pendingBookings,
+    activePackages,
+    totalRevenue,
+    recentBookings,
+  };
 } catch (error) {
   console.error('Failed to load dashboard stats:', error);
 }
+
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-LK', {
