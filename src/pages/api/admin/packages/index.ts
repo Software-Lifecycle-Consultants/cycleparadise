@@ -1,5 +1,5 @@
-import type { APIRoute } from 'astro';
 import { PrismaClient } from '@prisma/client';
+import type { APIRoute } from 'astro';
 
 const prisma = new PrismaClient();
 
@@ -11,7 +11,7 @@ function generateSlug(title: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
-export const GET: APIRoute = async ({ locals }) => {
+export const GET: APIRoute = async ({ locals, request }) => {
   // Check authentication
   if (!locals.user) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -21,39 +21,83 @@ export const GET: APIRoute = async ({ locals }) => {
   }
 
   try {
-    const packages = await prisma.tourPackage.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
-      select: {
-        id: true,
-        title: true,
-        slug: true,
-        shortDescription: true,
-        duration: true,
-        difficultyLevel: true,
-        region: true,
-        basePrice: true,
-        maxParticipants: true,
-        isActive: true,
-        featured: true,
-        createdAt: true,
-      },
-    });
+    const url = new URL(request.url);
+    const q = url.searchParams.get('q');
+    const region = url.searchParams.get('region');
+    const difficulty = url.searchParams.get('difficulty');
+    const status = url.searchParams.get('status');
+    const page = parseInt(url.searchParams.get('page') || '1');
+    const limit = parseInt(url.searchParams.get('limit') || '10');
+    const skip = (page - 1) * limit;
 
-    return new Response(JSON.stringify(packages), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  } catch (error) {
-    console.error('Packages fetch error:', error);
+    const where: any = {};
+
+    if (q) {
+      where.OR = [
+        { title: { contains: q, mode: 'insensitive' } },
+        { shortDescription: { contains: q, mode: 'insensitive' } },
+      ];
+    }
+
+    if (region) {
+      where.region = region;
+    }
+
+    if (difficulty) {
+      where.difficultyLevel = difficulty;
+    }
+
+    if (status) {
+      where.isActive = status === 'active';
+    }
+
+    const [packages, total] = await Promise.all([
+      prisma.tourPackage.findMany({
+        where,
+        orderBy: {
+          createdAt: 'desc',
+        },
+        skip,
+        take: limit,
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          shortDescription: true,
+          duration: true,
+          difficultyLevel: true,
+          region: true,
+          basePrice: true,
+          maxParticipants: true,
+          isActive: true,
+          featured: true,
+          createdAt: true,
+        },
+      }),
+      prisma.tourPackage.count({ where }),
+    ]);
+
     return new Response(
-      JSON.stringify({ error: 'Failed to fetch packages' }),
+      JSON.stringify({
+        data: packages,
+        meta: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        },
+      }),
       {
-        status: 500,
+        status: 200,
         headers: { 'Content-Type': 'application/json' },
       }
     );
+  } catch (error) {
+    console.error('Packages fetch error:', error);
+    return new Response(JSON.stringify({ error: 'Failed to fetch packages' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 };
 
@@ -68,7 +112,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
   try {
     const body = await request.json();
-    
+
     // Generate slug from title
     const slug = generateSlug(body.title);
 
@@ -97,12 +141,9 @@ export const POST: APIRoute = async ({ request, locals }) => {
     });
   } catch (error) {
     console.error('Package creation error:', error);
-    return new Response(
-      JSON.stringify({ error: 'Failed to create package' }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
+    return new Response(JSON.stringify({ error: 'Failed to create package' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 };
