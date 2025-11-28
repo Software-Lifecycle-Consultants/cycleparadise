@@ -25,7 +25,7 @@ const where: any = {};
 if (q) {
   where.OR = [
     { title: { contains: q, mode: 'insensitive' } },
-    { shortDescription: { contains: q, mode: 'insensitive' } },
+    { content: { contains: q, mode: 'insensitive' } },
   ];
 }
 
@@ -34,21 +34,34 @@ if (region) {
 }
 
 if (difficulty) {
-  where.difficultyLevel = difficulty;
+  const difficultyRating = parseInt(difficulty);
+  // Map filter values to ranges:
+  // 1 = Easy (1-2), 3 = Moderate (3-4), 5 = Challenging (5-6), 7 = Difficult (7-8), 9 = Expert (9-10)
+  if (difficultyRating === 1) {
+    where.difficultyRating = { lte: 2 }; // Easy: 1-2
+  } else if (difficultyRating === 3) {
+    where.difficultyRating = { gte: 3, lte: 4 }; // Moderate: 3-4
+  } else if (difficultyRating === 5) {
+    where.difficultyRating = { gte: 5, lte: 6 }; // Challenging: 5-6
+  } else if (difficultyRating === 7) {
+    where.difficultyRating = { gte: 7, lte: 8 }; // Difficult: 7-8
+  } else if (difficultyRating === 9) {
+    where.difficultyRating = { gte: 9 }; // Expert: 9-10
+  }
 }
 
 if (status) {
-  where.isActive = status === 'active';
+  where.isPublished = status === 'published';
 }
 
-// Fetch packages and count
-let packages: any[] = [];
+// Fetch guides and count
+let guides: any[] = [];
 let total = 0;
 let error = '';
 
 try {
   const [data, count, regionsData] = await Promise.all([
-    prisma.tourPackage.findMany({
+    prisma.cyclingGuide.findMany({
       where,
       orderBy: {
         createdAt: 'desc',
@@ -59,81 +72,68 @@ try {
         id: true,
         title: true,
         slug: true,
-        shortDescription: true,
-        duration: true,
-        difficultyLevel: true,
         region: true,
-        basePrice: true,
-        maxParticipants: true,
-        isActive: true,
+        difficultyRating: true,
+        estimatedDuration: true,
+        bestSeason: true,
+        isPublished: true,
         featured: true,
         createdAt: true,
       },
     }),
-    prisma.tourPackage.count({ where }),
-    prisma.tourPackage.findMany({
+    prisma.cyclingGuide.count({ where }),
+    prisma.cyclingGuide.findMany({
       select: { region: true },
       distinct: ['region'],
       orderBy: { region: 'asc' },
     }),
   ]);
-  packages = data;
+  guides = data;
   total = count;
-  // Extract unique regions and filter out any null/empty values
+
   const uniqueRegions = regionsData.map((r) => r.region).filter(Boolean);
-
-  // If no regions found (e.g. empty db), default to empty array
-  // We can also add some default regions if needed, but dynamic is better
-  if (uniqueRegions.length === 0) {
-    // Optional: Add default regions if DB is empty to show something
-    // uniqueRegions.push('Kandy', 'Sigiriya', 'Ella', 'Galle');
-  }
-
-  // Pass regions to the template
   (Astro.locals as any).regions = uniqueRegions;
 } catch (err) {
-  console.error('Failed to load packages:', err);
-  error = 'Failed to load packages';
+  console.error('Failed to load guides:', err);
+  error = 'Failed to load guides';
 }
 
 const totalPages = Math.ceil(total / limit);
 const availableRegions = (Astro.locals as any).regions || [];
 
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('en-LK', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-  }).format(amount);
+const getDifficultyColor = (rating: number) => {
+  if (rating <= 2) return 'bg-green-100 text-green-800';
+  if (rating <= 4) return 'bg-blue-100 text-blue-800';
+  if (rating <= 6) return 'bg-orange-100 text-orange-800';
+  if (rating <= 8) return 'bg-red-100 text-red-800';
+  return 'bg-purple-100 text-purple-800';
 };
 
-const getDifficultyColor = (level: string) => {
-  const colors: Record<string, string> = {
-    BEGINNER: 'bg-green-100 text-green-800',
-    INTERMEDIATE: 'bg-blue-100 text-blue-800',
-    ADVANCED: 'bg-orange-100 text-orange-800',
-    EXPERT: 'bg-red-100 text-red-800',
-  };
-  return colors[level] || 'bg-gray-100 text-gray-800';
+const getDifficultyLabel = (rating: number) => {
+  if (rating <= 2) return 'Easy';
+  if (rating <= 4) return 'Moderate';
+  if (rating <= 6) return 'Challenging';
+  if (rating <= 8) return 'Difficult';
+  return 'Expert';
 };
 ---
 
-<AdminLayout title="Tour Packages" user={user}>
+<AdminLayout title="Cycling Guides" user={user}>
   <!-- Header with Actions -->
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
     <div>
-      <h1 class="text-2xl font-bold text-gray-900">Tour Packages</h1>
-      <p class="text-gray-600 mt-1">Manage cycling tour packages and itineraries</p>
+      <h1 class="text-2xl font-bold text-gray-900">Cycling Guides</h1>
+      <p class="text-gray-600 mt-1">Manage cycling guides and route information</p>
     </div>
     <a
-      href="/admin/packages/new"
+      href="/admin/guides/new"
       class="inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition font-medium whitespace-nowrap"
     >
       <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"
         ></path>
       </svg>
-      Create Package
+      Create Guide
     </a>
   </div>
 
@@ -141,7 +141,7 @@ const getDifficultyColor = (level: string) => {
   <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6">
     <div class="flex flex-col md:flex-row gap-4">
       <div class="flex-1">
-        <SearchBar action="/admin/packages" query={q} placeholder="Search packages..." />
+        <SearchBar action="/admin/guides" query={q} placeholder="Search guides..." />
       </div>
       <div class="flex gap-4 overflow-x-auto pb-2 md:pb-0">
         <select
@@ -163,11 +163,11 @@ const getDifficultyColor = (level: string) => {
           class="filter-select block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm rounded-md"
         >
           <option value="">All Difficulties</option>
-          <option value="BEGINNER" selected={difficulty === 'BEGINNER'}>Beginner</option>
-          <option value="INTERMEDIATE" selected={difficulty === 'INTERMEDIATE'}>Intermediate</option
-          >
-          <option value="ADVANCED" selected={difficulty === 'ADVANCED'}>Advanced</option>
-          <option value="EXPERT" selected={difficulty === 'EXPERT'}>Expert</option>
+          <option value="1" selected={difficulty === '1'}>Easy (1-2)</option>
+          <option value="3" selected={difficulty === '3'}>Moderate (3-4)</option>
+          <option value="5" selected={difficulty === '5'}>Challenging (5-6)</option>
+          <option value="7" selected={difficulty === '7'}>Difficult (7-8)</option>
+          <option value="9" selected={difficulty === '9'}>Expert (9-10)</option>
         </select>
 
         <select
@@ -175,8 +175,8 @@ const getDifficultyColor = (level: string) => {
           class="filter-select block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm rounded-md"
         >
           <option value="">All Status</option>
-          <option value="active" selected={status === 'active'}>Active</option>
-          <option value="inactive" selected={status === 'inactive'}>Inactive</option>
+          <option value="published" selected={status === 'published'}>Published</option>
+          <option value="draft" selected={status === 'draft'}>Draft</option>
         </select>
       </div>
     </div>
@@ -190,10 +190,10 @@ const getDifficultyColor = (level: string) => {
     )
   }
 
-  <!-- Packages Grid -->
-  <div id="package-list-view">
+  <!-- Guides List -->
+  <div id="guide-list-view">
     {
-      packages.length === 0 ? (
+      guides.length === 0 ? (
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
           <svg
             class="mx-auto w-16 h-16 text-gray-400 mb-4"
@@ -205,13 +205,13 @@ const getDifficultyColor = (level: string) => {
               stroke-linecap="round"
               stroke-linejoin="round"
               stroke-width="2"
-              d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
             />
           </svg>
-          <h3 class="text-xl font-semibold text-gray-900 mb-2">No packages yet</h3>
-          <p class="text-gray-600 mb-6">Get started by creating your first tour package.</p>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">No guides yet</h3>
+          <p class="text-gray-600 mb-6">Get started by creating your first cycling guide.</p>
           <a
-            href="/admin/packages/new"
+            href="/admin/guides/new"
             class="inline-flex items-center px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition font-medium"
           >
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -222,12 +222,12 @@ const getDifficultyColor = (level: string) => {
                 d="M12 4v16m8-8H4"
               />
             </svg>
-            Create Your First Package
+            Create Your First Guide
           </a>
         </div>
       ) : (
         <div
-          id="packages-table-container"
+          id="guides-table-container"
           class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
         >
           <div class="overflow-x-auto">
@@ -238,7 +238,7 @@ const getDifficultyColor = (level: string) => {
                     scope="col"
                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    Package
+                    Guide
                   </th>
                   <th
                     scope="col"
@@ -250,19 +250,13 @@ const getDifficultyColor = (level: string) => {
                     scope="col"
                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    Duration
-                  </th>
-                  <th
-                    scope="col"
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
                     Difficulty
                   </th>
                   <th
                     scope="col"
                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    Price
+                    Duration
                   </th>
                   <th
                     scope="col"
@@ -279,60 +273,51 @@ const getDifficultyColor = (level: string) => {
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
-                {packages.map((pkg) => (
+                {guides.map((guide) => (
                   <tr class="hover:bg-gray-50 transition">
                     <td class="px-6 py-4">
                       <div class="flex items-center">
                         <div>
-                          <div class="font-medium text-gray-900">{pkg.title}</div>
-                          {pkg.shortDescription && (
-                            <div class="text-sm text-gray-500 line-clamp-1">
-                              {pkg.shortDescription}
-                            </div>
-                          )}
+                          <div class="font-medium text-gray-900">{guide.title}</div>
+                          <div class="text-sm text-gray-500">{guide.slug}</div>
                         </div>
                       </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                      <div class="text-sm text-gray-900">{pkg.region}</div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                      <div class="text-sm text-gray-900">{pkg.duration} days</div>
+                      <div class="text-sm text-gray-900">{guide.region}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                       <span
-                        class={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getDifficultyColor(pkg.difficultyLevel)}`}
+                        class={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getDifficultyColor(guide.difficultyRating)}`}
                       >
-                        {pkg.difficultyLevel}
+                        {getDifficultyLabel(guide.difficultyRating)} ({guide.difficultyRating}/10)
                       </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                      <div class="text-sm font-medium text-gray-900">
-                        {formatCurrency(pkg.basePrice)}
-                      </div>
+                      <div class="text-sm text-gray-900">{guide.estimatedDuration || 'N/A'}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                      {pkg.isActive ? (
+                      {guide.isPublished ? (
                         <span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
                           <span class="w-1.5 h-1.5 bg-green-600 rounded-full mr-1.5" />
-                          Active
+                          Published
                         </span>
                       ) : (
                         <span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
                           <span class="w-1.5 h-1.5 bg-gray-600 rounded-full mr-1.5" />
-                          Inactive
+                          Draft
                         </span>
                       )}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
                       <a
-                        href={`/admin/packages/${pkg.id}`}
+                        href={`/admin/guides/${guide.id}`}
                         class="text-emerald-600 hover:text-emerald-900"
                       >
                         Edit
                       </a>
                       <button
-                        onclick={`confirmDelete('${pkg.id}', '${pkg.title}')`}
+                        onclick={`confirmDelete('${guide.id}', '${guide.title}')`}
                         class="text-red-600 hover:text-red-900"
                       >
                         Delete
@@ -347,7 +332,7 @@ const getDifficultyColor = (level: string) => {
           <Pagination
             currentPage={page}
             totalPages={totalPages}
-            baseUrl="/admin/packages"
+            baseUrl="/admin/guides"
             searchParams={Astro.url.searchParams}
           />
         </div>
@@ -371,9 +356,9 @@ const getDifficultyColor = (level: string) => {
           ></path>
         </svg>
       </div>
-      <h3 class="text-lg font-semibold text-gray-900 text-center mb-2">Delete Package</h3>
+      <h3 class="text-lg font-semibold text-gray-900 text-center mb-2">Delete Guide</h3>
       <p class="text-gray-600 text-center mb-6">
-        Are you sure you want to delete <strong id="packageName"></strong>? This action cannot be
+        Are you sure you want to delete <strong id="guideName"></strong>? This action cannot be
         undone.
       </p>
       <div class="flex space-x-3">
@@ -394,20 +379,20 @@ const getDifficultyColor = (level: string) => {
   </div>
 
   <script>
-    let packageToDelete = '';
+    let guideToDelete = '';
 
     function confirmDelete(id: string, name: string) {
-      packageToDelete = id;
+      guideToDelete = id;
       const modal = document.getElementById('deleteModal');
-      const packageNameEl = document.getElementById('packageName');
-      if (packageNameEl) packageNameEl.textContent = name;
+      const guideNameEl = document.getElementById('guideName');
+      if (guideNameEl) guideNameEl.textContent = name;
       modal?.classList.remove('hidden');
     }
 
     function closeDeleteModal() {
       const modal = document.getElementById('deleteModal');
       modal?.classList.add('hidden');
-      packageToDelete = '';
+      guideToDelete = '';
     }
 
     // Make functions globally available
@@ -416,10 +401,10 @@ const getDifficultyColor = (level: string) => {
 
     // Handle delete confirmation
     document.getElementById('confirmDeleteBtn')?.addEventListener('click', async () => {
-      if (!packageToDelete) return;
+      if (!guideToDelete) return;
 
       try {
-        const response = await fetch(`/api/admin/packages/${packageToDelete}`, {
+        const response = await fetch(`/api/admin/guides/${guideToDelete}`, {
           method: 'DELETE',
           credentials: 'include',
         });
@@ -427,25 +412,24 @@ const getDifficultyColor = (level: string) => {
         if (response.ok) {
           window.location.reload();
         } else {
-          alert('Failed to delete package');
+          alert('Failed to delete guide');
         }
       } catch (error) {
         console.error('Delete error:', error);
-        alert('Failed to delete package');
+        alert('Failed to delete guide');
       }
     });
 
     // Real-time Search and Filtering
     const searchInput = document.querySelector('input[name="q"]') as HTMLInputElement;
     const filterSelects = document.querySelectorAll('.filter-select');
-    const listContainer = document.getElementById('package-list-view');
+    const listContainer = document.getElementById('guide-list-view');
 
     let debounceTimer: any;
 
     function getCurrentParams() {
       const params = new URLSearchParams(window.location.search);
 
-      // Update params from inputs
       if (searchInput) {
         if (searchInput.value) params.set('q', searchInput.value);
         else params.delete('q');
@@ -456,7 +440,6 @@ const getDifficultyColor = (level: string) => {
         else params.delete(select.name);
       });
 
-      // Reset to page 1 on filter change (unless it's a pagination click, handled separately)
       params.set('page', '1');
 
       return params;
@@ -466,22 +449,18 @@ const getDifficultyColor = (level: string) => {
       const url = `${window.location.pathname}?${params.toString()}`;
 
       try {
-        // Update URL without reload
         window.history.pushState({}, '', url);
 
-        // Fetch new content
         const response = await fetch(url);
         const html = await response.text();
 
-        // Parse and replace content
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
-        const newContent = doc.getElementById('package-list-view');
+        const newContent = doc.getElementById('guide-list-view');
 
         if (newContent && listContainer) {
           listContainer.innerHTML = newContent.innerHTML;
         } else {
-          // Fallback
           window.location.reload();
         }
       } catch (error) {
@@ -508,14 +487,10 @@ const getDifficultyColor = (level: string) => {
     });
 
     // Handle Pagination Clicks via Event Delegation
-    // We need to listen on the container because pagination HTML is replaced
     if (listContainer) {
       listContainer.addEventListener('click', (e: any) => {
         const link = e.target.closest('a');
         if (link && link.closest('.pagination-container')) {
-          // Assuming Pagination component has this class or we check URL
-          // Actually, Pagination component links are standard hrefs.
-          // We can intercept them if they are internal links
           e.preventDefault();
           const url = new URL(link.href);
           const params = url.searchParams;

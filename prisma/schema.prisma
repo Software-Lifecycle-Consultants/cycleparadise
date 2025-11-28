@@ -68,6 +68,12 @@ model TourPackage {
   maxParticipants   Int
   includedServices  Json?
   excludedServices  Json?
+  highlights        Json?
+  whatToBring       Json?
+  faqs              Json?
+  reviews           Json?
+  supportContacts   Json?
+  sustainability    Json?
   mediaGallery      Json?
   youtubeVideoId    String?
   isActive          Boolean         @default(true)
@@ -173,24 +179,38 @@ model PackageAccommodation {
 }
 
 model CyclingGuide {
-  id               String   @id @default(uuid()) @db.Uuid
-  title            String
-  slug             String   @unique
-  region           String
-  content          String   @db.Text
-  routeMap         Json?
-  difficultyRating Int      @db.SmallInt
+  id                String   @id @default(uuid()) @db.Uuid
+  title             String
+  slug              String   @unique
+  region            String
+  content           String   @db.Text
+  description       String?  @db.Text
+  shortDescription  String?
+  difficultyRating  Int      @db.SmallInt
   estimatedDuration String?
-  bestSeason       String?
-  safetyTips       Json?
-  pointsOfInterest Json?
-  images           Json?
-  isPublished      Boolean  @default(true)
-  featured         Boolean  @default(false)
-  metaTitle        String?
-  metaDescription  String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  estimatedDistance Float?
+  startingPoint     String?
+  endingPoint       String?
+  terrainType       String?
+  bestSeason        String?
+  highlights        Json?
+  safetyTips        Json?
+  gearChecklist     Json?
+  nearbyAttractions Json?
+  routeSegments     Json?
+  hydrationStops    Json?
+  faqs              Json?
+  routeMap          Json?
+  pointsOfInterest  Json?
+  images            Json?
+  mapImageUrl       String?
+  gpxFileUrl        String?
+  isPublished       Boolean  @default(true)
+  featured          Boolean  @default(false)
+  metaTitle         String?
+  metaDescription   String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   @@map("cycling_guides")
 }
