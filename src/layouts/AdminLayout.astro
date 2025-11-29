@@ -1,4 +1,6 @@
 ---
+import Toast from '../components/ui/Toast.astro';
+
 interface Props {
   title: string;
   user: {
@@ -307,6 +309,15 @@ const navItems = [
           userMenuDropdown?.classList.add('hidden');
         }
       });
+    </script>
+
+    <!-- Toast Notification System -->
+    <Toast />
+
+    <!-- Global Utilities -->
+    <script>
+      import '../lib/utils/loading.ts';
+      import '../lib/utils/api-client.ts';
     </script>
   </body>
 </html>

@@ -358,37 +358,44 @@ const pageTitle = preSelectedPackage
 
       // Collect form data
       const formData = new FormData(form);
+      const totalPriceText = document.getElementById('total-price')!.textContent || '0';
+      const totalPrice = parseFloat(totalPriceText.replace(/[^0-9.]/g, ''));
+
       const bookingData = {
-        package: formData.get('package'),
+        packageSlug: formData.get('package'),
+        customerFirstName: formData.get('first-name'),
+        customerLastName: formData.get('last-name'),
+        customerEmail: formData.get('email'),
+        customerPhone: formData.get('phone'),
+        customerCountry: formData.get('country'),
+        numberOfGuests: parseInt(formData.get('guests') as string),
         startDate: formData.get('start-date'),
         endDate: formData.get('end-date'),
-        guests: formData.get('guests'),
-        accommodation: formData.get('accommodation'),
-        firstName: formData.get('first-name'),
-        lastName: formData.get('last-name'),
-        email: formData.get('email'),
-        phone: formData.get('phone'),
-        country: formData.get('country'),
         specialRequests: formData.get('special-requests'),
-        totalPrice: document.getElementById('total-price')!.textContent,
-        submittedAt: new Date().toISOString()
+        totalPrice: totalPrice
       };
 
       try {
-        // In production, this would send to your API
-        // For now, we'll simulate and store in localStorage
-        console.log('Booking submitted:', bookingData);
+        // Send booking to API
+        const response = await fetch('/api/bookings/create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(bookingData)
+        });
 
-        // Generate booking reference
-        const bookingRef = 'BK-' + Date.now();
-        
-        // Store booking data
-        localStorage.setItem('lastBooking', JSON.stringify({ ...bookingData, reference: bookingRef }));
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to create booking');
+        }
 
-        // Redirect to confirmation page
-        window.location.href = `/book/confirmation?ref=${bookingRef}`;
+        const result = await response.json();
 
-      } catch (error) {
+        // Redirect to confirmation with booking number
+        window.location.href = `/book/confirmation?ref=${result.data.bookingNumber}`;
+
+      } catch (error: any) {
         // Show error
         statusDiv.className = 'bg-red-100 text-red-800 rounded-lg p-4';
         statusDiv.innerHTML = `
