@@ -1,0 +1,388 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+
+const user = Astro.locals.user;
+if (!user) {
+  return Astro.redirect('/admin/login');
+}
+
+// Handle form submission
+let error = '';
+let success = '';
+
+if (Astro.request.method === 'POST') {
+  try {
+    const formData = await Astro.request.formData();
+
+    const guideData = {
+      title: formData.get('title') as string,
+      region: formData.get('region') as string,
+      content: formData.get('content') as string,
+      difficultyRating: parseInt(formData.get('difficultyRating') as string),
+      estimatedDuration: formData.get('estimatedDuration') as string,
+      bestSeason: formData.get('bestSeason') as string,
+      isPublished: formData.get('isPublished') === 'on',
+      featured: formData.get('featured') === 'on',
+      metaTitle: formData.get('metaTitle') as string,
+      metaDescription: formData.get('metaDescription') as string,
+    };
+
+    const response = await fetch(`${Astro.url.origin}/api/admin/guides`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: Astro.request.headers.get('Cookie') || '',
+      },
+      body: JSON.stringify(guideData),
+    });
+
+    if (response.ok) {
+      return Astro.redirect('/admin/guides');
+    } else {
+      error = 'Failed to create guide';
+    }
+  } catch (err) {
+    console.error('Form submission error:', err);
+    error = 'An error occurred while creating the guide';
+  }
+}
+---
+
+<AdminLayout title="Create New Guide" user={user}>
+  <div class="max-w-4xl">
+    <!-- Header -->
+    <div class="mb-6">
+      <div class="flex items-center space-x-3 mb-2">
+        <a href="/admin/guides" class="text-gray-600 hover:text-gray-900">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 19l-7-7 7-7"></path>
+          </svg>
+        </a>
+        <h1 class="text-2xl font-bold text-gray-900">Create New Cycling Guide</h1>
+      </div>
+      <p class="text-gray-600">Add a new cycling guide with route information and tips</p>
+    </div>
+
+    {
+      error && (
+        <div class="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
+          {error}
+        </div>
+      )
+    }
+
+    {
+      success && (
+        <div class="mb-6 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
+          {success}
+        </div>
+      )
+    }
+
+    <!-- Form -->
+    <form method="POST" class="space-y-6">
+      <!-- Basic Information -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Basic Information</h2>
+
+        <div class="space-y-4">
+          <div>
+            <label for="title" class="block text-sm font-medium text-gray-700 mb-1">
+              Guide Title *
+            </label>
+            <input
+              type="text"
+              id="title"
+              name="title"
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+              placeholder="e.g., Kandy to Nuwara Eliya Hill Country Ride"
+            />
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="region" class="block text-sm font-medium text-gray-700 mb-1">
+                Region *
+              </label>
+              <input
+                type="text"
+                id="region"
+                name="region"
+                required
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+                placeholder="e.g., Central Highlands"
+              />
+            </div>
+
+            <div>
+              <label for="difficultyRating" class="block text-sm font-medium text-gray-700 mb-1">
+                Difficulty Rating (1-10) *
+              </label>
+              <input
+                type="number"
+                id="difficultyRating"
+                name="difficultyRating"
+                required
+                min="1"
+                max="10"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="estimatedDuration" class="block text-sm font-medium text-gray-700 mb-1">
+                Estimated Duration
+              </label>
+              <input
+                type="text"
+                id="estimatedDuration"
+                name="estimatedDuration"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+                placeholder="e.g., 3-4 hours"
+              />
+            </div>
+
+            <div>
+              <label for="estimatedDistance" class="block text-sm font-medium text-gray-700 mb-1">
+                Estimated Distance (km)
+              </label>
+              <input
+                type="number"
+                step="0.1"
+                id="estimatedDistance"
+                name="estimatedDistance"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+                placeholder="e.g., 45.5"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="startingPoint" class="block text-sm font-medium text-gray-700 mb-1">
+                Starting Point
+              </label>
+              <input
+                type="text"
+                id="startingPoint"
+                name="startingPoint"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+                placeholder="e.g., Kandy Clock Tower"
+              />
+            </div>
+
+            <div>
+              <label for="endingPoint" class="block text-sm font-medium text-gray-700 mb-1">
+                Ending Point
+              </label>
+              <input
+                type="text"
+                id="endingPoint"
+                name="endingPoint"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+                placeholder="e.g., Nuwara Eliya Post Office"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="terrainType" class="block text-sm font-medium text-gray-700 mb-1">
+                Terrain Type
+              </label>
+              <input
+                type="text"
+                id="terrainType"
+                name="terrainType"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+                placeholder="e.g., Hilly, Paved Roads"
+              />
+            </div>
+
+            <div>
+              <label for="bestSeason" class="block text-sm font-medium text-gray-700 mb-1">
+                Best Season
+              </label>
+              <input
+                type="text"
+                id="bestSeason"
+                name="bestSeason"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+                placeholder="e.g., November to March"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Guide Content</h2>
+
+        <div class="space-y-4">
+          <div>
+            <label for="shortDescription" class="block text-sm font-medium text-gray-700 mb-1">
+              Short Description (Card Summary)
+            </label>
+            <textarea
+              id="shortDescription"
+              name="shortDescription"
+              rows="2"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+              placeholder="Brief summary for listing cards..."></textarea>
+          </div>
+
+          <div>
+            <label for="description" class="block text-sm font-medium text-gray-700 mb-1">
+              Intro Description
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              rows="3"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+              placeholder="Introduction paragraph before main content..."></textarea>
+          </div>
+
+          <div>
+            <label for="content" class="block text-sm font-medium text-gray-700 mb-1">
+              Main Content *
+            </label>
+            <textarea
+              id="content"
+              name="content"
+              required
+              rows="10"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+              placeholder="Detailed guide content, route description, highlights..."></textarea>
+            <p class="mt-1 text-sm text-gray-500">
+              Provide detailed information about the route, what to expect, highlights, etc.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Media -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Media & Maps</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="mapImageUrl" class="block text-sm font-medium text-gray-700 mb-1">
+              Map Image URL
+            </label>
+            <input
+              type="text"
+              id="mapImageUrl"
+              name="mapImageUrl"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+              placeholder="/images/maps/route-map.jpg"
+            />
+          </div>
+
+          <div>
+            <label for="gpxFileUrl" class="block text-sm font-medium text-gray-700 mb-1">
+              GPX File URL
+            </label>
+            <input
+              type="text"
+              id="gpxFileUrl"
+              name="gpxFileUrl"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+              placeholder="/routes/route.gpx"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- SEO -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">SEO Settings</h2>
+
+        <div class="space-y-4">
+          <div>
+            <label for="metaTitle" class="block text-sm font-medium text-gray-700 mb-1">
+              Meta Title
+            </label>
+            <input
+              type="text"
+              id="metaTitle"
+              name="metaTitle"
+              maxlength="60"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+              placeholder="SEO-optimized title (max 60 characters)"
+            />
+          </div>
+
+          <div>
+            <label for="metaDescription" class="block text-sm font-medium text-gray-700 mb-1">
+              Meta Description
+            </label>
+            <textarea
+              id="metaDescription"
+              name="metaDescription"
+              rows="3"
+              maxlength="160"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+              placeholder="SEO-optimized description (max 160 characters)"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Publishing Options -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Publishing Options</h2>
+
+        <div class="space-y-3">
+          <div class="flex items-center">
+            <input
+              type="checkbox"
+              id="isPublished"
+              name="isPublished"
+              checked
+              class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
+            />
+            <label for="isPublished" class="ml-2 block text-sm text-gray-700">
+              Publish this guide (visible to public)
+            </label>
+          </div>
+
+          <div class="flex items-center">
+            <input
+              type="checkbox"
+              id="featured"
+              name="featured"
+              class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
+            />
+            <label for="featured" class="ml-2 block text-sm text-gray-700">
+              Feature this guide on homepage
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center justify-end space-x-4">
+        <a
+          href="/admin/guides"
+          class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium"
+        >
+          Cancel
+        </a>
+        <button
+          type="submit"
+          class="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition font-medium"
+        >
+          Create Guide
+        </button>
+      </div>
+    </form>
+  </div>
+</AdminLayout>

@@ -12,10 +12,25 @@ const hasDatabaseConnection = Boolean(getDatabaseUrl());
 
 // Get search parameters from URL
 const url = new URL(Astro.request.url);
+
+// Map difficulty filter from string to integer rating
+const difficultyFilterValue = url.searchParams.get('difficulty');
+let difficultyRating: number | undefined;
+
+if (difficultyFilterValue) {
+  const ratingMap: Record<string, number> = {
+    'EASY': 2,        // Ratings 1-2
+    'INTERMEDIATE': 5, // Ratings 3-5  
+    'CHALLENGING': 10  // Ratings 6-10
+  };
+  difficultyRating = ratingMap[difficultyFilterValue];
+}
+
 const searchParams: GuideSearchParams = {
   search: url.searchParams.get('search') || undefined,
+  query: url.searchParams.get('search') || undefined,
   region: url.searchParams.get('region') || undefined,
-  difficultyLevel: url.searchParams.get('difficulty') as 'EASY' | 'INTERMEDIATE' | 'CHALLENGING' | undefined,
+  difficultyRating: difficultyRating,
   page: url.searchParams.get('page') ? Number(url.searchParams.get('page')) : 1,
   limit: 12
 };
@@ -44,6 +59,13 @@ const getGuideThumbnail = (guide: CyclingGuide) => {
   return images[0] || '/images/default-route.jpg';
 };
 
+// Helper to convert difficulty rating to level for fallback
+const getDifficultyLevelFromRating = (rating: number): 'EASY' | 'INTERMEDIATE' | 'CHALLENGING' => {
+  if (rating <= 2) return 'EASY';
+  if (rating <= 5) return 'INTERMEDIATE';
+  return 'CHALLENGING';
+};
+
 const filterFallbackGuides = (guides: CyclingGuide[], params: GuideSearchParams) => {
   return guides.filter((guide) => {
     const searchTerm = params.search?.toLowerCase();
@@ -57,8 +79,8 @@ const filterFallbackGuides = (guides: CyclingGuide[], params: GuideSearchParams)
       ? guide.region?.toLowerCase() === params.region.toLowerCase()
       : true;
 
-    const matchesDifficulty = params.difficultyLevel
-      ? guide.difficultyLevel === params.difficultyLevel
+    const matchesDifficulty = params.difficultyRating
+      ? guide.difficultyRating <= params.difficultyRating
       : true;
 
     return matchesSearch && matchesRegion && matchesDifficulty;
@@ -87,6 +109,7 @@ let regions: string[] = [];
 if (hasDatabaseConnection) {
   try {
     const result = await cyclingGuideRepository.findMany(searchParams);
+    
     if (Array.isArray(result)) {
       guides = result;
       totalCount = result.length;
@@ -96,6 +119,11 @@ if (hasDatabaseConnection) {
     }
 
     regions = await cyclingGuideRepository.getRegions();
+    
+    // If database is empty, use fallback data
+    if (guides.length === 0 && regions.length === 0) {
+      applyFallbackGuides();
+    }
   } catch (error) {
     console.error('Failed to load cycling guides:', error);
     applyFallbackGuides();
@@ -108,14 +136,29 @@ if (hasDatabaseConnection) {
 const totalPages = Math.max(1, Math.ceil(totalCount / searchParams.limit!));
 const currentPage = searchParams.page || 1;
 
-// Helper function to get difficulty badge color
-function getDifficultyColor(level: string): string {
-  switch (level) {
+// Helper function to get difficulty badge color (works with integer rating)
+function getDifficultyColor(level: string | number): string {
+  // Convert integer rating to level string if needed
+  let diffLevel: string;
+  if (typeof level === 'number') {
+    diffLevel = getDifficultyLevelFromRating(level);
+  } else {
+    diffLevel = level;
+  }
+  
+  switch (diffLevel) {
     case 'EASY': return 'bg-green-100 text-green-800';
     case 'INTERMEDIATE': return 'bg-yellow-100 text-yellow-800';
     case 'CHALLENGING': return 'bg-red-100 text-red-800';
     default: return 'bg-gray-100 text-gray-800';
   }
+}
+
+function getDifficultyLabel(rating: number | string): string {
+  if (typeof rating === 'number') {
+    return getDifficultyLevelFromRating(rating).toLowerCase();
+  }
+  return rating.toLowerCase();
 }
 ---
 
@@ -202,9 +245,9 @@ function getDifficultyColor(level: string): string {
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           >
             <option value="">All Levels</option>
-            <option value="EASY" selected={searchParams.difficultyLevel === 'EASY'}>Easy</option>
-            <option value="INTERMEDIATE" selected={searchParams.difficultyLevel === 'INTERMEDIATE'}>Intermediate</option>
-            <option value="CHALLENGING" selected={searchParams.difficultyLevel === 'CHALLENGING'}>Challenging</option>
+            <option value="EASY" selected={difficultyFilterValue === 'EASY'}>Easy</option>
+            <option value="INTERMEDIATE" selected={difficultyFilterValue === 'INTERMEDIATE'}>Intermediate</option>
+            <option value="CHALLENGING" selected={difficultyFilterValue === 'CHALLENGING'}>Challenging</option>
           </select>
         </div>
 
@@ -245,13 +288,13 @@ function getDifficultyColor(level: string): string {
               <!-- Content -->
               <div class="p-6">
                 <!-- Header -->
-                <div class="flex items-start justify-between mb-3">
-                  <div class="flex items-center gap-2">
-                    <span class={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(guide.difficultyLevel || 'EASY')}`}>
-                      {guide.difficultyLevel?.toLowerCase() || 'easy'}
-                    </span>
-                    <span class="text-sm text-gray-600">{guide.region}</span>
-                  </div>
+                  <div class="flex items-start justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                      <span class={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(guide.difficultyRating || guide.difficultyLevel || 'EASY')}`}>
+                        {getDifficultyLabel(guide.difficultyRating || guide.difficultyLevel || 'easy')}
+                      </span>
+                      <span class="text-sm text-gray-600">{guide.region}</span>
+                    </div>
                   
                   {guide.featured && (
                     <span class="bg-primary-100 text-primary-800 px-2 py-1 rounded-full text-xs font-medium">

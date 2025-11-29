@@ -1,8 +1,36 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import { bookingRepository } from '../../lib/db/repositories/bookings';
 
 const url = new URL(Astro.request.url);
-const bookingRef = url.searchParams.get('ref') || 'UNKNOWN';
+const bookingRef = url.searchParams.get('ref');
+
+// Fetch booking from database
+let booking = null;
+let error = null;
+
+if (!bookingRef) {
+  error = 'No booking reference provided';
+} else {
+  try {
+    booking = await bookingRepository.findByBookingNumber(bookingRef);
+    if (!booking) {
+      error = 'Booking not found. Please check your booking reference.';
+    }
+  } catch (e) {
+    console.error('Error fetching booking:', e);
+    error = 'Failed to load booking details. Please try again later.';
+  }
+}
+
+// Format dates for display
+const formatDate = (date: Date) => {
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+};
 ---
 
 <Layout 
@@ -11,38 +39,105 @@ const bookingRef = url.searchParams.get('ref') || 'UNKNOWN';
 >
   <main class="min-h-screen bg-gradient-to-b from-primary-50 to-white py-12">
     <div class="container mx-auto px-4 max-w-3xl">
-      
-      <!-- Success Message -->
-      <div class="text-center mb-12">
-        <div class="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
-          <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-          </svg>
-        </div>
-        <h1 class="text-4xl font-bold text-gray-900 mb-4">Booking Request Received!</h1>
-        <p class="text-xl text-gray-600">Thank you for choosing Cycle Paradise</p>
-      </div>
 
-      <!-- Booking Details Card -->
-      <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
-        <div class="border-b border-gray-200 pb-6 mb-6">
-          <h2 class="text-2xl font-semibold text-gray-900 mb-2">Booking Reference</h2>
-          <div class="flex items-center justify-between bg-gray-50 rounded-lg p-4">
-            <span class="text-2xl font-mono font-bold text-primary-600">{bookingRef}</span>
-            <button 
-              onclick={`navigator.clipboard.writeText('${bookingRef}')`}
-              class="text-sm text-primary-600 hover:text-primary-700 font-medium"
-            >
-              Copy
-            </button>
+      {error ? (
+        <!-- Error State -->
+        <div class="text-center mb-12">
+          <div class="inline-flex items-center justify-center w-20 h-20 bg-red-100 rounded-full mb-6">
+            <svg class="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
           </div>
-          <p class="text-sm text-gray-500 mt-2">Please save this reference number for your records</p>
+          <h1 class="text-4xl font-bold text-gray-900 mb-4">Booking Not Found</h1>
+          <p class="text-xl text-gray-600 mb-8">{error}</p>
+          <a
+            href="/packages"
+            class="inline-flex items-center justify-center px-6 py-3 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors"
+          >
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Back to Packages
+          </a>
         </div>
+      ) : (
+        <>
+          <!-- Success Message -->
+          <div class="text-center mb-12">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
+              <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">Booking Request Received!</h1>
+            <p class="text-xl text-gray-600">Thank you for choosing Cycle Paradise</p>
+          </div>
 
-        <!-- What's Next -->
-        <div>
-          <h3 class="text-xl font-semibold text-gray-900 mb-4">What Happens Next?</h3>
-          <div class="space-y-4">
+          <!-- Booking Details Card -->
+          <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <div class="border-b border-gray-200 pb-6 mb-6">
+              <h2 class="text-2xl font-semibold text-gray-900 mb-2">Booking Reference</h2>
+              <div class="flex items-center justify-between bg-gray-50 rounded-lg p-4">
+                <span class="text-2xl font-mono font-bold text-primary-600">{bookingRef}</span>
+                <button
+                  onclick={`navigator.clipboard.writeText('${bookingRef}')`}
+                  class="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                >
+                  Copy
+                </button>
+              </div>
+              <p class="text-sm text-gray-500 mt-2">Please save this reference number for your records</p>
+            </div>
+
+            {booking && (
+              <!-- Booking Information -->
+              <div class="border-b border-gray-200 pb-6 mb-6">
+                <h3 class="text-xl font-semibold text-gray-900 mb-4">Booking Details</h3>
+                <dl class="space-y-3">
+                  <div class="flex justify-between">
+                    <dt class="text-sm font-medium text-gray-600">Tour Package</dt>
+                    <dd class="text-sm text-gray-900 font-semibold">{booking.package.title}</dd>
+                  </div>
+                  <div class="flex justify-between">
+                    <dt class="text-sm font-medium text-gray-600">Customer Name</dt>
+                    <dd class="text-sm text-gray-900">{booking.customerName}</dd>
+                  </div>
+                  <div class="flex justify-between">
+                    <dt class="text-sm font-medium text-gray-600">Email</dt>
+                    <dd class="text-sm text-gray-900">{booking.customerEmail}</dd>
+                  </div>
+                  <div class="flex justify-between">
+                    <dt class="text-sm font-medium text-gray-600">Start Date</dt>
+                    <dd class="text-sm text-gray-900">{formatDate(booking.startDate)}</dd>
+                  </div>
+                  <div class="flex justify-between">
+                    <dt class="text-sm font-medium text-gray-600">End Date</dt>
+                    <dd class="text-sm text-gray-900">{formatDate(booking.endDate)}</dd>
+                  </div>
+                  <div class="flex justify-between">
+                    <dt class="text-sm font-medium text-gray-600">Number of Guests</dt>
+                    <dd class="text-sm text-gray-900">{booking.numberOfParticipants}</dd>
+                  </div>
+                  <div class="flex justify-between">
+                    <dt class="text-sm font-medium text-gray-600">Total Amount</dt>
+                    <dd class="text-sm text-gray-900 font-semibold">${booking.totalAmount.toFixed(2)}</dd>
+                  </div>
+                  <div class="flex justify-between">
+                    <dt class="text-sm font-medium text-gray-600">Status</dt>
+                    <dd class="text-sm">
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                        {booking.status}
+                      </span>
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+            )}
+
+            <!-- What's Next -->
+            <div>
+              <h3 class="text-xl font-semibold text-gray-900 mb-4">What Happens Next?</h3>
+              <div class="space-y-4">
             
             <div class="flex items-start">
               <div class="flex-shrink-0">
@@ -100,97 +195,91 @@ const bookingRef = url.searchParams.get('ref') || 'UNKNOWN';
               </div>
             </div>
 
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
 
-      <!-- Contact Information -->
-      <div class="bg-primary-50 rounded-lg p-6 mb-8">
-        <h3 class="text-lg font-semibold text-gray-900 mb-3">Questions About Your Booking?</h3>
-        <div class="space-y-2 text-sm">
-          <p class="text-gray-700">
-            <span class="font-medium">Email:</span> 
-            <a href="mailto:bookings@cycleparadise.lk" class="text-primary-600 hover:text-primary-700 ml-2">
-              bookings@cycleparadise.lk
-            </a>
-          </p>
-          <p class="text-gray-700">
-            <span class="font-medium">Phone:</span> 
-            <a href="tel:+94123456789" class="text-primary-600 hover:text-primary-700 ml-2">
-              +94 12 345 6789
-            </a>
-          </p>
-          <p class="text-gray-700">
-            <span class="font-medium">WhatsApp:</span> 
-            <a href="https://wa.me/94123456789" class="text-primary-600 hover:text-primary-700 ml-2" target="_blank">
-              +94 12 345 6789
-            </a>
-          </p>
-        </div>
-        <p class="text-xs text-gray-600 mt-4">
-          Our team is available Monday-Saturday, 9:00 AM - 6:00 PM (Sri Lanka Time)
-        </p>
-      </div>
+          <!-- Contact Information -->
+          <div class="bg-primary-50 rounded-lg p-6 mb-8">
+            <h3 class="text-lg font-semibold text-gray-900 mb-3">Questions About Your Booking?</h3>
+            <div class="space-y-2 text-sm">
+              <p class="text-gray-700">
+                <span class="font-medium">Email:</span>
+                <a href="mailto:bookings@cycleparadise.lk" class="text-primary-600 hover:text-primary-700 ml-2">
+                  bookings@cycleparadise.lk
+                </a>
+              </p>
+              <p class="text-gray-700">
+                <span class="font-medium">Phone:</span>
+                <a href="tel:+94123456789" class="text-primary-600 hover:text-primary-700 ml-2">
+                  +94 12 345 6789
+                </a>
+              </p>
+              <p class="text-gray-700">
+                <span class="font-medium">WhatsApp:</span>
+                <a href="https://wa.me/94123456789" class="text-primary-600 hover:text-primary-700 ml-2" target="_blank">
+                  +94 12 345 6789
+                </a>
+              </p>
+            </div>
+            <p class="text-xs text-gray-600 mt-4">
+              Our team is available Monday-Saturday, 9:00 AM - 6:00 PM (Sri Lanka Time)
+            </p>
+          </div>
 
-      <!-- Action Buttons -->
-      <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <a 
-          href="/packages"
-          class="inline-flex items-center justify-center px-6 py-3 bg-white border-2 border-primary-600 text-primary-600 font-semibold rounded-lg hover:bg-primary-50 transition-colors"
-        >
-          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-          </svg>
-          Explore More Tours
-        </a>
-        <a 
-          href="/guides"
-          class="inline-flex items-center justify-center px-6 py-3 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors"
-        >
-          View Cycling Guides
-          <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-          </svg>
-        </a>
-      </div>
+          <!-- Action Buttons -->
+          <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a
+              href="/packages"
+              class="inline-flex items-center justify-center px-6 py-3 bg-white border-2 border-primary-600 text-primary-600 font-semibold rounded-lg hover:bg-primary-50 transition-colors"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+              </svg>
+              Explore More Tours
+            </a>
+            <a
+              href="/guides"
+              class="inline-flex items-center justify-center px-6 py-3 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors"
+            >
+              View Cycling Guides
+              <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+              </svg>
+            </a>
+          </div>
 
-      <!-- Social Share -->
-      <div class="text-center mt-12">
-        <p class="text-sm text-gray-600 mb-4">Share your excitement!</p>
-        <div class="flex justify-center gap-4">
-          <a 
-            href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://cycleparadise.lk')}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 hover:bg-primary-600 hover:text-white transition-colors"
-            aria-label="Share on Facebook"
-          >
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-            </svg>
-          </a>
-          <a 
-            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent('Just booked an amazing cycling tour in Sri Lanka with Cycle Paradise!')}&url=${encodeURIComponent('https://cycleparadise.lk')}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 hover:bg-primary-600 hover:text-white transition-colors"
-            aria-label="Share on Twitter"
-          >
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
-            </svg>
-          </a>
-        </div>
-      </div>
+          <!-- Social Share -->
+          <div class="text-center mt-12">
+            <p class="text-sm text-gray-600 mb-4">Share your excitement!</p>
+            <div class="flex justify-center gap-4">
+              <a
+                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://cycleparadise.lk')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 hover:bg-primary-600 hover:text-white transition-colors"
+                aria-label="Share on Facebook"
+              >
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+              </a>
+              <a
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent('Just booked an amazing cycling tour in Sri Lanka with Cycle Paradise!')}&url=${encodeURIComponent('https://cycleparadise.lk')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 hover:bg-primary-600 hover:text-white transition-colors"
+                aria-label="Share on Twitter"
+              >
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                </svg>
+              </a>
+            </div>
+          </div>
+        </>
+      )}
 
     </div>
   </main>
-
-  <script>
-    // Retrieve booking data from localStorage and display
-    const bookingData = localStorage.getItem('lastBooking');
-    if (bookingData) {
-      console.log('Booking confirmed:', JSON.parse(bookingData));
-    }
-  </script>
 </Layout>

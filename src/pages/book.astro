@@ -7,12 +7,12 @@ const preSelectedPackage = url.searchParams.get('package');
 const packageTitle = url.searchParams.get('title');
 const packagePrice = url.searchParams.get('price');
 
-const pageTitle = preSelectedPackage 
+const pageTitle = preSelectedPackage
   ? `Book ${packageTitle} - Cycle Paradise`
   : 'Book Your Cycling Adventure - Cycle Paradise';
 ---
 
-<Layout 
+<Layout
   title={pageTitle}
   description="Book your Sri Lankan cycling adventure with Cycle Paradise. Choose your tour package, select dates, and start your journey."
 >
@@ -27,7 +27,6 @@ const pageTitle = preSelectedPackage
       <!-- Booking Form -->
       <div class="bg-white rounded-lg shadow-lg p-8">
         <form id="booking-form" class="space-y-6">
-          
           <!-- Step 1: Package Selection -->
           <div class="border-b pb-6">
             <h2 class="text-2xl font-semibold text-gray-900 mb-4">1. Select Your Tour Package</h2>
@@ -35,20 +34,32 @@ const pageTitle = preSelectedPackage
               <label for="package" class="block text-sm font-medium text-gray-700 mb-2">
                 Tour Package <span class="text-red-500">*</span>
               </label>
-              <select 
-                id="package" 
-                name="package" 
+              <select
+                id="package"
+                name="package"
                 required
                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="">Select a tour package...</option>
-                <option value="hill-country-explorer" data-price="1299" selected={preSelectedPackage === 'hill-country-explorer'}>
+                <option
+                  value="hill-country-explorer"
+                  data-price="1299"
+                  selected={preSelectedPackage === 'hill-country-explorer'}
+                >
                   Hill Country Explorer - 7 Days ($1,299)
                 </option>
-                <option value="coastal-adventure" data-price="1499" selected={preSelectedPackage === 'coastal-adventure'}>
+                <option
+                  value="coastal-adventure"
+                  data-price="1499"
+                  selected={preSelectedPackage === 'coastal-adventure'}
+                >
                   Coastal Adventure - 10 Days ($1,499)
                 </option>
-                <option value="cultural-triangle" data-price="1899" selected={preSelectedPackage === 'cultural-triangle'}>
+                <option
+                  value="cultural-triangle"
+                  data-price="1899"
+                  selected={preSelectedPackage === 'cultural-triangle'}
+                >
                   Cultural Triangle Journey - 14 Days ($1,899)
                 </option>
               </select>
@@ -63,10 +74,10 @@ const pageTitle = preSelectedPackage
                 <label for="start-date" class="block text-sm font-medium text-gray-700 mb-2">
                   Start Date <span class="text-red-500">*</span>
                 </label>
-                <input 
-                  type="date" 
-                  id="start-date" 
-                  name="start-date" 
+                <input
+                  type="date"
+                  id="start-date"
+                  name="start-date"
                   required
                   min={new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -77,10 +88,10 @@ const pageTitle = preSelectedPackage
                 <label for="end-date" class="block text-sm font-medium text-gray-700 mb-2">
                   End Date <span class="text-red-500">*</span>
                 </label>
-                <input 
-                  type="date" 
-                  id="end-date" 
-                  name="end-date" 
+                <input
+                  type="date"
+                  id="end-date"
+                  name="end-date"
                   required
                   readonly
                   class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50"
@@ -98,12 +109,12 @@ const pageTitle = preSelectedPackage
                 <label for="guests" class="block text-sm font-medium text-gray-700 mb-2">
                   Number of Guests <span class="text-red-500">*</span>
                 </label>
-                <input 
-                  type="number" 
-                  id="guests" 
-                  name="guests" 
-                  min="1" 
-                  max="12" 
+                <input
+                  type="number"
+                  id="guests"
+                  name="guests"
+                  min="1"
+                  max="12"
                   value="2"
                   required
                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -113,9 +124,9 @@ const pageTitle = preSelectedPackage
                 <label for="accommodation" class="block text-sm font-medium text-gray-700 mb-2">
                   Accommodation Preference <span class="text-red-500">*</span>
                 </label>
-                <select 
-                  id="accommodation" 
-                  name="accommodation" 
+                <select
+                  id="accommodation"
+                  name="accommodation"
                   required
                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 >
@@ -135,10 +146,10 @@ const pageTitle = preSelectedPackage
                 <label for="first-name" class="block text-sm font-medium text-gray-700 mb-2">
                   First Name <span class="text-red-500">*</span>
                 </label>
-                <input 
-                  type="text" 
-                  id="first-name" 
-                  name="first-name" 
+                <input
+                  type="text"
+                  id="first-name"
+                  name="first-name"
                   required
                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
@@ -147,10 +158,10 @@ const pageTitle = preSelectedPackage
                 <label for="last-name" class="block text-sm font-medium text-gray-700 mb-2">
                   Last Name <span class="text-red-500">*</span>
                 </label>
-                <input 
-                  type="text" 
-                  id="last-name" 
-                  name="last-name" 
+                <input
+                  type="text"
+                  id="last-name"
+                  name="last-name"
                   required
                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
@@ -159,10 +170,10 @@ const pageTitle = preSelectedPackage
                 <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
                   Email Address <span class="text-red-500">*</span>
                 </label>
-                <input 
-                  type="email" 
-                  id="email" 
-                  name="email" 
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
                   required
                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
@@ -171,10 +182,10 @@ const pageTitle = preSelectedPackage
                 <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">
                   Phone Number <span class="text-red-500">*</span>
                 </label>
-                <input 
-                  type="tel" 
-                  id="phone" 
-                  name="phone" 
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
                   required
                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
@@ -183,10 +194,10 @@ const pageTitle = preSelectedPackage
                 <label for="country" class="block text-sm font-medium text-gray-700 mb-2">
                   Country <span class="text-red-500">*</span>
                 </label>
-                <input 
-                  type="text" 
-                  id="country" 
-                  name="country" 
+                <input
+                  type="text"
+                  id="country"
+                  name="country"
                   required
                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
@@ -201,9 +212,9 @@ const pageTitle = preSelectedPackage
               <label for="special-requests" class="block text-sm font-medium text-gray-700 mb-2">
                 Special Requests or Dietary Requirements
               </label>
-              <textarea 
-                id="special-requests" 
-                name="special-requests" 
+              <textarea
+                id="special-requests"
+                name="special-requests"
                 rows="4"
                 placeholder="Please let us know about any dietary restrictions, fitness level concerns, or special requests..."
                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -232,7 +243,8 @@ const pageTitle = preSelectedPackage
                 <span class="font-bold text-primary-600" id="total-price">$0</span>
               </div>
               <p class="text-xs text-gray-500 mt-2">
-                * Final price will be confirmed after reviewing your booking. A 30% deposit is required to secure your reservation.
+                * Final price will be confirmed after reviewing your booking. A 30% deposit is
+                required to secure your reservation.
               </p>
             </div>
           </div>
@@ -240,51 +252,65 @@ const pageTitle = preSelectedPackage
           <!-- Terms and Submit -->
           <div class="space-y-4">
             <div class="flex items-start">
-              <input 
-                type="checkbox" 
-                id="terms" 
-                name="terms" 
+              <input
+                type="checkbox"
+                id="terms"
+                name="terms"
                 required
                 class="mt-1 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
               />
               <label for="terms" class="ml-2 text-sm text-gray-600">
-                I agree to the <a href="/terms" class="text-primary-600 hover:text-primary-700 underline">Terms & Conditions</a> 
-                and <a href="/privacy" class="text-primary-600 hover:text-primary-700 underline">Privacy Policy</a>
+                I agree to the <a
+                  href="/terms"
+                  class="text-primary-600 hover:text-primary-700 underline">Terms & Conditions</a
+                >
+                and <a href="/privacy" class="text-primary-600 hover:text-primary-700 underline"
+                  >Privacy Policy</a
+                >
                 <span class="text-red-500">*</span>
               </label>
             </div>
 
             <div id="form-status" class="hidden rounded-lg p-4"></div>
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               id="submit-btn"
               class="w-full bg-primary-600 text-white font-semibold py-4 px-6 rounded-lg hover:bg-primary-700 transition-colors flex items-center justify-center"
             >
               <span>Submit Booking Request</span>
               <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
               </svg>
             </button>
           </div>
-
         </form>
       </div>
 
       <!-- Additional Info -->
       <div class="mt-8 text-center text-sm text-gray-600">
-        <p>Need help? Contact us at <a href="mailto:bookings@cycleparadise.lk" class="text-primary-600 hover:text-primary-700">bookings@cycleparadise.lk</a> 
-        or call <a href="tel:+94123456789" class="text-primary-600 hover:text-primary-700">+94 12 345 6789</a></p>
+        <p>
+          Need help? Contact us at <a
+            href="mailto:bookings@cycleparadise.lk"
+            class="text-primary-600 hover:text-primary-700">bookings@cycleparadise.lk</a
+          >
+          or call <a href="tel:+94123456789" class="text-primary-600 hover:text-primary-700"
+            >+94 12 345 6789</a>
+        </p>
       </div>
     </div>
   </main>
 
-  <script>
+  <script lang="ts">
     // Package data with durations
     const packageData = {
       'hill-country-explorer': { price: 1299, duration: 7 },
       'coastal-adventure': { price: 1499, duration: 10 },
-      'cultural-triangle': { price: 1899, duration: 14 }
+      'cultural-triangle': { price: 1899, duration: 14 },
     };
 
     // Get form elements
@@ -311,11 +337,12 @@ const pageTitle = preSelectedPackage
 
       const basePrice = packageData[selectedPackage].price;
       const accommodationFee = accommodation === 'single' ? 200 : 0;
-      const total = (basePrice * guests) + (accommodationFee * guests);
+      const total = basePrice * guests + accommodationFee * guests;
 
       document.getElementById('base-price')!.textContent = `$${basePrice.toLocaleString()}`;
       document.getElementById('guest-count')!.textContent = guests.toString();
-      document.getElementById('accommodation-fee')!.textContent = `$${(accommodationFee * guests).toLocaleString()}`;
+      document.getElementById('accommodation-fee')!.textContent =
+        `$${(accommodationFee * guests).toLocaleString()}`;
       document.getElementById('total-price')!.textContent = `$${total.toLocaleString()}`;
     }
 
@@ -358,37 +385,43 @@ const pageTitle = preSelectedPackage
 
       // Collect form data
       const formData = new FormData(form);
+      const totalPriceText = document.getElementById('total-price')!.textContent || '0';
+      const totalPrice = parseFloat(totalPriceText.replace(/[^0-9.]/g, ''));
+
       const bookingData = {
-        package: formData.get('package'),
+        packageSlug: formData.get('package'),
+        customerFirstName: formData.get('first-name'),
+        customerLastName: formData.get('last-name'),
+        customerEmail: formData.get('email'),
+        customerPhone: formData.get('phone'),
+        customerCountry: formData.get('country'),
+        numberOfGuests: parseInt(formData.get('guests') as string),
         startDate: formData.get('start-date'),
         endDate: formData.get('end-date'),
-        guests: formData.get('guests'),
-        accommodation: formData.get('accommodation'),
-        firstName: formData.get('first-name'),
-        lastName: formData.get('last-name'),
-        email: formData.get('email'),
-        phone: formData.get('phone'),
-        country: formData.get('country'),
         specialRequests: formData.get('special-requests'),
-        totalPrice: document.getElementById('total-price')!.textContent,
-        submittedAt: new Date().toISOString()
+        totalPrice: totalPrice,
       };
 
       try {
-        // In production, this would send to your API
-        // For now, we'll simulate and store in localStorage
-        console.log('Booking submitted:', bookingData);
+        // Send booking to API
+        const response = await fetch('/api/bookings/create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(bookingData),
+        });
 
-        // Generate booking reference
-        const bookingRef = 'BK-' + Date.now();
-        
-        // Store booking data
-        localStorage.setItem('lastBooking', JSON.stringify({ ...bookingData, reference: bookingRef }));
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to create booking');
+        }
 
-        // Redirect to confirmation page
-        window.location.href = `/book/confirmation?ref=${bookingRef}`;
+        const result = await response.json();
 
-      } catch (error) {
+        // Redirect to confirmation with booking number
+        window.location.href = `/book/confirmation?ref=${result.data.bookingNumber}`;
+      } catch (error: any) {
         // Show error
         statusDiv.className = 'bg-red-100 text-red-800 rounded-lg p-4';
         statusDiv.innerHTML = `

@@ -4,12 +4,6 @@ import type { APIRoute } from 'astro';
 const prisma = new PrismaClient();
 
 // Helper function to generate slug from title
-function generateSlug(title: string): string {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
 
 export const GET: APIRoute = async ({ locals, request }) => {
   // Check authentication
@@ -35,7 +29,7 @@ export const GET: APIRoute = async ({ locals, request }) => {
     if (q) {
       where.OR = [
         { title: { contains: q, mode: 'insensitive' } },
-        { shortDescription: { contains: q, mode: 'insensitive' } },
+        { content: { contains: q, mode: 'insensitive' } },
       ];
     }
 
@@ -44,15 +38,15 @@ export const GET: APIRoute = async ({ locals, request }) => {
     }
 
     if (difficulty) {
-      where.difficultyLevel = difficulty;
+      where.difficultyRating = parseInt(difficulty);
     }
 
     if (status) {
-      where.isActive = status === 'active';
+      where.isPublished = status === 'published';
     }
 
-    const [packages, total] = await Promise.all([
-      prisma.tourPackage.findMany({
+    const [guides, total] = await Promise.all([
+      prisma.cyclingGuide.findMany({
         where,
         orderBy: {
           createdAt: 'desc',
@@ -63,23 +57,21 @@ export const GET: APIRoute = async ({ locals, request }) => {
           id: true,
           title: true,
           slug: true,
-          shortDescription: true,
-          duration: true,
-          difficultyLevel: true,
           region: true,
-          basePrice: true,
-          maxParticipants: true,
-          isActive: true,
+          difficultyRating: true,
+          estimatedDuration: true,
+          bestSeason: true,
+          isPublished: true,
           featured: true,
           createdAt: true,
         },
       }),
-      prisma.tourPackage.count({ where }),
+      prisma.cyclingGuide.count({ where }),
     ]);
 
     return new Response(
       JSON.stringify({
-        data: packages,
+        data: guides,
         meta: {
           total,
           page,
@@ -93,8 +85,8 @@ export const GET: APIRoute = async ({ locals, request }) => {
       }
     );
   } catch (error) {
-    console.error('Packages fetch error:', error);
-    return new Response(JSON.stringify({ error: 'Failed to fetch packages' }), {
+    console.error('Guides fetch error:', error);
+    return new Response(JSON.stringify({ error: 'Failed to fetch guides' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
@@ -113,45 +105,49 @@ export const POST: APIRoute = async ({ request, locals }) => {
   try {
     const body = await request.json();
 
-    // Generate slug from title
-    const slug = generateSlug(body.title);
+    const guideData = {
+      title: body.title,
+      slug: body.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, ''),
+      region: body.region,
+      content: body.content,
+      description: body.description || null,
+      shortDescription: body.shortDescription || null,
+      difficultyRating: body.difficultyRating,
+      estimatedDuration: body.estimatedDuration || null,
+      estimatedDistance: body.estimatedDistance ? parseFloat(body.estimatedDistance) : null,
+      startingPoint: body.startingPoint || null,
+      endingPoint: body.endingPoint || null,
+      terrainType: body.terrainType || null,
+      bestSeason: body.bestSeason || null,
+      highlights: body.highlights || [],
+      safetyTips: body.safetyTips || [],
+      gearChecklist: body.gearChecklist || [],
+      nearbyAttractions: body.nearbyAttractions || [],
+      routeSegments: body.routeSegments || [],
+      hydrationStops: body.hydrationStops || [],
+      faqs: body.faqs || [],
+      mapImageUrl: body.mapImageUrl || null,
+      gpxFileUrl: body.gpxFileUrl || null,
+      isPublished: body.isPublished,
+      featured: body.featured,
+      metaTitle: body.metaTitle || null,
+      metaDescription: body.metaDescription || null,
+    };
 
-    const newPackage = await prisma.tourPackage.create({
-      data: {
-        title: body.title,
-        slug,
-        description: body.description || null,
-        shortDescription: body.shortDescription || null,
-        duration: body.duration,
-        difficultyLevel: body.difficultyLevel,
-        region: body.region,
-        basePrice: body.basePrice,
-        maxParticipants: body.maxParticipants,
-        youtubeVideoId: body.youtubeVideoId || null,
-        isActive: body.isActive ?? true,
-        featured: body.featured ?? false,
-        metaTitle: body.metaTitle || null,
-        metaDescription: body.metaDescription || null,
-        highlights: body.highlights || null,
-        itinerary: body.itinerary || null,
-        whatToBring: body.whatToBring || null,
-        includedServices: body.includedServices || null,
-        excludedServices: body.excludedServices || null,
-        faqs: body.faqs || null,
-        reviews: body.reviews || null,
-        supportContacts: body.supportContacts || null,
-        sustainability: body.sustainability || null,
-        mediaGallery: body.mediaGallery || null,
-      },
+    const guide = await prisma.cyclingGuide.create({
+      data: guideData,
     });
 
-    return new Response(JSON.stringify(newPackage), {
+    return new Response(JSON.stringify(guide), {
       status: 201,
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Package creation error:', error);
-    return new Response(JSON.stringify({ error: 'Failed to create package' }), {
+    console.error('Guide creation error:', error);
+    return new Response(JSON.stringify({ error: 'Failed to create guide' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
