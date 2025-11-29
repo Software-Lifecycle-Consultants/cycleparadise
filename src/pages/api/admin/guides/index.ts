@@ -4,12 +4,6 @@ import type { APIRoute } from 'astro';
 const prisma = new PrismaClient();
 
 // Helper function to generate slug from title
-function generateSlug(title: string): string {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
 
 export const GET: APIRoute = async ({ locals, request }) => {
   // Check authentication
