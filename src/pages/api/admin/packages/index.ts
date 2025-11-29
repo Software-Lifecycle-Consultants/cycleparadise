@@ -133,6 +133,15 @@ export const POST: APIRoute = async ({ request, locals }) => {
         metaTitle: body.metaTitle || null,
         metaDescription: body.metaDescription || null,
         highlights: body.highlights || null,
+        itinerary: body.itinerary || null,
+        whatToBring: body.whatToBring || null,
+        includedServices: body.includedServices || null,
+        excludedServices: body.excludedServices || null,
+        faqs: body.faqs || null,
+        reviews: body.reviews || null,
+        supportContacts: body.supportContacts || null,
+        sustainability: body.sustainability || null,
+        mediaGallery: body.mediaGallery || null,
       },
     });
 

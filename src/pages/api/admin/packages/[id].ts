@@ -1,5 +1,5 @@
-import type { APIRoute } from 'astro';
 import { PrismaClient } from '@prisma/client';
+import type { APIRoute } from 'astro';
 
 const prisma = new PrismaClient();
 
@@ -38,13 +38,10 @@ export const GET: APIRoute = async ({ params, locals }) => {
     });
   } catch (error) {
     console.error('Package fetch error:', error);
-    return new Response(
-      JSON.stringify({ error: 'Failed to fetch package' }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
+    return new Response(JSON.stringify({ error: 'Failed to fetch package' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 };
 
@@ -59,7 +56,7 @@ export const PUT: APIRoute = async ({ params, request, locals }) => {
 
   try {
     const body = await request.json();
-    
+
     // Generate slug from title if title is provided
     const slug = body.title ? generateSlug(body.title) : undefined;
 
@@ -81,6 +78,15 @@ export const PUT: APIRoute = async ({ params, request, locals }) => {
         metaTitle: body.metaTitle || null,
         metaDescription: body.metaDescription || null,
         highlights: body.highlights || null,
+        itinerary: body.itinerary || null,
+        whatToBring: body.whatToBring || null,
+        includedServices: body.includedServices || null,
+        excludedServices: body.excludedServices || null,
+        faqs: body.faqs || null,
+        reviews: body.reviews || null,
+        supportContacts: body.supportContacts || null,
+        sustainability: body.sustainability || null,
+        mediaGallery: body.mediaGallery || null,
       },
     });
 
@@ -90,13 +96,10 @@ export const PUT: APIRoute = async ({ params, request, locals }) => {
     });
   } catch (error) {
     console.error('Package update error:', error);
-    return new Response(
-      JSON.stringify({ error: 'Failed to update package' }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
+    return new Response(JSON.stringify({ error: 'Failed to update package' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 };
 
@@ -120,12 +123,9 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
     });
   } catch (error) {
     console.error('Package delete error:', error);
-    return new Response(
-      JSON.stringify({ error: 'Failed to delete package' }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
+    return new Response(JSON.stringify({ error: 'Failed to delete package' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 };

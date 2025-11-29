@@ -2,6 +2,12 @@
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { prisma } from '../../../lib/db/connection';
 import ArrayEditor from '../../../components/admin/ArrayEditor.astro';
+import ItineraryEditor from '../../../components/admin/ItineraryEditor.astro';
+import FAQEditor from '../../../components/admin/FAQEditor.astro';
+import ReviewsEditor from '../../../components/admin/ReviewsEditor.astro';
+import SupportContactsEditor from '../../../components/admin/SupportContactsEditor.astro';
+import SustainabilityEditor from '../../../components/admin/SustainabilityEditor.astro';
+import MediaGalleryEditor from '../../../components/admin/MediaGalleryEditor.astro';
 
 const user = Astro.locals.user;
 if (!user) {
@@ -290,6 +296,76 @@ const difficultyLevels = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'];
       />
     </div>
 
+    <!-- Itinerary -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Itinerary</h2>
+      <ItineraryEditor itinerary={packageData?.itinerary || []} />
+    </div>
+
+    <!-- What to Bring -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">What to Bring</h2>
+      <ArrayEditor
+        name="whatToBring"
+        items={packageData?.whatToBring || []}
+        label="Items"
+        placeholder="e.g., Hiking boots"
+      />
+    </div>
+
+    <!-- Included & Excluded Services -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Included Services</h2>
+        <ArrayEditor
+          name="includedServices"
+          items={packageData?.includedServices || []}
+          label="Included Items"
+          placeholder="e.g., Airport transfers"
+        />
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Excluded Services</h2>
+        <ArrayEditor
+          name="excludedServices"
+          items={packageData?.excludedServices || []}
+          label="Excluded Items"
+          placeholder="e.g., International flights"
+        />
+      </div>
+    </div>
+
+    <!-- FAQs -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">FAQs</h2>
+      <FAQEditor faqs={packageData?.faqs || []} />
+    </div>
+
+    <!-- Reviews -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Reviews</h2>
+      <ReviewsEditor reviews={packageData?.reviews || []} />
+    </div>
+
+    <!-- Support Contacts -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Support Contacts</h2>
+      <SupportContactsEditor contacts={packageData?.supportContacts || []} />
+    </div>
+
+    <!-- Sustainability -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Sustainability</h2>
+      <SustainabilityEditor data={packageData?.sustainability || {}} />
+    </div>
+
+    <!-- Media Gallery -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Media Gallery</h2>
+      <MediaGalleryEditor data={packageData?.mediaGallery || {}} />
+    </div>
+
     <!-- Actions -->
     <div class="flex items-center justify-end space-x-4">
       <a
@@ -317,7 +393,7 @@ const difficultyLevels = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'];
         e.preventDefault();
 
         const formData = new FormData(form);
-        const data = {};
+        const data: any = {};
 
         // Serialize array editors
         console.log('🔍 Checking for arrayEditorSerializers...', window);
@@ -330,6 +406,57 @@ const difficultyLevels = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'];
           data.highlights = highlightsData;
         } else {
           console.warn('⚠️ No highlights serializer found!');
+        }
+
+        if (arrayEditorSerializers.whatToBring) {
+          const whatToBringData = arrayEditorSerializers.whatToBring();
+          data.whatToBring = whatToBringData;
+        }
+
+        if (arrayEditorSerializers.includedServices) {
+          data.includedServices = arrayEditorSerializers.includedServices();
+        }
+
+        if (arrayEditorSerializers.excludedServices) {
+          data.excludedServices = arrayEditorSerializers.excludedServices();
+        }
+
+        // Serialize FAQs
+        const faqEditorSerializers = (window as any).faqEditorSerializers || {};
+        if (faqEditorSerializers.faqs) {
+          data.faqs = faqEditorSerializers.faqs();
+        }
+
+        // Serialize Reviews
+        const reviewsEditorSerializers = (window as any).reviewsEditorSerializers || {};
+        if (reviewsEditorSerializers.reviews) {
+          data.reviews = reviewsEditorSerializers.reviews();
+        }
+
+        // Serialize Support Contacts
+        const supportContactsEditorSerializers =
+          (window as any).supportContactsEditorSerializers || {};
+        if (supportContactsEditorSerializers.supportContacts) {
+          data.supportContacts = supportContactsEditorSerializers.supportContacts();
+        }
+
+        // Serialize Sustainability
+        const sustainabilityEditorSerializers =
+          (window as any).sustainabilityEditorSerializers || {};
+        if (sustainabilityEditorSerializers.sustainability) {
+          data.sustainability = sustainabilityEditorSerializers.sustainability();
+        }
+
+        // Serialize Media Gallery
+        const mediaGalleryEditorSerializers = (window as any).mediaGalleryEditorSerializers || {};
+        if (mediaGalleryEditorSerializers.mediaGallery) {
+          data.mediaGallery = mediaGalleryEditorSerializers.mediaGallery();
+        }
+
+        // Serialize itinerary
+        const itineraryEditorSerializers = (window as any).itineraryEditorSerializers || {};
+        if (itineraryEditorSerializers.itinerary) {
+          data.itinerary = itineraryEditorSerializers.itinerary();
         }
 
         // Convert form data to JSON

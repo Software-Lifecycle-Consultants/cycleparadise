@@ -378,54 +378,57 @@ const getDifficultyLabel = (rating: number) => {
     </div>
   </div>
 
-  <script lang="ts">
+  <script>
     let guideToDelete = '';
 
-    function confirmDelete(id: string, name: string) {
+    function confirmDelete(id, name) {
       guideToDelete = id;
       const modal = document.getElementById('deleteModal');
       const guideNameEl = document.getElementById('guideName');
       if (guideNameEl) guideNameEl.textContent = name;
-      modal?.classList.remove('hidden');
+      if (modal) modal.classList.remove('hidden');
     }
 
     function closeDeleteModal() {
       const modal = document.getElementById('deleteModal');
-      modal?.classList.add('hidden');
+      if (modal) modal.classList.add('hidden');
       guideToDelete = '';
     }
 
     // Make functions globally available
-    (window as any).confirmDelete = confirmDelete;
-    (window as any).closeDeleteModal = closeDeleteModal;
+    window.confirmDelete = confirmDelete;
+    window.closeDeleteModal = closeDeleteModal;
 
     // Handle delete confirmation
-    document.getElementById('confirmDeleteBtn')?.addEventListener('click', async () => {
-      if (!guideToDelete) return;
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    if (confirmDeleteBtn) {
+      confirmDeleteBtn.addEventListener('click', async () => {
+        if (!guideToDelete) return;
 
-      try {
-        const response = await fetch(`/api/admin/guides/${guideToDelete}`, {
-          method: 'DELETE',
-          credentials: 'include',
-        });
+        try {
+          const response = await fetch(`/api/admin/guides/${guideToDelete}`, {
+            method: 'DELETE',
+            credentials: 'include',
+          });
 
-        if (response.ok) {
-          window.location.reload();
-        } else {
+          if (response.ok) {
+            window.location.reload();
+          } else {
+            alert('Failed to delete guide');
+          }
+        } catch (error) {
+          console.error('Delete error:', error);
           alert('Failed to delete guide');
         }
-      } catch (error) {
-        console.error('Delete error:', error);
-        alert('Failed to delete guide');
-      }
-    });
+      });
+    }
 
     // Real-time Search and Filtering
-    const searchInput = document.querySelector('input[name="q"]') as HTMLInputElement;
+    const searchInput = document.querySelector('input[name="q"]');
     const filterSelects = document.querySelectorAll('.filter-select');
     const listContainer = document.getElementById('guide-list-view');
 
-    let debounceTimer: any;
+    let debounceTimer;
 
     function getCurrentParams() {
       const params = new URLSearchParams(window.location.search);
@@ -435,7 +438,7 @@ const getDifficultyLabel = (rating: number) => {
         else params.delete('q');
       }
 
-      filterSelects.forEach((select: any) => {
+      filterSelects.forEach((select) => {
         if (select.value) params.set(select.name, select.value);
         else params.delete(select.name);
       });
@@ -445,7 +448,7 @@ const getDifficultyLabel = (rating: number) => {
       return params;
     }
 
-    async function updateResults(params: URLSearchParams) {
+    async function updateResults(params) {
       const url = `${window.location.pathname}?${params.toString()}`;
 
       try {
@@ -488,7 +491,7 @@ const getDifficultyLabel = (rating: number) => {
 
     // Handle Pagination Clicks via Event Delegation
     if (listContainer) {
-      listContainer.addEventListener('click', (e: any) => {
+      listContainer.addEventListener('click', (e) => {
         const link = e.target.closest('a');
         if (link && link.closest('.pagination-container')) {
           e.preventDefault();
