@@ -132,6 +132,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
         featured: body.featured ?? false,
         metaTitle: body.metaTitle || null,
         metaDescription: body.metaDescription || null,
+        highlights: body.highlights || null,
       },
     });
 

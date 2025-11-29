@@ -37,9 +37,9 @@ try {
       startDate: startDate ? new Date(startDate) : undefined,
       endDate: endDate ? new Date(endDate) : undefined,
       page,
-      limit
+      limit,
     }),
-    bookingRepository.getPackages()
+    bookingRepository.getPackages(),
   ]);
 
   bookings = result.bookings;
@@ -58,7 +58,7 @@ const formatDate = (date: Date) => {
   return new Date(date).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
-    day: 'numeric'
+    day: 'numeric',
   });
 };
 
@@ -66,7 +66,7 @@ const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
-    minimumFractionDigits: 0
+    minimumFractionDigits: 0,
   }).format(amount);
 };
 
@@ -75,7 +75,7 @@ const getStatusColor = (status: string) => {
     PENDING: 'bg-yellow-100 text-yellow-800',
     CONFIRMED: 'bg-green-100 text-green-800',
     CANCELLED: 'bg-red-100 text-red-800',
-    COMPLETED: 'bg-blue-100 text-blue-800'
+    COMPLETED: 'bg-blue-100 text-blue-800',
   };
   return colors[status] || 'bg-gray-100 text-gray-800';
 };
@@ -85,7 +85,7 @@ const getPaymentColor = (status: string) => {
     PENDING: 'bg-orange-100 text-orange-800',
     PAID: 'bg-green-100 text-green-800',
     PARTIAL: 'bg-yellow-100 text-yellow-800',
-    REFUNDED: 'bg-gray-100 text-gray-800'
+    REFUNDED: 'bg-gray-100 text-gray-800',
   };
   return colors[status] || 'bg-gray-100 text-gray-800';
 };
@@ -122,7 +122,12 @@ const exportUrl = `/api/admin/bookings/export${exportParams.toString() ? '?' + e
         class="inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition font-medium"
       >
         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          ></path>
         </svg>
         Export CSV
       </a>
@@ -193,11 +198,13 @@ const exportUrl = `/api/admin/bookings/export${exportParams.toString() ? '?' + e
           class="filter-select block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm rounded-md"
         >
           <option value="">All Packages</option>
-          {packages.map((pkg) => (
-            <option value={pkg.id} selected={packageId === pkg.id}>
-              {pkg.title}
-            </option>
-          ))}
+          {
+            packages.map((pkg) => (
+              <option value={pkg.id} selected={packageId === pkg.id}>
+                {pkg.title}
+              </option>
+            ))
+          }
         </select>
 
         <!-- Start Date Filter -->
@@ -221,121 +228,137 @@ const exportUrl = `/api/admin/bookings/export${exportParams.toString() ? '?' + e
     </div>
   </div>
 
-  {error && (
-    <div class="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
-      {error}
-    </div>
-  )}
+  {
+    error && (
+      <div class="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
+        {error}
+      </div>
+    )
+  }
 
   <!-- Bookings Table -->
   <div id="booking-list-view">
-    {bookings.length === 0 ? (
-      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
-        <svg class="mx-auto w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-        </svg>
-        <h3 class="text-xl font-semibold text-gray-900 mb-2">No bookings found</h3>
-        <p class="text-gray-600">No bookings match your current filters.</p>
-      </div>
-    ) : (
-      <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Booking #
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Customer
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Package
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tour Dates
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Participants
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Amount
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              {bookings.map((booking) => (
-                <tr class="hover:bg-gray-50 transition">
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-medium text-gray-900">{booking.bookingNumber}</div>
-                    <div class="text-xs text-gray-500">
-                      {formatDate(booking.submittedAt)}
-                    </div>
-                  </td>
-                  <td class="px-6 py-4">
-                    <div class="text-sm font-medium text-gray-900">{booking.customerName}</div>
-                    <div class="text-sm text-gray-500">{booking.customerEmail}</div>
-                  </td>
-                  <td class="px-6 py-4">
-                    <div class="text-sm text-gray-900 max-w-xs truncate">
-                      {booking.package.title}
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">{formatDate(booking.startDate)}</div>
-                    <div class="text-xs text-gray-500">
-                      {calculateDuration(booking.startDate, booking.endDate)} days
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-center">
-                    <div class="text-sm text-gray-900">{booking.numberOfParticipants}</div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-medium text-gray-900">
-                      {formatCurrency(booking.totalAmount)}
-                    </div>
-                    <div class="mt-1">
-                      <span class={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${getPaymentColor(booking.paymentStatus)}`}>
-                        {booking.paymentStatus}
-                      </span>
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <span class={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(booking.status)}`}>
-                      {booking.status}
-                    </span>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <a
-                      href={`/admin/bookings/${booking.id}`}
-                      class="text-emerald-600 hover:text-emerald-900"
-                    >
-                      View Details
-                    </a>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+    {
+      bookings.length === 0 ? (
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+          <svg
+            class="mx-auto w-16 h-16 text-gray-400 mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+            />
+          </svg>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">No bookings found</h3>
+          <p class="text-gray-600">No bookings match your current filters.</p>
         </div>
+      ) : (
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Booking #
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Customer
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Package
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Tour Dates
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Participants
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Amount
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                {bookings.map((booking) => (
+                  <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm font-medium text-gray-900">{booking.bookingNumber}</div>
+                      <div class="text-xs text-gray-500">{formatDate(booking.submittedAt)}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                      <div class="text-sm font-medium text-gray-900">{booking.customerName}</div>
+                      <div class="text-sm text-gray-500">{booking.customerEmail}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                      <div class="text-sm text-gray-900 max-w-xs truncate">
+                        {booking.package.title}
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-900">{formatDate(booking.startDate)}</div>
+                      <div class="text-xs text-gray-500">
+                        {calculateDuration(booking.startDate, booking.endDate)} days
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                      <div class="text-sm text-gray-900">{booking.numberOfParticipants}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm font-medium text-gray-900">
+                        {formatCurrency(booking.totalAmount)}
+                      </div>
+                      <div class="mt-1">
+                        <span
+                          class={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${getPaymentColor(booking.paymentStatus)}`}
+                        >
+                          {booking.paymentStatus}
+                        </span>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span
+                        class={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(booking.status)}`}
+                      >
+                        {booking.status}
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <a
+                        href={`/admin/bookings/${booking.id}`}
+                        class="text-emerald-600 hover:text-emerald-900"
+                      >
+                        View Details
+                      </a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-        <Pagination
-          currentPage={page}
-          totalPages={totalPages}
-          baseUrl="/admin/bookings"
-          searchParams={Astro.url.searchParams}
-        />
-      </div>
-    )}
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            baseUrl="/admin/bookings"
+            searchParams={Astro.url.searchParams}
+          />
+        </div>
+      )
+    }
   </div>
 
-  <script>
+  <script lang="ts">
     // Real-time Search and Filtering
     const searchInput = document.querySelector('input[name="q"]') as HTMLInputElement;
     const filterSelects = document.querySelectorAll('.filter-select');

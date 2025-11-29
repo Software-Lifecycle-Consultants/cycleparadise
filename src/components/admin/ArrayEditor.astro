@@ -1,0 +1,140 @@
+---
+interface Props {
+  name: string;
+  items?: string[];
+  label: string;
+  placeholder?: string;
+}
+
+const { name, items = [], label, placeholder = 'Enter item...' } = Astro.props;
+const uniqueId = `array-editor-${name}-${Math.random().toString(36).substr(2, 9)}`;
+---
+
+<div class="array-editor-container" data-editor-name={name}>
+  <label class="block text-sm font-medium text-gray-700 mb-2">
+    {label}
+    <span class="text-gray-500 font-normal">(Optional)</span>
+  </label>
+
+  <div class="space-y-2" id={`${uniqueId}-items`}>
+    {
+      items.map((item, index) => (
+        <div class="flex items-center space-x-2" data-array-item>
+          <input
+            type="text"
+            value={item}
+            placeholder={placeholder}
+            class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            data-item-input
+          />
+          <button
+            type="button"
+            class="px-3 py-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg transition"
+            data-remove-item
+          >
+            Remove
+          </button>
+        </div>
+      ))
+    }
+  </div>
+
+  <button
+    type="button"
+    id={`${uniqueId}-add-btn`}
+    class="mt-3 px-4 py-2 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-lg transition inline-flex items-center space-x-2"
+  >
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"
+      ></path>
+    </svg>
+    <span>Add Item</span>
+  </button>
+
+  <!-- Hidden input for form submission -->
+  <input type="hidden" name={`${name}-json`} id={`${uniqueId}-json`} value="" />
+</div>
+
+<script define:vars={{ uniqueId, name, placeholder }}>
+  // Register serializer immediately (before DOMContentLoaded)
+  if (typeof window !== 'undefined') {
+    if (!window.arrayEditorSerializers) {
+      window.arrayEditorSerializers = {};
+    }
+
+    // Store serialization function globally so parent form can call it
+    window.arrayEditorSerializers[name] = function () {
+      const container = document.getElementById(`${uniqueId}-items`);
+      const inputs = container ? container.querySelectorAll('[data-item-input]') : [];
+      const values = [];
+
+      inputs.forEach((input) => {
+        const value = input.value.trim();
+        if (value) {
+          values.push(value);
+        }
+      });
+
+      // Return array or null if empty
+      return values.length > 0 ? values : null;
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const container = document.getElementById(`${uniqueId}-items`);
+    const addBtn = document.getElementById(`${uniqueId}-add-btn`);
+    const hiddenInput = document.getElementById(`${uniqueId}-json`);
+
+    if (!container || !addBtn) {
+      console.error('ArrayEditor elements not found:', { uniqueId, container, addBtn });
+      return;
+    }
+
+    // Add item functionality
+    addBtn.addEventListener('click', () => {
+      const newItem = document.createElement('div');
+      newItem.className = 'flex items-center space-x-2';
+      newItem.setAttribute('data-array-item', '');
+      newItem.innerHTML = `
+      <input
+        type="text"
+        placeholder="${placeholder}"
+        class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+        data-item-input
+      />
+      <button
+        type="button"
+        class="px-3 py-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg transition"
+        data-remove-item
+      >
+        Remove
+      </button>
+    `;
+
+      // Attach remove event to new button
+      const removeBtn = newItem.querySelector('[data-remove-item]');
+      if (removeBtn) {
+        removeBtn.addEventListener('click', () => {
+          newItem.remove();
+        });
+      }
+
+      if (container) {
+        container.appendChild(newItem);
+      }
+    });
+
+    // Remove item functionality for existing items
+    if (container) {
+      container.querySelectorAll('[data-remove-item]').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          const target = e.target;
+          const item = target.closest('[data-array-item]');
+          if (item) {
+            item.remove();
+          }
+        });
+      });
+    }
+  });
+</script>

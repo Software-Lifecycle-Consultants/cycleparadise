@@ -1,6 +1,7 @@
 ---
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { prisma } from '../../../lib/db/connection';
+import ArrayEditor from '../../../components/admin/ArrayEditor.astro';
 
 const user = Astro.locals.user;
 if (!user) {
@@ -278,6 +279,17 @@ const difficultyLevels = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'];
       </div>
     </div>
 
+    <!-- Tour Highlights -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Tour Highlights</h2>
+      <ArrayEditor
+        name="highlights"
+        items={packageData?.highlights || []}
+        label="Highlights"
+        placeholder="e.g., Scenic coastal roads with ocean views"
+      />
+    </div>
+
     <!-- Actions -->
     <div class="flex items-center justify-end space-x-4">
       <a
@@ -297,61 +309,90 @@ const difficultyLevels = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'];
   </form>
 
   <script>
-    const form = document.getElementById('packageForm') as HTMLFormElement;
-    const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+    const form = document.getElementById('packageForm');
+    const submitBtn = document.getElementById('submitBtn');
 
-    form?.addEventListener('submit', async (e) => {
-      e.preventDefault();
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-      const formData = new FormData(form);
-      const data: Record<string, any> = {};
+        const formData = new FormData(form);
+        const data = {};
 
-      // Convert form data to JSON
-      formData.forEach((value, key) => {
-        if (key === 'isActive' || key === 'featured') {
-          data[key] = form.querySelector(`input[name="${key}"]`)?.checked || false;
-        } else if (key === 'duration' || key === 'maxParticipants') {
-          data[key] = parseInt(value as string);
-        } else if (key === 'basePrice') {
-          data[key] = parseFloat(value as string);
+        // Serialize array editors
+        console.log('🔍 Checking for arrayEditorSerializers...', window);
+        const arrayEditorSerializers = window.arrayEditorSerializers || {};
+        console.log('🔍 Available serializers:', Object.keys(arrayEditorSerializers));
+
+        if (arrayEditorSerializers.highlights) {
+          const highlightsData = arrayEditorSerializers.highlights();
+          console.log('✅ Highlights serialized:', highlightsData);
+          data.highlights = highlightsData;
         } else {
-          data[key] = value;
+          console.warn('⚠️ No highlights serializer found!');
         }
-      });
 
-      // Disable submit button
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Saving...';
+        // Convert form data to JSON
+        formData.forEach((value, key) => {
+          // Skip JSON hidden inputs (they're already handled above)
+          if (key.endsWith('-json')) {
+            return;
+          }
 
-      try {
-        const packageId = data.id;
-        const isEdit = packageId && packageId !== 'new';
-        const url = isEdit ? `/api/admin/packages/${packageId}` : '/api/admin/packages';
-        const method = isEdit ? 'PUT' : 'POST';
-
-        const response = await fetch(url, {
-          method,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-          body: JSON.stringify(data),
+          if (key === 'isActive' || key === 'featured') {
+            const checkbox = form.querySelector(`input[name="${key}"]`);
+            data[key] = checkbox ? checkbox.checked : false;
+          } else if (key === 'duration' || key === 'maxParticipants') {
+            data[key] = parseInt(value);
+          } else if (key === 'basePrice') {
+            data[key] = parseFloat(value);
+          } else {
+            data[key] = value;
+          }
         });
 
-        if (response.ok) {
-          window.location.href = '/admin/packages';
-        } else {
-          const error = await response.json();
-          alert(error.error || 'Failed to save package');
-          submitBtn.disabled = false;
-          submitBtn.textContent = isEdit ? 'Update Package' : 'Create Package';
+        console.log('📦 Final data to send:', data);
+
+        // Disable submit button
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Saving...';
         }
-      } catch (error) {
-        console.error('Save error:', error);
-        alert('Failed to save package');
-        submitBtn.disabled = false;
-        submitBtn.textContent = isEdit ? 'Update Package' : 'Create Package';
-      }
-    });
+
+        try {
+          const packageId = data.id;
+          const isEdit = packageId && packageId !== 'new';
+          const url = isEdit ? `/api/admin/packages/${packageId}` : '/api/admin/packages';
+          const method = isEdit ? 'PUT' : 'POST';
+
+          const response = await fetch(url, {
+            method,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(data),
+          });
+
+          if (response.ok) {
+            window.location.href = '/admin/packages';
+          } else {
+            const error = await response.json();
+            alert(error.error || 'Failed to save package');
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.textContent = isEdit ? 'Update Package' : 'Create Package';
+            }
+          }
+        } catch (error) {
+          console.error('Save error:', error);
+          alert('Failed to save package');
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = isEdit ? 'Update Package' : 'Create Package';
+          }
+        }
+      });
+    }
   </script>
 </AdminLayout>

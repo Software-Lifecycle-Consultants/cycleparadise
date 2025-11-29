@@ -396,51 +396,54 @@ const getDifficultyColor = (level: string) => {
   <script>
     let packageToDelete = '';
 
-    function confirmDelete(id: string, name: string) {
+    function confirmDelete(id, name) {
       packageToDelete = id;
       const modal = document.getElementById('deleteModal');
       const packageNameEl = document.getElementById('packageName');
       if (packageNameEl) packageNameEl.textContent = name;
-      modal?.classList.remove('hidden');
+      if (modal) modal.classList.remove('hidden');
     }
 
     function closeDeleteModal() {
       const modal = document.getElementById('deleteModal');
-      modal?.classList.add('hidden');
+      if (modal) modal.classList.add('hidden');
       packageToDelete = '';
     }
 
     // Make functions globally available
-    (window as any).confirmDelete = confirmDelete;
-    (window as any).closeDeleteModal = closeDeleteModal;
+    window.confirmDelete = confirmDelete;
+    window.closeDeleteModal = closeDeleteModal;
 
     // Handle delete confirmation
-    document.getElementById('confirmDeleteBtn')?.addEventListener('click', async () => {
-      if (!packageToDelete) return;
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    if (confirmDeleteBtn) {
+      confirmDeleteBtn.addEventListener('click', async () => {
+        if (!packageToDelete) return;
 
-      try {
-        const response = await fetch(`/api/admin/packages/${packageToDelete}`, {
-          method: 'DELETE',
-          credentials: 'include',
-        });
+        try {
+          const response = await fetch(`/api/admin/packages/${packageToDelete}`, {
+            method: 'DELETE',
+            credentials: 'include',
+          });
 
-        if (response.ok) {
-          window.location.reload();
-        } else {
+          if (response.ok) {
+            window.location.reload();
+          } else {
+            alert('Failed to delete package');
+          }
+        } catch (error) {
+          console.error('Delete error:', error);
           alert('Failed to delete package');
         }
-      } catch (error) {
-        console.error('Delete error:', error);
-        alert('Failed to delete package');
-      }
-    });
+      });
+    }
 
     // Real-time Search and Filtering
-    const searchInput = document.querySelector('input[name="q"]') as HTMLInputElement;
+    const searchInput = document.querySelector('input[name="q"]');
     const filterSelects = document.querySelectorAll('.filter-select');
     const listContainer = document.getElementById('package-list-view');
 
-    let debounceTimer: any;
+    let debounceTimer;
 
     function getCurrentParams() {
       const params = new URLSearchParams(window.location.search);
@@ -451,7 +454,7 @@ const getDifficultyColor = (level: string) => {
         else params.delete('q');
       }
 
-      filterSelects.forEach((select: any) => {
+      filterSelects.forEach((select) => {
         if (select.value) params.set(select.name, select.value);
         else params.delete(select.name);
       });
@@ -462,7 +465,7 @@ const getDifficultyColor = (level: string) => {
       return params;
     }
 
-    async function updateResults(params: URLSearchParams) {
+    async function updateResults(params) {
       const url = `${window.location.pathname}?${params.toString()}`;
 
       try {
@@ -510,7 +513,7 @@ const getDifficultyColor = (level: string) => {
     // Handle Pagination Clicks via Event Delegation
     // We need to listen on the container because pagination HTML is replaced
     if (listContainer) {
-      listContainer.addEventListener('click', (e: any) => {
+      listContainer.addEventListener('click', (e) => {
         const link = e.target.closest('a');
         if (link && link.closest('.pagination-container')) {
           // Assuming Pagination component has this class or we check URL
