@@ -6,19 +6,31 @@ services:
     container_name: cycleparadise-postgres
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - '5432:5432'
     environment:
-      POSTGRES_USER: cycleparadise
-      POSTGRES_PASSWORD: cycleparadise_dev
-      POSTGRES_DB: cycleparadise
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U cycleparadise -d cycleparadise"]
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER} -d ${DB_NAME}']
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - cycleparadise-network
+
+  migrator:
+    build: .
+    command: npx prisma migrate deploy
+    environment:
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      - DIRECT_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+    depends_on:
+      db:
+        condition: service_healthy
     networks:
       - cycleparadise-network
 
@@ -29,20 +41,18 @@ services:
     container_name: cycleparadise-web
     restart: unless-stopped
     ports:
-      - "4321:4321"
+      - '4321:4321'
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgresql://cycleparadise:cycleparadise_dev@db:5432/cycleparadise
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
     depends_on:
-      db:
-        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
     networks:
       - cycleparadise-network
 
 volumes:
   postgres_data:
-    driver: local
 
 networks:
   cycleparadise-network:
-    driver: bridge
