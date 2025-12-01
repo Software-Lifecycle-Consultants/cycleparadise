@@ -2,7 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -68,6 +69,12 @@ model TourPackage {
   maxParticipants   Int
   includedServices  Json?
   excludedServices  Json?
+  highlights        Json?
+  whatToBring       Json?
+  faqs              Json?
+  reviews           Json?
+  supportContacts   Json?
+  sustainability    Json?
   mediaGallery      Json?
   youtubeVideoId    String?
   isActive          Boolean         @default(true)
@@ -131,8 +138,9 @@ model Booking {
   updatedAt            DateTime      @updatedAt
 
   // Relationships
-  package               TourPackage            @relation(fields: [packageId], references: [id])
+  package               TourPackage              @relation(fields: [packageId], references: [id])
   bookingAccommodations BookingAccommodation[]
+  statusHistory         BookingStatusHistory[]
 
   @@map("bookings")
 }
@@ -148,6 +156,7 @@ model BookingAccommodation {
   pricePerNight          Decimal       @db.Decimal(8, 2)
   totalAccommodationCost Decimal       @db.Decimal(10, 2)
   createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
 
   // Relationships
   booking       Booking       @relation(fields: [bookingId], references: [id])
@@ -163,6 +172,7 @@ model PackageAccommodation {
   isRecommended   Boolean       @default(false)
   displayOrder    Int           @default(0)
   createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
   // Relationships
   package       TourPackage   @relation(fields: [packageId], references: [id])
@@ -173,39 +183,56 @@ model PackageAccommodation {
 }
 
 model CyclingGuide {
-  id               String   @id @default(uuid()) @db.Uuid
-  title            String
-  slug             String   @unique
-  region           String
-  content          String   @db.Text
-  routeMap         Json?
-  difficultyRating Int      @db.SmallInt
+  id                String   @id @default(uuid()) @db.Uuid
+  title             String
+  slug              String   @unique
+  region            String
+  content           String   @db.Text
+  description       String?  @db.Text
+  shortDescription  String?
+  difficultyRating  Int      @db.SmallInt
   estimatedDuration String?
-  bestSeason       String?
-  safetyTips       Json?
-  pointsOfInterest Json?
-  images           Json?
-  isPublished      Boolean  @default(true)
-  featured         Boolean  @default(false)
-  metaTitle        String?
-  metaDescription  String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  estimatedDistance Float?
+  startingPoint     String?
+  endingPoint       String?
+  terrainType       String?
+  bestSeason        String?
+  highlights        Json?
+  safetyTips        Json?
+  gearChecklist     Json?
+  nearbyAttractions Json?
+  routeSegments     Json?
+  hydrationStops    Json?
+  faqs              Json?
+  routeMap          Json?
+  pointsOfInterest  Json?
+  images            Json?
+  mapImageUrl       String?
+  gpxFileUrl        String?
+  isPublished       Boolean  @default(true)
+  featured          Boolean  @default(false)
+  metaTitle         String?
+  metaDescription   String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   @@map("cycling_guides")
 }
 
 model AdminUser {
-  id           String    @id @default(uuid()) @db.Uuid
-  email        String    @unique
-  passwordHash String
-  firstName    String
-  lastName     String
-  role         AdminRole @default(EDITOR)
-  isActive     Boolean   @default(true)
-  lastLoginAt  DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id            String                 @id @default(uuid()) @db.Uuid
+  email         String                 @unique
+  passwordHash  String
+  firstName     String
+  lastName      String
+  role          AdminRole              @default(EDITOR)
+  isActive      Boolean                @default(true)
+  lastLoginAt   DateTime?
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+
+  // Relationships
+  statusChanges BookingStatusHistory[]
 
   @@map("admin_users")
 }
@@ -226,6 +253,26 @@ model MediaAsset {
   updatedAt   DateTime @updatedAt
 
   @@map("media_assets")
+}
+
+model BookingStatusHistory {
+  id               String         @id @default(uuid()) @db.Uuid
+  bookingId        String         @db.Uuid
+  previousStatus   BookingStatus?
+  newStatus        BookingStatus?
+  previousPayment  PaymentStatus?
+  newPayment       PaymentStatus?
+  notes            String?        @db.Text
+  changedBy        String         @db.Uuid
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  // Relationships
+  booking Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  admin   AdminUser @relation(fields: [changedBy], references: [id])
+
+  @@index([bookingId, createdAt])
+  @@map("booking_status_history")
 }
 
 // Indexes for performance

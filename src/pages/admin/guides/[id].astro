@@ -1,0 +1,492 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { prisma } from '../../../lib/db/connection';
+
+const user = Astro.locals.user;
+if (!user) {
+  return Astro.redirect('/admin/login');
+}
+
+const { id } = Astro.params;
+
+// Fetch existing guide
+let guide: any = null;
+let error = '';
+
+try {
+  guide = await prisma.cyclingGuide.findUnique({
+    where: { id },
+  });
+
+  if (!guide) {
+    return Astro.redirect('/admin/guides');
+  }
+} catch (err) {
+  console.error('Failed to load guide:', err);
+  error = 'Failed to load guide';
+}
+
+// Handle form submission
+if (Astro.request.method === 'POST') {
+  try {
+    const formData = await Astro.request.formData();
+
+    const guideData = {
+      title: formData.get('title') as string,
+      region: formData.get('region') as string,
+      content: formData.get('content') as string,
+      difficultyRating: parseInt(formData.get('difficultyRating') as string),
+      estimatedDuration: (formData.get('estimatedDuration') as string) || null,
+      bestSeason: (formData.get('bestSeason') as string) || null,
+      isPublished: formData.get('isPublished') === 'on',
+      featured: formData.get('featured') === 'on',
+      metaTitle: (formData.get('metaTitle') as string) || null,
+      metaDescription: (formData.get('metaDescription') as string) || null,
+    };
+
+    const response = await fetch(`${Astro.url.origin}/api/admin/guides/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: Astro.request.headers.get('Cookie') || '',
+      },
+      body: JSON.stringify(guideData),
+    });
+
+    if (response.ok) {
+      return Astro.redirect('/admin/guides');
+    } else {
+      error = 'Failed to update guide';
+    }
+  } catch (err) {
+    console.error('Form submission error:', err);
+    error = 'An error occurred while updating the guide';
+  }
+}
+---
+
+<AdminLayout title="Edit Guide" user={user}>
+  <div class="max-w-4xl">
+    <!-- Header -->
+    <div class="mb-6">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3 mb-2">
+          <a href="/admin/guides" class="text-gray-600 hover:text-gray-900">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 19l-7-7 7-7"></path>
+            </svg>
+          </a>
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">Edit Cycling Guide</h1>
+            <p class="text-gray-600 text-sm mt-1">{guide?.title}</p>
+          </div>
+        </div>
+
+        <button
+          onclick={`confirmDelete('${id}', '${guide?.title}')`}
+          class="px-4 py-2 border border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition font-medium"
+        >
+          Delete Guide
+        </button>
+      </div>
+    </div>
+
+    {
+      error && (
+        <div class="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
+          {error}
+        </div>
+      )
+    }
+
+    <!-- Form -->
+    <form method="POST" class="space-y-6">
+      <!-- Basic Information -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Basic Information</h2>
+
+        <div class="space-y-4">
+          <div>
+            <label for="title" class="block text-sm font-medium text-gray-700 mb-1">
+              Guide Title *
+            </label>
+            <input
+              type="text"
+              id="title"
+              name="title"
+              required
+              value={guide?.title}
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+            />
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="region" class="block text-sm font-medium text-gray-700 mb-1">
+                Region *
+              </label>
+              <input
+                type="text"
+                id="region"
+                name="region"
+                required
+                value={guide?.region}
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+              />
+            </div>
+
+            <div>
+              <label for="difficultyRating" class="block text-sm font-medium text-gray-700 mb-1">
+                Difficulty Rating (1-10) *
+              </label>
+              <input
+                type="number"
+                id="difficultyRating"
+                name="difficultyRating"
+                required
+                min="1"
+                max="10"
+                value={guide?.difficultyRating}
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="estimatedDuration" class="block text-sm font-medium text-gray-700 mb-1">
+                Estimated Duration
+              </label>
+              <input
+                type="text"
+                id="estimatedDuration"
+                name="estimatedDuration"
+                value={guide?.estimatedDuration || ''}
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+              />
+            </div>
+
+            <div>
+              <label for="estimatedDistance" class="block text-sm font-medium text-gray-700 mb-1">
+                Estimated Distance (km)
+              </label>
+              <input
+                type="number"
+                step="0.1"
+                id="estimatedDistance"
+                name="estimatedDistance"
+                value={guide?.estimatedDistance || ''}
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="startingPoint" class="block text-sm font-medium text-gray-700 mb-1">
+                Starting Point
+              </label>
+              <input
+                type="text"
+                id="startingPoint"
+                name="startingPoint"
+                value={guide?.startingPoint || ''}
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+              />
+            </div>
+
+            <div>
+              <label for="endingPoint" class="block text-sm font-medium text-gray-700 mb-1">
+                Ending Point
+              </label>
+              <input
+                type="text"
+                id="endingPoint"
+                name="endingPoint"
+                value={guide?.endingPoint || ''}
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="terrainType" class="block text-sm font-medium text-gray-700 mb-1">
+                Terrain Type
+              </label>
+              <input
+                type="text"
+                id="terrainType"
+                name="terrainType"
+                value={guide?.terrainType || ''}
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+              />
+            </div>
+
+            <div>
+              <label for="bestSeason" class="block text-sm font-medium text-gray-700 mb-1">
+                Best Season
+              </label>
+              <input
+                type="text"
+                id="bestSeason"
+                name="bestSeason"
+                value={guide?.bestSeason || ''}
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Guide Content</h2>
+
+        <div class="space-y-4">
+          <div>
+            <label for="shortDescription" class="block text-sm font-medium text-gray-700 mb-1">
+              Short Description (Card Summary)
+            </label>
+            <textarea
+              id="shortDescription"
+              name="shortDescription"
+              rows="2"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+              >{guide?.shortDescription || ''}</textarea
+            >
+          </div>
+
+          <div>
+            <label for="description" class="block text-sm font-medium text-gray-700 mb-1">
+              Intro Description
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              rows="3"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+              >{guide?.description || ''}</textarea
+            >
+          </div>
+
+          <div>
+            <label for="content" class="block text-sm font-medium text-gray-700 mb-1">
+              Main Content *
+            </label>
+            <textarea
+              id="content"
+              name="content"
+              required
+              rows="10"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+              >{guide?.content}</textarea
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- Media -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Media & Maps</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="mapImageUrl" class="block text-sm font-medium text-gray-700 mb-1">
+              Map Image URL
+            </label>
+            <input
+              type="text"
+              id="mapImageUrl"
+              name="mapImageUrl"
+              value={guide?.mapImageUrl || ''}
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+            />
+          </div>
+
+          <div>
+            <label for="gpxFileUrl" class="block text-sm font-medium text-gray-700 mb-1">
+              GPX File URL
+            </label>
+            <input
+              type="text"
+              id="gpxFileUrl"
+              name="gpxFileUrl"
+              value={guide?.gpxFileUrl || ''}
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- SEO -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">SEO Settings</h2>
+
+        <div class="space-y-4">
+          <div>
+            <label for="metaTitle" class="block text-sm font-medium text-gray-700 mb-1">
+              Meta Title
+            </label>
+            <input
+              type="text"
+              id="metaTitle"
+              name="metaTitle"
+              maxlength="60"
+              value={guide?.metaTitle || ''}
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+            />
+          </div>
+
+          <div>
+            <label for="metaDescription" class="block text-sm font-medium text-gray-700 mb-1">
+              Meta Description
+            </label>
+            <textarea
+              id="metaDescription"
+              name="metaDescription"
+              rows="3"
+              maxlength="160"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+              >{guide?.metaDescription || ''}</textarea
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- Publishing Options -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Publishing Options</h2>
+
+        <div class="space-y-3">
+          <div class="flex items-center">
+            <input
+              type="checkbox"
+              id="isPublished"
+              name="isPublished"
+              checked={guide?.isPublished}
+              class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
+            />
+            <label for="isPublished" class="ml-2 block text-sm text-gray-700">
+              Publish this guide (visible to public)
+            </label>
+          </div>
+
+          <div class="flex items-center">
+            <input
+              type="checkbox"
+              id="featured"
+              name="featured"
+              checked={guide?.featured}
+              class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
+            />
+            <label for="featured" class="ml-2 block text-sm text-gray-700">
+              Feature this guide on homepage
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center justify-end space-x-4">
+        <a
+          href="/admin/guides"
+          class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium"
+        >
+          Cancel
+        </a>
+        <button
+          type="submit"
+          class="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition font-medium"
+        >
+          Update Guide
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div
+    id="deleteModal"
+    class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+  >
+    <div class="bg-white rounded-xl max-w-md w-full p-6">
+      <div class="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mx-auto mb-4">
+        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+          ></path>
+        </svg>
+      </div>
+      <h3 class="text-lg font-semibold text-gray-900 text-center mb-2">Delete Guide</h3>
+      <p class="text-gray-600 text-center mb-6">
+        Are you sure you want to delete <strong id="guideName"></strong>? This action cannot be
+        undone.
+      </p>
+      <div class="flex space-x-3">
+        <button
+          onclick="closeDeleteModal()"
+          class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium"
+        >
+          Cancel
+        </button>
+        <button
+          id="confirmDeleteBtn"
+          class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let guideToDelete = '';
+
+    function confirmDelete(id: string, name: string) {
+      guideToDelete = id;
+      const modal = document.getElementById('deleteModal');
+      const guideNameEl = document.getElementById('guideName');
+      if (guideNameEl) guideNameEl.textContent = name;
+      modal?.classList.remove('hidden');
+    }
+
+    function closeDeleteModal() {
+      const modal = document.getElementById('deleteModal');
+      modal?.classList.add('hidden');
+      guideToDelete = '';
+    }
+
+    // Make functions globally available
+    (window as any).confirmDelete = confirmDelete;
+    (window as any).closeDeleteModal = closeDeleteModal;
+
+    // Handle delete confirmation
+    document.getElementById('confirmDeleteBtn')?.addEventListener('click', async () => {
+      if (!guideToDelete) return;
+
+      try {
+        const response = await fetch(`/api/admin/guides/${guideToDelete}`, {
+          method: 'DELETE',
+          credentials: 'include',
+        });
+
+        if (response.ok) {
+          window.location.href = '/admin/guides';
+        } else {
+          alert('Failed to delete guide');
+        }
+      } catch (error) {
+        console.error('Delete error:', error);
+        alert('Failed to delete guide');
+      }
+    });
+  </script>
+</AdminLayout>

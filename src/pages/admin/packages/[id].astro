@@ -1,6 +1,13 @@
 ---
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { prisma } from '../../../lib/db/connection';
+import ArrayEditor from '../../../components/admin/ArrayEditor.astro';
+import ItineraryEditor from '../../../components/admin/ItineraryEditor.astro';
+import FAQEditor from '../../../components/admin/FAQEditor.astro';
+import ReviewsEditor from '../../../components/admin/ReviewsEditor.astro';
+import SupportContactsEditor from '../../../components/admin/SupportContactsEditor.astro';
+import SustainabilityEditor from '../../../components/admin/SustainabilityEditor.astro';
+import MediaGalleryEditor from '../../../components/admin/MediaGalleryEditor.astro';
 
 const user = Astro.locals.user;
 if (!user) {
@@ -19,7 +26,7 @@ if (isEdit) {
     packageData = await prisma.tourPackage.findUnique({
       where: { id: packageId },
     });
-    
+
     if (!packageData) {
       error = 'Package not found';
     }
@@ -28,7 +35,6 @@ if (isEdit) {
     error = 'Failed to load package';
   }
 }
-
 
 const title = isEdit ? 'Edit Package' : 'Create Package';
 const difficultyLevels = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'];
@@ -45,11 +51,13 @@ const difficultyLevels = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'];
     <h1 class="text-2xl font-bold text-gray-900">{title}</h1>
   </div>
 
-  {error && (
-    <div class="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
-      {error}
-    </div>
-  )}
+  {
+    error && (
+      <div class="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
+        {error}
+      </div>
+    )
+  }
 
   <!-- Form -->
   <form id="packageForm" class="space-y-6">
@@ -58,7 +66,7 @@ const difficultyLevels = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'];
     <!-- Basic Information -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
       <h2 class="text-lg font-semibold text-gray-900 mb-4">Basic Information</h2>
-      
+
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Title -->
         <div class="md:col-span-2">
@@ -135,18 +143,20 @@ const difficultyLevels = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'];
             required
             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
           >
-            {difficultyLevels.map((level) => (
-              <option value={level} selected={packageData?.difficultyLevel === level}>
-                {level}
-              </option>
-            ))}
+            {
+              difficultyLevels.map((level) => (
+                <option value={level} selected={packageData?.difficultyLevel === level}>
+                  {level}
+                </option>
+              ))
+            }
           </select>
         </div>
 
         <!-- Base Price -->
         <div>
           <label for="basePrice" class="block text-sm font-medium text-gray-700 mb-2">
-            Base Price (LKR) <span class="text-red-500">*</span>
+            Base Price (USD) <span class="text-red-500">*</span>
           </label>
           <input
             type="number"
@@ -196,20 +206,21 @@ const difficultyLevels = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'];
     <!-- Description -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
       <h2 class="text-lg font-semibold text-gray-900 mb-4">Full Description</h2>
-      
+
       <textarea
         id="description"
         name="description"
         rows="6"
         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
         placeholder="Detailed description of the package..."
-      >{packageData?.description || ''}</textarea>
+        >{packageData?.description || ''}</textarea
+      >
     </div>
 
     <!-- Status & Visibility -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
       <h2 class="text-lg font-semibold text-gray-900 mb-4">Status & Visibility</h2>
-      
+
       <div class="space-y-4">
         <div class="flex items-center">
           <input
@@ -242,7 +253,7 @@ const difficultyLevels = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'];
     <!-- SEO -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
       <h2 class="text-lg font-semibold text-gray-900 mb-4">SEO Settings</h2>
-      
+
       <div class="space-y-4">
         <div>
           <label for="metaTitle" class="block text-sm font-medium text-gray-700 mb-2">
@@ -268,9 +279,91 @@ const difficultyLevels = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'];
             rows="3"
             maxlength="160"
             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-          >{packageData?.metaDescription || ''}</textarea>
+            >{packageData?.metaDescription || ''}</textarea
+          >
         </div>
       </div>
+    </div>
+
+    <!-- Tour Highlights -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Tour Highlights</h2>
+      <ArrayEditor
+        name="highlights"
+        items={packageData?.highlights || []}
+        label="Highlights"
+        placeholder="e.g., Scenic coastal roads with ocean views"
+      />
+    </div>
+
+    <!-- Itinerary -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Itinerary</h2>
+      <ItineraryEditor itinerary={packageData?.itinerary || []} />
+    </div>
+
+    <!-- What to Bring -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">What to Bring</h2>
+      <ArrayEditor
+        name="whatToBring"
+        items={packageData?.whatToBring || []}
+        label="Items"
+        placeholder="e.g., Hiking boots"
+      />
+    </div>
+
+    <!-- Included & Excluded Services -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Included Services</h2>
+        <ArrayEditor
+          name="includedServices"
+          items={packageData?.includedServices || []}
+          label="Included Items"
+          placeholder="e.g., Airport transfers"
+        />
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Excluded Services</h2>
+        <ArrayEditor
+          name="excludedServices"
+          items={packageData?.excludedServices || []}
+          label="Excluded Items"
+          placeholder="e.g., International flights"
+        />
+      </div>
+    </div>
+
+    <!-- FAQs -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">FAQs</h2>
+      <FAQEditor faqs={packageData?.faqs || []} />
+    </div>
+
+    <!-- Reviews -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Reviews</h2>
+      <ReviewsEditor reviews={packageData?.reviews || []} />
+    </div>
+
+    <!-- Support Contacts -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Support Contacts</h2>
+      <SupportContactsEditor contacts={packageData?.supportContacts || []} />
+    </div>
+
+    <!-- Sustainability -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Sustainability</h2>
+      <SustainabilityEditor data={packageData?.sustainability || {}} />
+    </div>
+
+    <!-- Media Gallery -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Media Gallery</h2>
+      <MediaGalleryEditor data={packageData?.mediaGallery || {}} />
     </div>
 
     <!-- Actions -->
@@ -292,61 +385,141 @@ const difficultyLevels = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'];
   </form>
 
   <script>
-    const form = document.getElementById('packageForm') as HTMLFormElement;
-    const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+    const form = document.getElementById('packageForm');
+    const submitBtn = document.getElementById('submitBtn');
 
-    form?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const formData = new FormData(form);
-      const data: Record<string, any> = {};
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-      // Convert form data to JSON
-      formData.forEach((value, key) => {
-        if (key === 'isActive' || key === 'featured') {
-          data[key] = form.querySelector(`input[name="${key}"]`)?.checked || false;
-        } else if (key === 'duration' || key === 'maxParticipants') {
-          data[key] = parseInt(value as string);
-        } else if (key === 'basePrice') {
-          data[key] = parseFloat(value as string);
+        const formData = new FormData(form);
+        const data: any = {};
+
+        // Serialize array editors
+        console.log('🔍 Checking for arrayEditorSerializers...', window);
+        const arrayEditorSerializers = window.arrayEditorSerializers || {};
+        console.log('🔍 Available serializers:', Object.keys(arrayEditorSerializers));
+
+        if (arrayEditorSerializers.highlights) {
+          const highlightsData = arrayEditorSerializers.highlights();
+          console.log('✅ Highlights serialized:', highlightsData);
+          data.highlights = highlightsData;
         } else {
-          data[key] = value;
+          console.warn('⚠️ No highlights serializer found!');
         }
-      });
 
-      // Disable submit button
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Saving...';
+        if (arrayEditorSerializers.whatToBring) {
+          const whatToBringData = arrayEditorSerializers.whatToBring();
+          data.whatToBring = whatToBringData;
+        }
 
-      try {
-        const packageId = data.id;
-        const isEdit = packageId && packageId !== 'new';
-        const url = isEdit ? `/api/admin/packages/${packageId}` : '/api/admin/packages';
-        const method = isEdit ? 'PUT' : 'POST';
+        if (arrayEditorSerializers.includedServices) {
+          data.includedServices = arrayEditorSerializers.includedServices();
+        }
 
-        const response = await fetch(url, {
-          method,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-          body: JSON.stringify(data),
+        if (arrayEditorSerializers.excludedServices) {
+          data.excludedServices = arrayEditorSerializers.excludedServices();
+        }
+
+        // Serialize FAQs
+        const faqEditorSerializers = (window as any).faqEditorSerializers || {};
+        if (faqEditorSerializers.faqs) {
+          data.faqs = faqEditorSerializers.faqs();
+        }
+
+        // Serialize Reviews
+        const reviewsEditorSerializers = (window as any).reviewsEditorSerializers || {};
+        if (reviewsEditorSerializers.reviews) {
+          data.reviews = reviewsEditorSerializers.reviews();
+        }
+
+        // Serialize Support Contacts
+        const supportContactsEditorSerializers =
+          (window as any).supportContactsEditorSerializers || {};
+        if (supportContactsEditorSerializers.supportContacts) {
+          data.supportContacts = supportContactsEditorSerializers.supportContacts();
+        }
+
+        // Serialize Sustainability
+        const sustainabilityEditorSerializers =
+          (window as any).sustainabilityEditorSerializers || {};
+        if (sustainabilityEditorSerializers.sustainability) {
+          data.sustainability = sustainabilityEditorSerializers.sustainability();
+        }
+
+        // Serialize Media Gallery
+        const mediaGalleryEditorSerializers = (window as any).mediaGalleryEditorSerializers || {};
+        if (mediaGalleryEditorSerializers.mediaGallery) {
+          data.mediaGallery = mediaGalleryEditorSerializers.mediaGallery();
+        }
+
+        // Serialize itinerary
+        const itineraryEditorSerializers = (window as any).itineraryEditorSerializers || {};
+        if (itineraryEditorSerializers.itinerary) {
+          data.itinerary = itineraryEditorSerializers.itinerary();
+        }
+
+        // Convert form data to JSON
+        formData.forEach((value, key) => {
+          // Skip JSON hidden inputs (they're already handled above)
+          if (key.endsWith('-json')) {
+            return;
+          }
+
+          if (key === 'isActive' || key === 'featured') {
+            const checkbox = form.querySelector(`input[name="${key}"]`);
+            data[key] = checkbox ? checkbox.checked : false;
+          } else if (key === 'duration' || key === 'maxParticipants') {
+            data[key] = parseInt(value);
+          } else if (key === 'basePrice') {
+            data[key] = parseFloat(value);
+          } else {
+            data[key] = value;
+          }
         });
 
-        if (response.ok) {
-          window.location.href = '/admin/packages';
-        } else {
-          const error = await response.json();
-          alert(error.error || 'Failed to save package');
-          submitBtn.disabled = false;
-          submitBtn.textContent = isEdit ? 'Update Package' : 'Create Package';
+        console.log('📦 Final data to send:', data);
+
+        // Disable submit button
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Saving...';
         }
-      } catch (error) {
-        console.error('Save error:', error);
-        alert('Failed to save package');
-        submitBtn.disabled = false;
-        submitBtn.textContent = isEdit ? 'Update Package' : 'Create Package';
-      }
-    });
+
+        try {
+          const packageId = data.id;
+          const isEdit = packageId && packageId !== 'new';
+          const url = isEdit ? `/api/admin/packages/${packageId}` : '/api/admin/packages';
+          const method = isEdit ? 'PUT' : 'POST';
+
+          const response = await fetch(url, {
+            method,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(data),
+          });
+
+          if (response.ok) {
+            window.location.href = '/admin/packages';
+          } else {
+            const error = await response.json();
+            alert(error.error || 'Failed to save package');
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.textContent = isEdit ? 'Update Package' : 'Create Package';
+            }
+          }
+        } catch (error) {
+          console.error('Save error:', error);
+          alert('Failed to save package');
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = isEdit ? 'Update Package' : 'Create Package';
+          }
+        }
+      });
+    }
   </script>
 </AdminLayout>

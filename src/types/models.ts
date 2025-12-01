@@ -219,6 +219,65 @@ export interface PaginatedResponse<T> {
 }
 
 /**
+ * Booking search parameters
+ */
+export interface BookingSearchParams {
+  query?: string;
+  status?: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
+  paymentStatus?: 'PENDING' | 'PAID' | 'PARTIAL' | 'REFUNDED';
+  packageId?: string;
+  startDate?: Date;
+  endDate?: Date;
+  page?: number;
+  limit?: number;
+}
+
+/**
+ * Booking search result with stats
+ */
+export interface BookingSearchResult {
+  bookings: BookingWithPackage[];
+  total: number;
+  page: number;
+  limit: number;
+  hasMore: boolean;
+  stats: {
+    pending: number;
+    confirmed: number;
+    cancelled: number;
+    completed: number;
+  };
+}
+
+/**
+ * Booking status history
+ */
+export interface BookingStatusHistory {
+  id: string;
+  bookingId: string;
+  previousStatus?: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
+  newStatus?: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
+  previousPayment?: 'PENDING' | 'PAID' | 'PARTIAL' | 'REFUNDED';
+  newPayment?: 'PENDING' | 'PAID' | 'PARTIAL' | 'REFUNDED';
+  notes?: string;
+  changedBy: string;
+  admin: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  createdAt: Date;
+}
+
+/**
+ * Extended booking with relationships
+ */
+export interface BookingWithDetails extends BookingWithPackage {
+  bookingAccommodations?: any[];
+  statusHistory?: BookingStatusHistory[];
+}
+
+/**
  * Form submission interfaces
  */
 export interface BookingFormData {
