@@ -299,5 +299,6 @@ docker system prune -af --volumes --filter "until=72h"
 2. Hook UptimeRobot / BetterStack to `https://cycleparadise.bike/health`.
 3. Schedule `npm audit --production` and OS patching.
 4. Continue with Phase 4+ admin features, tagging each release.
+5. Dry-run release pipelines by opening PRs from feature branches, then tag once approved to kick off production deploys.
 
 With this playbook, the infrastructure serves **cycleparadise.bike** securely, updates via Git tags, and stays production-ready with backups, monitoring, and hardened networking.
