@@ -1,6 +1,38 @@
 import { db } from '../client';
 import type { CyclingGuide, GuideSearchParams } from '../../../types/models';
 import { ValidationError } from '../../errors';
+import type { Prisma } from '@prisma/client';
+
+/**
+ * Transform Prisma CyclingGuide to our typed model
+ */
+function transformGuide(raw: any): CyclingGuide {
+  return {
+    ...raw,
+    estimatedDuration: raw.estimatedDuration ?? undefined,
+    estimatedDistance: raw.estimatedDistance ?? undefined,
+    startingPoint: raw.startingPoint ?? undefined,
+    endingPoint: raw.endingPoint ?? undefined,
+    terrainType: raw.terrainType ?? undefined,
+    bestSeason: raw.bestSeason ?? undefined,
+    hydrationStops: (raw.hydrationStops ?? undefined) as Array<{ name: string; type: string; notes?: string }> | undefined,
+    safetyTips: (raw.safetyTips ?? undefined) as string[] | undefined,
+    gearChecklist: (raw.gearChecklist ?? undefined) as string[] | undefined,
+    nearbyAttractions: (raw.nearbyAttractions ?? undefined) as string[] | undefined,
+    highlights: (raw.highlights ?? undefined) as string[] | undefined,
+    routeSegments: (raw.routeSegments ?? undefined) as Array<{ title?: string; distance?: string; description?: string }> | undefined,
+    routeMap: raw.routeMap ?? undefined,
+    pointsOfInterest: raw.pointsOfInterest ?? undefined,
+    images: raw.images ?? undefined,
+    faqs: (raw.faqs ?? undefined) as Array<{ question: string; answer: string }> | undefined,
+    mapImageUrl: raw.mapImageUrl ?? undefined,
+    gpxFileUrl: raw.gpxFileUrl ?? undefined,
+    description: raw.description ?? undefined,
+    shortDescription: raw.shortDescription ?? undefined,
+    metaTitle: raw.metaTitle ?? undefined,
+    metaDescription: raw.metaDescription ?? undefined,
+  };
+}
 
 /**
  * Repository for CyclingGuide operations
@@ -51,7 +83,7 @@ export class CyclingGuideRepository {
         ]
       });
 
-      return guides as CyclingGuide[];
+      return guides.map(transformGuide);
     } catch (error) {
       console.error('Error finding cycling guides:', error);
       throw new ValidationError('Failed to retrieve cycling guides');
@@ -72,7 +104,7 @@ export class CyclingGuideRepository {
         take: limit
       });
 
-      return guides as CyclingGuide[];
+      return guides.map(transformGuide);
     } catch (error) {
       console.error('Error finding featured guides:', error);
       throw new ValidationError('Failed to retrieve featured guides');
@@ -95,7 +127,7 @@ export class CyclingGuideRepository {
         }
       });
 
-      return guide as CyclingGuide | null;
+      return guide ? transformGuide(guide) : null;
     } catch (error) {
       console.error('Error finding guide by slug:', error);
       throw new ValidationError('Failed to retrieve guide');
@@ -120,7 +152,7 @@ export class CyclingGuideRepository {
         take: limit
       });
 
-      return guides as CyclingGuide[];
+      return guides.map(transformGuide);
     } catch (error) {
       console.error('Error finding guides by region:', error);
       throw new ValidationError('Failed to retrieve guides by region');
@@ -152,7 +184,7 @@ export class CyclingGuideRepository {
         take: limit
       });
 
-      return guides as CyclingGuide[];
+      return guides.map(transformGuide);
     } catch (error) {
       console.error('Error searching guides:', error);
       throw new ValidationError('Failed to search guides');
