@@ -1,7 +1,8 @@
 import { defineMiddleware } from 'astro:middleware';
+import type { MiddlewareNext } from 'astro';
 import { getUserFromSession } from './lib/auth';
 
-export const onRequest = defineMiddleware(async (context, next) => {
+export const onRequest = defineMiddleware(async (context, next: MiddlewareNext) => {
   const { cookies, url, redirect, locals } = context;
 
   // Check route types
