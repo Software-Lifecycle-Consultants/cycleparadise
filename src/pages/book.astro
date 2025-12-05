@@ -79,6 +79,7 @@ const pageTitle = preSelectedPackage
                   id="start-date"
                   name="start-date"
                   required
+                  autocomplete="off"
                   min={new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
@@ -93,6 +94,7 @@ const pageTitle = preSelectedPackage
                   id="end-date"
                   name="end-date"
                   required
+                  autocomplete="off"
                   readonly
                   class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50"
                 />
@@ -151,6 +153,7 @@ const pageTitle = preSelectedPackage
                   id="first-name"
                   name="first-name"
                   required
+                  autocomplete="given-name"
                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
               </div>
@@ -163,6 +166,7 @@ const pageTitle = preSelectedPackage
                   id="last-name"
                   name="last-name"
                   required
+                  autocomplete="family-name"
                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
               </div>
@@ -175,6 +179,7 @@ const pageTitle = preSelectedPackage
                   id="email"
                   name="email"
                   required
+                  autocomplete="email"
                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
               </div>
@@ -187,6 +192,7 @@ const pageTitle = preSelectedPackage
                   id="phone"
                   name="phone"
                   required
+                  autocomplete="tel"
                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
               </div>
@@ -199,6 +205,7 @@ const pageTitle = preSelectedPackage
                   id="country"
                   name="country"
                   required
+                  autocomplete="country-name"
                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
               </div>
@@ -305,144 +312,172 @@ const pageTitle = preSelectedPackage
     </div>
   </main>
 
-  <script lang="ts">
-    // Package data with durations
-    const packageData = {
-      'hill-country-explorer': { price: 1299, duration: 7 },
-      'coastal-adventure': { price: 1499, duration: 10 },
-      'cultural-triangle': { price: 1899, duration: 14 },
-    };
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Package data with durations
+      const packageData = {
+        'hill-country-explorer': { price: 1299, duration: 7 },
+        'coastal-adventure': { price: 1499, duration: 10 },
+        'cultural-triangle': { price: 1899, duration: 14 },
+      };
 
-    // Get form elements
-    const form = document.getElementById('booking-form') as HTMLFormElement;
-    const packageSelect = document.getElementById('package') as HTMLSelectElement;
-    const startDateInput = document.getElementById('start-date') as HTMLInputElement;
-    const endDateInput = document.getElementById('end-date') as HTMLInputElement;
-    const guestsInput = document.getElementById('guests') as HTMLInputElement;
-    const accommodationSelect = document.getElementById('accommodation') as HTMLSelectElement;
-    const statusDiv = document.getElementById('form-status') as HTMLDivElement;
-    const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+      // Get form elements
+      const form = document.getElementById('booking-form');
+      const packageSelect = document.getElementById('package');
+      const startDateInput = document.getElementById('start-date');
+      const endDateInput = document.getElementById('end-date');
+      const guestsInput = document.getElementById('guests');
+      const accommodationSelect = document.getElementById('accommodation');
+      const statusDiv = document.getElementById('form-status');
+      const submitBtn = document.getElementById('submit-btn');
 
-    // Update price calculation
-    function updatePrice() {
-      const selectedPackage = packageSelect.value;
-      const guests = parseInt(guestsInput.value) || 1;
-      const accommodation = accommodationSelect.value;
-
-      if (!selectedPackage || !packageData[selectedPackage]) {
-        document.getElementById('base-price')!.textContent = '$0';
-        document.getElementById('total-price')!.textContent = '$0';
-        return;
+      // Helper: Add days to date string safely (using UTC)
+      function addDaysToDate(dateStr, days) {
+        if (!dateStr) return '';
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return '';
+        
+        // Set to noon UTC to avoid any timezone rollover issues
+        date.setUTCHours(12, 0, 0, 0);
+        date.setUTCDate(date.getUTCDate() + days);
+        return date.toISOString().split('T')[0];
       }
 
-      const basePrice = packageData[selectedPackage].price;
-      const accommodationFee = accommodation === 'single' ? 200 : 0;
-      const total = basePrice * guests + accommodationFee * guests;
+      // Update price calculation
+      function updatePrice() {
+        if (!packageSelect || !guestsInput || !accommodationSelect) return;
 
-      document.getElementById('base-price')!.textContent = `$${basePrice.toLocaleString()}`;
-      document.getElementById('guest-count')!.textContent = guests.toString();
-      document.getElementById('accommodation-fee')!.textContent =
-        `$${(accommodationFee * guests).toLocaleString()}`;
-      document.getElementById('total-price')!.textContent = `$${total.toLocaleString()}`;
-    }
+        const selectedPackage = packageSelect.value;
+        const guests = parseInt(guestsInput.value) || 1;
+        const accommodation = accommodationSelect.value;
 
-    // Update end date based on package duration
-    function updateEndDate() {
-      const selectedPackage = packageSelect.value;
-      const startDate = startDateInput.value;
+        const basePriceEl = document.getElementById('base-price');
+        const totalPriceEl = document.getElementById('total-price');
+        const guestCountEl = document.getElementById('guest-count');
+        const accFeeEl = document.getElementById('accommodation-fee');
 
-      if (!selectedPackage || !startDate || !packageData[selectedPackage]) {
-        endDateInput.value = '';
-        return;
+        if (!selectedPackage || !packageData[selectedPackage]) {
+          if (basePriceEl) basePriceEl.textContent = '$0';
+          if (totalPriceEl) totalPriceEl.textContent = '$0';
+          return;
+        }
+
+        const basePrice = packageData[selectedPackage].price;
+        const accommodationFee = accommodation === 'single' ? 200 : 0;
+        const total = basePrice * guests + accommodationFee * guests;
+
+        if (basePriceEl) basePriceEl.textContent = `$${basePrice.toLocaleString()}`;
+        if (guestCountEl) guestCountEl.textContent = guests.toString();
+        if (accFeeEl) accFeeEl.textContent = `$${(accommodationFee * guests).toLocaleString()}`;
+        if (totalPriceEl) totalPriceEl.textContent = `$${total.toLocaleString()}`;
       }
 
-      const duration = packageData[selectedPackage].duration;
-      const start = new Date(startDate);
-      const end = new Date(start);
-      end.setDate(end.getDate() + duration);
+      // Update end date based on package duration
+      function updateEndDate() {
+        if (!packageSelect || !startDateInput || !endDateInput) return;
 
-      endDateInput.value = end.toISOString().split('T')[0];
-    }
+        const selectedPackage = packageSelect.value;
+        const startDate = startDateInput.value;
 
-    // Event listeners
-    packageSelect.addEventListener('change', () => {
+        if (!selectedPackage || !startDate || !packageData[selectedPackage]) {
+          endDateInput.value = '';
+          return;
+        }
+
+        const duration = packageData[selectedPackage].duration;
+        endDateInput.value = addDaysToDate(startDate, duration);
+      }
+
+      // Event listeners
+      if (packageSelect) {
+        packageSelect.addEventListener('change', () => {
+          updatePrice();
+          updateEndDate();
+        });
+      }
+
+      if (startDateInput) startDateInput.addEventListener('change', updateEndDate);
+      if (guestsInput) guestsInput.addEventListener('input', updatePrice);
+      if (accommodationSelect) accommodationSelect.addEventListener('change', updatePrice);
+
+      // Form submission
+      if (form) {
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+
+          if (!submitBtn || !statusDiv) return;
+
+          // Show loading state
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<span>Processing...</span>';
+          statusDiv.classList.add('hidden');
+
+          try {
+            // Collect form data
+            const formData = new FormData(form);
+            const totalPriceEl = document.getElementById('total-price');
+            const totalPriceText = totalPriceEl ? totalPriceEl.textContent : '0';
+            const totalPrice = parseFloat(totalPriceText.replace(/[^0-9.]/g, ''));
+
+            const bookingData = {
+              packageSlug: formData.get('package'),
+              customerFirstName: formData.get('first-name'),
+              customerLastName: formData.get('last-name'),
+              customerEmail: formData.get('email'),
+              customerPhone: formData.get('phone'),
+              customerCountry: formData.get('country'),
+              numberOfGuests: parseInt(formData.get('guests')),
+              startDate: formData.get('start-date'),
+              endDate: formData.get('end-date'),
+              specialRequests: formData.get('special-requests'),
+              totalPrice: totalPrice,
+            };
+
+            console.log('Submitting booking:', bookingData);
+
+            // Send booking to API
+            const response = await fetch('/api/bookings/create', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(bookingData),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+              throw new Error(result.error || 'Failed to create booking');
+            }
+
+            // Redirect to confirmation with booking number
+            window.location.href = `/book/confirmation?ref=${result.data.bookingNumber}`;
+          } catch (error) {
+            console.error('Booking error:', error);
+            
+            // Show error
+            statusDiv.className = 'bg-red-100 text-red-800 rounded-lg p-4';
+            statusDiv.innerHTML = `
+              <p class="font-medium">Booking submission failed</p>
+              <p class="text-sm mt-1">${error.message || 'Please try again or contact us directly.'}</p>
+            `;
+            statusDiv.classList.remove('hidden');
+
+            // Reset button
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = `
+              <span>Submit Booking Request</span>
+              <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+              </svg>
+            `;
+          }
+        });
+      }
+
+      // Initialize price on page load
       updatePrice();
       updateEndDate();
     });
-
-    startDateInput.addEventListener('change', updateEndDate);
-    guestsInput.addEventListener('input', updatePrice);
-    accommodationSelect.addEventListener('change', updatePrice);
-
-    // Form submission
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      // Show loading state
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '<span>Processing...</span>';
-      statusDiv.classList.add('hidden');
-
-      // Collect form data
-      const formData = new FormData(form);
-      const totalPriceText = document.getElementById('total-price')!.textContent || '0';
-      const totalPrice = parseFloat(totalPriceText.replace(/[^0-9.]/g, ''));
-
-      const bookingData = {
-        packageSlug: formData.get('package'),
-        customerFirstName: formData.get('first-name'),
-        customerLastName: formData.get('last-name'),
-        customerEmail: formData.get('email'),
-        customerPhone: formData.get('phone'),
-        customerCountry: formData.get('country'),
-        numberOfGuests: parseInt(formData.get('guests') as string),
-        startDate: formData.get('start-date'),
-        endDate: formData.get('end-date'),
-        specialRequests: formData.get('special-requests'),
-        totalPrice: totalPrice,
-      };
-
-      try {
-        // Send booking to API
-        const response = await fetch('/api/bookings/create', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(bookingData),
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || 'Failed to create booking');
-        }
-
-        const result = await response.json();
-
-        // Redirect to confirmation with booking number
-        window.location.href = `/book/confirmation?ref=${result.data.bookingNumber}`;
-      } catch (error: any) {
-        // Show error
-        statusDiv.className = 'bg-red-100 text-red-800 rounded-lg p-4';
-        statusDiv.innerHTML = `
-          <p class="font-medium">Booking submission failed</p>
-          <p class="text-sm mt-1">Please try again or contact us directly at bookings@cycleparadise.lk</p>
-        `;
-        statusDiv.classList.remove('hidden');
-
-        // Reset button
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = `
-          <span>Submit Booking Request</span>
-          <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-          </svg>
-        `;
-      }
-    });
-
-    // Initialize price on page load
-    updatePrice();
-    updateEndDate();
   </script>
 </Layout>
