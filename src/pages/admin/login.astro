@@ -4,7 +4,7 @@ const message = Astro.url.searchParams.get('message');
 
 // Redirect if already authenticated
 const session = Astro.cookies.get('admin_session');
-if (session) {
+if (session && session.value) {
   return Astro.redirect('/admin');
 }
 ---
