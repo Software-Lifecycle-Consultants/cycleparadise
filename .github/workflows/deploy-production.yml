@@ -133,7 +133,6 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          script_stop: true
           envs: VERSION,POSTGRES_PASSWORD,SMTP_HOST,SMTP_PORT,SMTP_USER,SMTP_PASS,CONTACT_EMAIL,PUBLIC_SITE_URL
           script: |
             set -euo pipefail
@@ -158,18 +157,29 @@ jobs:
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             TAG=$VERSION docker compose pull
             docker compose down
+            
+            # Start containers (allow migrator to fail)
+            set +e
             TAG=$VERSION docker compose up -d
+            COMPOSE_EXIT=$?
+            set -e
             
             # Wait for containers to be ready
             sleep 10
             
-            # Check migrator logs if it failed
-            if ! docker compose ps migrator | grep -q "exited (0)"; then
-              echo "Migrator failed, showing logs:"
-              docker compose logs migrator
+            # Show migrator logs
+            echo "=== Migrator logs ==="
+            docker compose logs migrator
+            
+            # Check if web container is running
+            if ! docker compose ps web | grep -q "Up"; then
+              echo "ERROR: Web container is not running"
+              docker compose logs web
+              exit 1
             fi
             
-            # Run migrations manually if migrator failed
+            # Run migrations from web container
+            echo "=== Running migrations from web container ==="
             docker compose exec -T web npx prisma migrate deploy
             
             docker image prune -af --filter "until=72h"
