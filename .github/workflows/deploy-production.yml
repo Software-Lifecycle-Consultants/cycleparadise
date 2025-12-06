@@ -139,7 +139,7 @@ jobs:
             set -euo pipefail
 
             cd /opt/cycleparadise
-            git fetch --all --tags
+            git fetch --all --tags --force
             git checkout "$VERSION"
 
             cat > .env <<'EOF'
