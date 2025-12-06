@@ -155,11 +155,11 @@ jobs:
             PUBLIC_SITE_URL=${PUBLIC_SITE_URL}
             EOF
 
-            docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
-            TAG=$VERSION docker-compose pull
-            docker-compose down
-            TAG=$VERSION docker-compose up -d
-            docker-compose exec -T web npx prisma migrate deploy
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            TAG=$VERSION docker compose pull
+            docker compose down
+            TAG=$VERSION docker compose up -d
+            docker compose exec -T web npx prisma migrate deploy
             docker image prune -af --filter "until=72h"
 
   health-check:
