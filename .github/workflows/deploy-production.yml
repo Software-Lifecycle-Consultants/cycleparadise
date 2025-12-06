@@ -159,7 +159,19 @@ jobs:
             TAG=$VERSION docker compose pull
             docker compose down
             TAG=$VERSION docker compose up -d
+            
+            # Wait for containers to be ready
+            sleep 10
+            
+            # Check migrator logs if it failed
+            if ! docker compose ps migrator | grep -q "exited (0)"; then
+              echo "Migrator failed, showing logs:"
+              docker compose logs migrator
+            fi
+            
+            # Run migrations manually if migrator failed
             docker compose exec -T web npx prisma migrate deploy
+            
             docker image prune -af --filter "until=72h"
 
   health-check:
