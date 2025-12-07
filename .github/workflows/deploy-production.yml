@@ -175,9 +175,12 @@ jobs:
             TAG=$VERSION docker compose pull
             docker compose down
             
-            # Start containers (allow migrator to fail)
+            # Explicitly unset any conflicting environment variables
+            unset dfgdg12589
+            
+            # Start containers with explicit --env-file to force our .env
             set +e
-            TAG=$VERSION docker compose up -d
+            TAG=$VERSION docker compose --env-file .env up -d
             COMPOSE_EXIT=$?
             set -e
             
@@ -186,18 +189,18 @@ jobs:
             
             # Show migrator logs
             echo "=== Migrator logs ==="
-            docker compose logs migrator
+            docker compose --env-file .env logs migrator
             
             # Check if web container is running
-            if ! docker compose ps web | grep -q "Up"; then
+            if ! docker compose --env-file .env ps web | grep -q "Up"; then
               echo "ERROR: Web container is not running"
-              docker compose logs web
+              docker compose --env-file .env logs web
               exit 1
             fi
             
             # Run migrations from web container
             echo "=== Running migrations from web container ==="
-            docker compose exec -T web npx prisma migrate deploy
+            docker compose --env-file .env exec -T web npx prisma migrate deploy
             
             docker image prune -af --filter "until=72h"
 
