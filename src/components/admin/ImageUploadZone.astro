@@ -1,0 +1,128 @@
+---
+
+---
+
+<div
+  id="upload-zone"
+  class="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center hover:border-emerald-500 transition-colors cursor-pointer bg-gray-50"
+>
+  <input type="file" id="file-input" multiple accept="image/*" class="hidden" />
+
+  <div class="space-y-4 pointer-events-none">
+    <div class="flex justify-center">
+      <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+        ></path>
+      </svg>
+    </div>
+    <div class="text-gray-600">
+      <span class="font-medium text-emerald-600">Click to upload</span> or drag and drop
+    </div>
+    <p class="text-xs text-gray-500">PNG, JPG, GIF up to 5MB</p>
+  </div>
+</div>
+
+<!-- Progress Bar (Hidden by default) -->
+<div id="upload-progress" class="hidden mt-4">
+  <div class="flex justify-between mb-1">
+    <span class="text-sm font-medium text-emerald-700">Uploading...</span>
+    <span class="text-sm font-medium text-emerald-700" id="progress-text">0%</span>
+  </div>
+  <div class="w-full bg-gray-200 rounded-full h-2.5">
+    <div class="bg-emerald-600 h-2.5 rounded-full" style="width: 0%" id="progress-bar"></div>
+  </div>
+</div>
+
+<script>
+  const uploadZone = document.getElementById('upload-zone');
+  const fileInput = document.getElementById('file-input') as HTMLInputElement;
+  const uploadProgress = document.getElementById('upload-progress');
+  const progressBar = document.getElementById('progress-bar');
+  const progressText = document.getElementById('progress-text');
+
+  // Trigger file input click
+  uploadZone?.addEventListener('click', () => {
+    fileInput?.click();
+  });
+
+  // Drag and drop handlers
+  uploadZone?.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadZone.classList.add('border-emerald-500', 'bg-emerald-50');
+  });
+
+  uploadZone?.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('border-emerald-500', 'bg-emerald-50');
+  });
+
+  uploadZone?.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('border-emerald-500', 'bg-emerald-50');
+
+    if (e.dataTransfer?.files.length) {
+      handleUpload(e.dataTransfer.files);
+    }
+  });
+
+  // File input change handler
+  fileInput?.addEventListener('change', () => {
+    if (fileInput.files?.length) {
+      handleUpload(fileInput.files);
+    }
+  });
+
+  async function handleUpload(files: FileList) {
+    const formData = new FormData();
+    for (const file of Array.from(files)) {
+      formData.append('files', file);
+    }
+
+    // Show progress
+    uploadProgress?.classList.remove('hidden');
+    if (progressBar) progressBar.style.width = '0%';
+    if (progressText) progressText.innerText = '0%';
+
+    try {
+      // Simulate progress (since fetch doesn't support upload progress easily without XHR)
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += 10;
+        if (progress > 90) clearInterval(interval);
+        if (progressBar) progressBar.style.width = `${progress}%`;
+        if (progressText) progressText.innerText = `${progress}%`;
+      }, 100);
+
+      const response = await fetch('/api/admin/media/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      clearInterval(interval);
+      if (progressBar) progressBar.style.width = '100%';
+      if (progressText) progressText.innerText = '100%';
+
+      if (response.ok) {
+        // Dispatch custom event to notify parent to refresh grid
+        window.dispatchEvent(new CustomEvent('media-uploaded'));
+
+        // Reset after short delay
+        setTimeout(() => {
+          uploadProgress?.classList.add('hidden');
+          if (progressBar) progressBar.style.width = '0%';
+        }, 1000);
+      } else {
+        alert('Upload failed');
+        uploadProgress?.classList.add('hidden');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('An error occurred during upload');
+      uploadProgress?.classList.add('hidden');
+    }
+  }
+</script>

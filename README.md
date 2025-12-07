@@ -21,734 +21,184 @@ Premium cycling tours and travel inspiration across Sri Lanka, built with [Astro
 
 ## 🗺️ Key Routes
 
-| Route | Description |
-| --- | --- |
-| `/` | Marketing homepage with featured tours, media, and Instagram gallery |
-| `/packages` | Tour packages listing with search and filters |
-| `/packages/[slug]` | Individual package detail with itineraries, pricing, booking |
-| `/guides` | Cycling guides listing with regional filters |
-| `/guides/[slug]` | Guide detail with maps, GPX downloads, route segments |
-| `/about` | Mission, leadership, milestones, and community impact |
-| `/contact` | Multi-channel support hub with interactive enquiry form |
-| `/search` | Site-wide search across packages and guides |
-| `/offline` | Offline fallback page (service worker) |
+| Route       | Description                                             |
+| ----------- | ------------------------------------------------------- |
+| `/`         | Marketing homepage with featured tours and media        |
+| `/packages` | Tour packages listing with search and filters           |
+| `/guides`   | Cycling guides listing with regional filters            |
+| `/about`    | Mission, leadership, milestones, and community impact   |
+| `/contact`  | Multi-channel support hub with interactive enquiry form |
+| `/admin`    | Admin Dashboard (Requires authentication)               |
 
-## 🛠️ Tech Stack
+## 🚀 Getting Started
 
-- **Framework**: Astro 4.16+ (static site generation)
-- **Language**: TypeScript (strict mode)
-- **Styling**: TailwindCSS 3.0+
-- **Database**: PostgreSQL + Prisma ORM (optional - has fallback data)
-- **Authentication**: Session-based (bcrypt)
-- **Email**: NodeMailer with SMTP
-- **Media**: Sharp for image optimization
-- **Deployment**: Docker, Vercel, Netlify compatible
-
-## ⚙️ Quick Start
+The easiest way to run Cycle Paradise is using Docker Compose, which sets up both the application and the PostgreSQL database automatically.
 
 ### Prerequisites
-- Node.js 20+
-- npm or pnpm
-- PostgreSQL (optional - site works with fallback data)
 
-### Development Setup
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- Node.js 20+ (for local development utilities)
 
-```powershell
+### Quick Start (Docker)
+
+1. **Clone the repository**
+
+   ```bash
+   git clone <repository-url>
+   cd cycleparadise
+   ```
+
+2. **Configure Environment**
+   Copy `.env.example` to `.env`. The default settings work out-of-the-box with Docker Compose.
+
+   ```bash
+   cp .env.example .env
+   ```
+
+3. **Start the Application**
+   Run the following command to build and start the specific services (Database and Web App):
+
+   ```bash
+   docker compose up --build
+   ```
+
+   The site will be available at [http://localhost:4321](http://localhost:4321).
+   The database will be running on port `5432`.
+
+### Local Development (No Docker)
+
+If you prefer running Node.js locally:
+
+```bash
 # Install dependencies
 npm install
 
-# Start dev server
+# Start dev server (uses Fallback Data mode if no DB configured)
 npm run dev
-
-# Visit http://localhost:4321
 ```
 
-### Environment Variables
+### Available Commands
 
-Copy `.env.example` to `.env` and configure:
+| Command             | Description                     |
+| ------------------- | ------------------------------- |
+| `npm run dev`       | Start development server        |
+| `npm run build`     | Build for production            |
+| `npm run preview`   | Preview production build        |
+| `npm run db:seed`   | Seed database with initial data |
+| `npx prisma studio` | Open database GUI               |
 
-```bash
-# Database (optional - uses fallback data if not set)
-DATABASE_URL="postgresql://user:password@localhost:5432/cycleparadise"
+## 🛠️ Tech Stack
 
-# Email (NodeMailer SMTP)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
-CONTACT_EMAIL=info@cycleparadise.lk
+- **Framework**: Astro 4.16+ (Hybrid Rendering)
+- **Language**: TypeScript (Strict Mode)
+- **Styling**: TailwindCSS 3.0+
+- **Database**: PostgreSQL 15 + Prisma ORM
+- **Authentication**: Session-based (HttpOnly Cookies, bcrypt)
+- **Email**: NodeMailer (SMTP)
+- **Media**: Sharp (Optimization)
+- **Containerization**: Docker & Docker Compose
 
-# Instagram Integration (optional)
-INSTAGRAM_ACCESS_TOKEN=your_token_here
+## 🔑 Admin Panel
 
-# Contact Form (optional - falls back to email link)
-PUBLIC_CONTACT_FORM_ENDPOINT=https://formsubmit.co/your-email@example.com
+Cycle Paradise includes a comprehensive Admin Panel for managing the site's content.
 
-# Site URL
-PUBLIC_SITE_URL=https://cycleparadise.lk
-```
+**Access**: [http://localhost:4321/admin/login](http://localhost:4321/admin/login)
 
-## 📧 Email Setup
+### Default Credentials (Dev)
 
-Cycle Paradise uses **NodeMailer** with SMTP for sending contact form notifications and booking confirmations.
-
-### Supported Email Providers
-
-#### Gmail (Recommended for Testing)
-
-```env
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASSWORD=your-app-password
-FROM_EMAIL=noreply@cycleparadise.lk
-```
-
-**Setup Steps:**
-1. Enable 2-factor authentication on your Google account
-2. Generate an App Password: https://myaccount.google.com/apppasswords
-3. Select "Mail" and your device/app name
-4. Copy the 16-character app password to `SMTP_PASSWORD`
-
-#### Outlook/Hotmail
-
-```env
-SMTP_HOST=smtp-mail.outlook.com
-SMTP_PORT=587
-SMTP_USER=your-email@outlook.com
-SMTP_PASSWORD=your-password
-FROM_EMAIL=noreply@cycleparadise.lk
-```
-
-#### SendGrid (Recommended for Production)
-
-```env
-SMTP_HOST=smtp.sendgrid.net
-SMTP_PORT=587
-SMTP_USER=apikey
-SMTP_PASSWORD=your-sendgrid-api-key
-FROM_EMAIL=noreply@cycleparadise.lk
-```
-
-**Setup Steps:**
-1. Create account at https://sendgrid.com (free tier: 100 emails/day)
-2. Create API key in Settings → API Keys
-3. Use `apikey` as username (literal string)
-4. Use your API key as password
-
-#### Mailgun
-
-```env
-SMTP_HOST=smtp.mailgun.org
-SMTP_PORT=587
-SMTP_USER=postmaster@your-domain.mailgun.org
-SMTP_PASSWORD=your-mailgun-password
-FROM_EMAIL=noreply@cycleparadise.lk
-```
-
-#### AWS SES (Amazon Simple Email Service)
-
-```env
-SMTP_HOST=email-smtp.us-east-1.amazonaws.com
-SMTP_PORT=587
-SMTP_USER=your-ses-smtp-username
-SMTP_PASSWORD=your-ses-smtp-password
-FROM_EMAIL=verified-sender@yourdomain.com
-```
-
-**Note:** Must verify sender email/domain in AWS SES console first.
-
-#### Custom SMTP Server
-
-```env
-SMTP_HOST=mail.yourdomain.com
-SMTP_PORT=587                    # or 465 for SSL
-SMTP_USER=your-username
-SMTP_PASSWORD=your-password
-FROM_EMAIL=noreply@yourdomain.com
-```
-
-### Testing Email Configuration
-
-1. **Start development server:**
-   ```bash
-   npm run dev
-   ```
-
-2. **Submit contact form:**
-   - Visit http://localhost:4321/contact
-   - Fill out the form
-   - Submit and check console for "Email sent successfully"
-
-3. **Check logs:**
-   - Console will show: `Email sent successfully: <message-id>`
-   - Or error: `Failed to send email: <error-details>`
-
-### Email Templates
-
-Email templates are defined in `src/lib/email/service.ts`.
-
-**Available templates:**
-- Contact form notification
-- Booking confirmation
-- Booking status update
-- Admin notifications
-
-**Customizing templates:**
-Edit the template functions in `src/lib/email/service.ts` to change HTML/text content.
-
-### Production Recommendations
-
-- ✅ **Use dedicated email service** (SendGrid, Mailgun, AWS SES)
-- ✅ **Verify domain SPF/DKIM records** to prevent spam filtering
-- ✅ **Set up DMARC policy** for domain authentication
-- ✅ **Monitor sending limits** (free tiers have daily caps)
-- ✅ **Use transactional email addresses** (e.g., noreply@, bookings@)
-- ❌ **Avoid using personal Gmail** in production
-
-### Troubleshooting Email
-
-**Error: "Invalid login"**
-- Check username/password are correct
-- For Gmail: Use App Password, not regular password
-- For SendGrid: Username must be exactly `apikey`
-
-**Error: "Connection timeout"**
-- Check `SMTP_HOST` and `SMTP_PORT` are correct
-- Verify firewall allows outbound SMTP connections
-- Try port 465 (SSL) instead of 587 (TLS)
-
-**Emails going to spam:**
-- Verify sender domain SPF/DKIM records
-- Use professional "from" address matching your domain
-- Avoid spam trigger words in subject/body
-- Use dedicated IP (available with paid email services)
-
-**No emails sent, no errors:**
-- Check email service dashboard for bounces/rejections
-- Verify `FROM_EMAIL` is allowed by your SMTP provider
-- Check console logs for hidden errors
-
-## 🗄️ Database Setup (Optional)
-
-The site works with **fallback data** from `src/data/` when no database is configured. To enable full functionality:
-
-### Option 1: Local PostgreSQL
-
-```powershell
-# Install PostgreSQL from https://www.postgresql.org/download/windows/
-
-# Create database
-psql -U postgres
-CREATE DATABASE cycleparadise;
-CREATE USER cycleparadise_user WITH PASSWORD 'your_secure_password';
-GRANT ALL PRIVILEGES ON DATABASE cycleparadise TO cycleparadise_user;
-\q
-
-# Set DATABASE_URL in .env
-DATABASE_URL="postgresql://cycleparadise_user:your_secure_password@localhost:5432/cycleparadise"
-
-# Run migrations and seed
-npx prisma db push
-npm run db:seed
-
-# View database (optional)
-npx prisma studio
-```
-
-### Option 2: Docker PostgreSQL (Recommended for Dev)
-
-The project includes a `docker-compose.yml` with **PostgreSQL 15** (latest stable) pre-configured.
-
-```powershell
-# Start PostgreSQL container
-docker-compose up -d db
-
-# Set DATABASE_URL in .env
-DATABASE_URL="postgresql://cycleparadise:cycleparadise_dev@localhost:5432/cycleparadise"
-
-# Run migrations and seed
-npx prisma migrate dev
-npm run db:seed
-
-# View database (optional)
-npx prisma studio
-```
-
-**Docker Compose Configuration:**
-- **Image**: `postgres:15-alpine` (latest stable)
-- **Port**: `5432` (mapped to host)
-- **User**: `cycleparadise`
-- **Password**: `cycleparadise_dev` (change for production)
-- **Database**: `cycleparadise`
-- **Volume**: Persistent storage at `postgres_data`
-- **Health checks**: Ensures database is ready before app starts
-
-**To run both database and web app:**
-```powershell
-docker-compose up --build
-```
-
-**Database credentials (for tools like pgAdmin, DBeaver):**
-- Host: `localhost`
-- Port: `5432`
-- Username: `cycleparadise`
-- Password: `cycleparadise_dev`
-- Database: `cycleparadise`
-
-### Option 3: Cloud Database (Production)
-
-**Free-tier options:**
-- **Supabase**: https://supabase.com (500MB free)
-- **Neon**: https://neon.tech (3GB free)
-- **Railway**: https://railway.app (free tier with credit)
-
-1. Create database on your chosen platform
-2. Copy the connection string to `DATABASE_URL` in `.env`
-3. Run migrations: `npx prisma db push`
-4. Seed data: `npm run db:seed`
-
-### Database vs Fallback Data
-
-| Feature | Without Database | With Database |
-|---------|-----------------|---------------|
-| Tour Packages | ✅ 3 sample packages | ✅ Dynamic packages from PostgreSQL |
-| Cycling Guides | ✅ 3 sample guides | ✅ Dynamic guides from PostgreSQL |
-| Bookings | ❌ Form only (no storage) | ✅ Stored with status tracking |
-| Admin Panel | ❌ No database operations | ✅ Full CRUD operations |
-| Real-time Availability | ❌ Not available | ✅ Checks actual booking dates |
-| Email Confirmations | ⚠️ Manual only | ✅ Automated on booking |
-
-**When to use fallback data:**
-- Quick development/testing
-- Static demo sites
-- No booking functionality needed
-
-**When to use database:**
-- Production booking system
-- Admin content management
-- Real customer data tracking
-
-## 💾 Fallback Data System
-
-The marketing site boots even when Prisma can't reach a database. Enriched datasets in `src/data/`:
-
-| File | Purpose |
-| --- | --- |
-| `src/data/fallback-tour-packages.ts` | 3 complete tour packages with itineraries, FAQs, reviews, sustainability |
-| `src/data/fallback-cycling-guides.ts` | 3 cycling guides with route segments, gear lists, hydration stops |
-
-During `npm run dev` or `npm run build`, pages check `process.env.DATABASE_URL`:
-- **Not set**: Uses fallback TypeScript data (static content)
-- **Set**: Uses PostgreSQL via Prisma (dynamic content)
-
-The transition is seamless - no code changes needed. Just set `DATABASE_URL` to switch from fallback to database mode.
-
-> **Build Optimization**: Static path generation (`getStaticPaths`) checks for database availability and falls back automatically, ensuring builds succeed without `DATABASE_URL`.
-
-## 🧪 Available Scripts
-
-```powershell
-# Development
-npm run dev              # Start dev server (http://localhost:4321)
-npm run build            # Production build (outputs to ./dist)
-npm run preview          # Preview production build locally
-
-# Database
-npm run db:seed          # Populate database with initial data
-npx prisma studio        # Open database GUI (http://localhost:5555)
-npx prisma db push       # Sync schema to database
-npx prisma generate      # Generate Prisma Client types
-
-# Code Quality
-npm run validate         # Custom validation checks
-npm run type-check       # TypeScript type checking
-npm run lint             # ESLint
-npm run check-all        # Run all checks + build
-```
-
-## � Admin Panel
-
-Cycle Paradise includes a comprehensive admin panel for managing tour packages, cycling guides, bookings, and media. The admin panel requires a PostgreSQL database to function.
-
-### Admin Features
-
-- **Authentication System**: Secure session-based login with bcrypt password hashing
-- **Dashboard**: Real-time metrics (bookings, revenue, active packages)
-- **Tour Package Management**: Full CRUD operations for tour packages
-- **Cycling Guide Management**: Manage cycling guides and routes
-- **Booking Management**: View and manage customer bookings with status tracking
-- **Media Library**: Upload and manage images
-- **User Management**: Manage admin users and permissions
-
-### Quick Start
-
-#### 1. Create Admin User
-
-First, ensure your database is running:
-
-```powershell
-# Start database (if using Docker)
-docker-compose up -d db
-
-# Set database connection
-$env:DATABASE_URL="postgresql://cycleparadise:cycleparadise_dev@localhost:5432/cycleparadise"
-
-# Push schema to database
-npx prisma db push
-
-# Create your first admin user
-npx tsx scripts/create-admin.ts
-```
-
-The script will create an admin user with these credentials:
 - **Email**: `admin@cycleparadise.lk`
 - **Password**: `Admin123!`
-- **Role**: EDITOR
 
-#### 2. Access Admin Panel
+_(Make sure to seed the database first using `npm run db:seed` if running manually, or let Docker handle it on first start)._
 
-```powershell
-# Start dev server
-npm run dev
+### Key Capabilities
 
-# Visit http://localhost:4321/admin/login
-# Login with the credentials above
-```
+- **Dashboard**: Real-time sales metrics and booking overview.
+- **Tour Packages**: Create and edit tours, including itineraries and pricing.
+- **Media Library**: Drag-and-drop upload for managing site assets.
+- **Bookings**: Manage customer reservations and statuses.
+- **User Management**: Control admin access with Role-Based Access Control (RBAC).
 
-#### 3. Admin Routes
+## 💾 Database & Fallback System
 
-| Route | Description |
-|-------|-------------|
-| `/admin/login` | Admin login page |
-| `/admin` | Dashboard with metrics and recent bookings |
-| `/admin/packages` | Tour package management (list, create, edit, delete) |
-| `/admin/packages/new` | Create new tour package |
-| `/admin/packages/[id]` | Edit existing tour package |
-| `/admin/guides` | Cycling guide management |
-| `/admin/bookings` | Booking management with filters |
-| `/admin/media` | Media library for image management |
-| `/admin/users` | Admin user management |
+Cycle Paradise features a robust **Hybrid Data System** that ensures the marketing site remains accessible even without a database connection.
 
-### Security Features
+1. **PostgreSQL Mode (Recommended)**:
+   - Activates when `DATABASE_URL` is set.
+   - Enables full dynamic functionality (Bookings, Admin Panel, Live Availability).
+   - Managed via Prisma ORM.
 
-- **Session-based authentication**: HTTP-only cookies with configurable expiration
-- **Password hashing**: bcrypt with 10 salt rounds
-- **Route protection**: Middleware blocks unauthenticated access to `/admin/*`
-- **Remember me**: Optional 14-day session duration
-- **Secure cookies**: HttpOnly, SameSite=Lax attributes
+2. **Fallback Mode**:
+   - Activates when `DATABASE_URL` is missing.
+   - Serves rich static content from `src/data/`.
+   - Ideal for static deployments, demos, or offline development.
 
-### Creating Additional Admin Users
+### Database Commands
 
-```powershell
-# Run the admin creation script
-npx tsx scripts/create-admin.ts
-
-# Or create manually via Prisma Studio
-npx prisma studio
-# Navigate to AdminUser table and add a new record
-# Important: Hash the password using bcrypt before saving
-```
-
-### Environment Variables for Admin
-
-```env
-# Database (required for admin panel)
-DATABASE_URL="postgresql://cycleparadise:cycleparadise_dev@localhost:5432/cycleparadise"
-DIRECT_URL="postgresql://cycleparadise:cycleparadise_dev@localhost:5432/cycleparadise"
-
-# Session secret (optional - auto-generated if not set)
-SESSION_SECRET="your-secret-key-here"
-```
-
-### Admin Panel Architecture
-
-- **Frontend**: Astro pages with Tailwind CSS
-- **Backend**: Astro API routes
-- **Authentication**: Custom session-based auth (no external dependencies)
-- **Database**: PostgreSQL with Prisma ORM
-- **Middleware**: Route protection for `/admin/*` paths
-
-### Customizing Admin Panel
-
-**Change admin path:**
-Edit `src/middleware.ts` to change the protected path from `/admin` to your preferred path.
-
-**Add custom roles:**
-Update the `AdminRole` enum in `prisma/schema.prisma`:
-```prisma
-enum AdminRole {
-  ADMIN
-  EDITOR
-  VIEWER  // Add new role
-}
-```
-
-**Modify session duration:**
-Edit `src/pages/api/admin/auth/login.ts`:
-```typescript
-const maxAge = rememberMe ? 60 * 60 * 24 * 14 : 60 * 60 * 24; // 14 days or 24 hours
-```
-
-### Admin Panel Screenshots
-
-The admin panel features:
-- 📊 **Dashboard**: Metrics cards, recent bookings table, quick actions
-- 📦 **Package Management**: Sortable table, inline edit/delete, empty states
-- 📝 **Forms**: Multi-section forms with validation, auto-save, SEO fields
-- 🎨 **Design**: Emerald color scheme, responsive layout, mobile-friendly sidebar
-
-See `specs/002-admin-panel/` for complete specifications and implementation details.
-
-## �🐳 Docker
-
-### Quick Start (Static Site Only)
-
-```powershell
-# Build image
-docker build -t cycleparadise .
-
-# Run container
-docker run --rm -p 4321:4321 cycleparadise
-
-# Visit http://localhost:4321
-```
-
-The container includes:
-- ✅ Node.js 20 Alpine
-- ✅ All npm dependencies (Astro, Tailwind, Prisma, etc.)
-- ✅ Pre-built static site
-- ✅ `serve` static file server
-- ✅ Fallback data (works without database)
-
-**Pass environment variables:**
-```powershell
-docker run --rm -p 4321:4321 \
-  -e DATABASE_URL="postgresql://user:pass@host:5432/db" \
-  cycleparadise
-```
-
-### Docker Compose (Site + PostgreSQL)
-
-For full database functionality with **PostgreSQL 15** (latest stable):
-
-```powershell
-# Start both database and web server
-docker-compose up --build
-
-# Or run just the database
-docker-compose up -d db
-
-# Stop services
-docker-compose down
-
-# Stop and remove volumes (⚠️ deletes database data)
-docker-compose down -v
-
-# View logs
-docker-compose logs -f web
-docker-compose logs -f db
-```
-
-**What Docker Compose includes:**
-- **PostgreSQL 15-alpine** with persistent storage (`postgres_data` volume)
-- **Health checks** ensuring database is ready before app starts
-- **Automatic restarts** on container failure
-- **Isolated network** for service communication
-- **Web server** on port `4321`
-- **Database access** on port `5432` (localhost)
-
-**Connection details:**
-```env
-DATABASE_URL="postgresql://cycleparadise:cycleparadise_dev@localhost:5432/cycleparadise"
-```
-
-**First-time setup with Docker Compose:**
-```powershell
-# 1. Start database
-docker-compose up -d db
-
-# 2. Wait for database to be ready (health check passes)
-docker-compose ps
-
-# 3. Run migrations
-$env:DATABASE_URL="postgresql://cycleparadise:cycleparadise_dev@localhost:5432/cycleparadise"
-npx prisma migrate dev
-
-# 4. Seed data
+```bash
+# Seed database with initial data
 npm run db:seed
 
-# 5. Start web app
-docker-compose up web
+# Open Prisma Studio (Database GUI)
+npx prisma studio
+
+# Push schema changes (during dev)
+npx prisma db push
 ```
-
-**Access database with tools (pgAdmin, DBeaver, etc.):**
-- Host: `localhost`
-- Port: `5432`
-- Username: `cycleparadise`
-- Password: `cycleparadise_dev`
-- Database: `cycleparadise`
-
-> ⚠️ **Production Note**: Change default credentials in `docker-compose.yml` before deploying to production.
-- Environment variables from `.env` file
-
-**File structure:**
-```yaml
-# docker-compose.yml
-services:
-  db:        # PostgreSQL database
-  web:       # Astro site with auto-migrations
-```
-
-To customize database credentials, edit `docker-compose.yml` or create a `.env` file.
 
 ## 📦 Project Structure
 
 ```text
 cycleparadise/
-├── prisma/
-│   ├── schema.prisma          # Database schema (PostgreSQL)
-│   └── seed.ts               # Database seeding script (optional)
-├── public/                   # Static assets (images, fonts)
+├── docker/                 # Docker configuration files
+├── prisma/                 # Database schema and seed scripts
+├── public/                 # Static assets
 ├── src/
-│   ├── components/          # Reusable UI components
-│   │   ├── layout/         # Header, Footer, Navigation
-│   │   ├── media/          # YouTubeEmbed, InstagramFeed, PackageGallery
-│   │   └── ui/             # PackageCard, OptimizedImage
-│   ├── data/               # Fallback content (no database required)
-│   │   ├── fallback-tour-packages.ts
-│   │   └── fallback-cycling-guides.ts
+│   ├── components/         # Reusable Astro components
+│   ├── data/               # Fallback static data
 │   ├── layouts/            # Page layouts
-│   │   └── Layout.astro    # Main layout with SEO, navigation
-│   ├── lib/
-│   │   ├── db/            # Database layer (Prisma)
-│   │   │   ├── client.ts  # Database client singleton
-│   │   │   ├── connection.ts  # Connection management
-│   │   │   └── repositories/  # Data access layer (packages, guides)
-│   │   ├── auth.ts        # Session-based authentication
-│   │   ├── email.ts       # Email notifications (NodeMailer)
-│   │   └── media.ts       # Image optimization (Sharp)
-│   ├── pages/             # Routes (file-based routing)
-│   │   ├── index.astro    # Homepage
-│   │   ├── packages.astro # Tour packages listing
-│   │   ├── packages/[slug].astro  # Package detail pages
-│   │   ├── guides.astro   # Cycling guides listing
-│   │   ├── guides/[slug].astro    # Guide detail pages
-│   │   ├── about.astro    # About page
-│   │   ├── contact.astro  # Contact page with form
-│   │   ├── search.astro   # Site-wide search
-│   │   ├── offline.astro  # Offline fallback page
-│   │   └── api/           # API endpoints
-│   ├── styles/            # Global styles (Tailwind)
-│   └── types/             # TypeScript type definitions
-├── .env.example           # Environment variables template
-├── .dockerignore          # Docker build exclusions
-├── Dockerfile             # Multi-stage Docker build
-├── docker-compose.yml     # Docker Compose with PostgreSQL
-├── astro.config.mjs       # Astro configuration
-├── tailwind.config.mjs    # TailwindCSS configuration
-├── tsconfig.json          # TypeScript configuration
-└── package.json           # Dependencies and scripts
+│   ├── lib/                # Core utilities (Auth, DB, Email)
+│   ├── pages/              # File-based routing & API endpoints
+│   └── styles/             # Global Tailwind styles
+├── docker-compose.yml      # Service orchestration
+└── astro.config.mjs        # Astro framework config
 ```
 
-## 🗄️ Database Schema
+## 🔧 Configuration
 
-8 core entities managed by Prisma ORM:
+Configure the application via environment variables in `.env`:
 
-- **TourPackage**: Cycling tour packages (price, duration, difficulty, region)
-- **Accommodation**: Hotels, guesthouses linked to packages
-- **Booking**: Customer bookings with status (PENDING → CONFIRMED → COMPLETED)
-- **CyclingGuide**: Regional guides (routes, maps, GPX files)
-- **AdminUser**: Admin authentication and sessions
-- **MediaAsset**: Images and videos with optimization metadata
-- **InstagramPost**: Cached social media content
-- **BookingAccommodation**: Junction table for bookings + accommodations
+```bash
+# Database (Auto-configured in Docker)
+DATABASE_URL="postgresql://cycleparadise:cycleparadise_dev@localhost:5432/cycleparadise"
 
-View full schema: `prisma/schema.prisma`
+# Email Configuration (SMTP)
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USER=user@example.com
+SMTP_PASS=password
+FROM_EMAIL=noreply@cycleparadise.lk
+
+# Site Settings
+PUBLIC_SITE_URL=http://localhost:4321
+```
 
 ## 🚀 Deployment
 
-### Vercel (Recommended)
+### Docker (Production)
 
-```powershell
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy
-vercel
-
-# Set environment variables in Vercel dashboard:
-# DATABASE_URL, SMTP_*, CONTACT_EMAIL, etc.
-```
-
-### Netlify
-
-```powershell
-# Install Netlify CLI  
-npm i -g netlify-cli
-
-# Deploy
-netlify deploy --prod
-```
-
-### Docker Deployment
-
-```powershell
-# Build for production
+```bash
 docker build -t cycleparadise .
-
-# Push to registry
-docker tag cycleparadise your-registry/cycleparadise
-docker push your-registry/cycleparadise
-
-# Deploy to your hosting platform
-# (AWS ECS, Google Cloud Run, Azure Container Apps, etc.)
+docker run -p 80:4321 -e DATABASE_URL=... cycleparadise
 ```
 
-## 🔒 Security Features
+## 🤝 Support
 
-- **Password Hashing**: bcrypt with salt rounds
-- **Session Management**: Secure HTTP-only cookies
-- **SQL Injection Prevention**: Prisma parameterized queries
-- **XSS Protection**: Astro auto-escapes output
-- **CSRF Protection**: Session validation on admin routes
-- **Environment Variables**: Sensitive data never committed
-
-## 🧪 Code Quality
-
-Pre-commit hooks in `.githooks/`:
-
-```powershell
-# Configure git to use hooks
-git config core.hooksPath .githooks
-
-# Or run manually before commits
-npm run pre-commit
-```
-
-Validation checks:
-- TypeScript type checking
-- Reserved word scanning
-- Syntax validation
-- Code formatting consistency
-
-## � Documentation
-
-- **[Admin Guide](./ADMIN_GUIDE.md)** - Complete guide for managing content, updating tour packages, editing guides, and database operations
-- **[README](./README.md)** - This file - setup, deployment, and configuration
-- **[Error Prevention](./ERROR_PREVENTION.md)** - Code quality guidelines and validation rules
-- **API Documentation** - Coming soon
-
-## �📄 License
-
-Proprietary - Software Lifecycle Consultants
-
-## 🤝 Support & Contributing
-
-- **Email**: info@cycleparadise.lk
-- **Contact Form**: https://cycleparadise.lk/contact
-- **Pull Requests**: Run `npm run check-all` before submitting
+- **Admin Guide**: See [ADMIN_GUIDE.md](./ADMIN_GUIDE.md) for editorial help.
+- **Issues**: Please file internal tickets for bugs.
 
 ---
 
-Built with ❤️ for cycling adventures across Sri Lanka
+<div align="center">
+  <sub>Built with ❤️ for Cycling Adventures in Sri Lanka</sub>
+</div>

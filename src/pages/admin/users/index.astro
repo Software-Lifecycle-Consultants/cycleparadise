@@ -1,0 +1,144 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import UserTable from '../../../components/admin/UserTable.astro';
+import { prisma } from '../../../lib/db/connection';
+
+const user = Astro.locals.user;
+if (!user) {
+  return Astro.redirect('/admin/login');
+}
+
+// Fetch users
+let users: any[] = [];
+try {
+  users = await prisma.adminUser.findMany({
+    orderBy: {
+      createdAt: 'desc',
+    },
+    select: {
+      id: true,
+      email: true,
+      firstName: true,
+      lastName: true,
+      role: true,
+      isActive: true,
+      lastLoginAt: true,
+      createdAt: true,
+    },
+  });
+} catch (error) {
+  console.error('Error fetching users:', error);
+}
+---
+
+<AdminLayout title="Admin Users" user={user}>
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Admin Users</h1>
+      <p class="text-gray-600 mt-1">Manage team members and their access roles</p>
+    </div>
+    <a
+      href="/admin/users/new"
+      class="inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition font-medium whitespace-nowrap"
+    >
+      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"
+        ></path>
+      </svg>
+      Add New User
+    </a>
+  </div>
+
+  <UserTable users={users} />
+
+  <!-- Delete Confirmation Modal Script (reusing pattern from packages or custom for users) -->
+  <!-- ideally this should be global or part of UserTable but UserTable invoked confirmDelete defined globally or here -->
+  <!-- I will add the modal here similar to packages page -->
+  <div
+    id="deleteModal"
+    class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 items-center justify-center p-4"
+  >
+    <div class="bg-white rounded-xl max-w-md w-full p-6">
+      <div class="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mx-auto mb-4">
+        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+          ></path>
+        </svg>
+      </div>
+      <h3 class="text-lg font-semibold text-gray-900 text-center mb-2">Delete User</h3>
+      <p class="text-gray-600 text-center mb-6">
+        Are you sure you want to delete <strong id="userName"></strong>? This action cannot be
+        undone.
+      </p>
+      <div class="flex space-x-3">
+        <button
+          onclick="closeDeleteModal()"
+          class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium"
+        >
+          Cancel
+        </button>
+        <button
+          id="confirmDeleteBtn"
+          class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let userToDelete: string = '';
+
+    function confirmDelete(id: string, name: string) {
+      userToDelete = id;
+      const modal = document.getElementById('deleteModal');
+      const nameEl = document.getElementById('userName');
+      if (nameEl) nameEl.textContent = name;
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+    }
+
+    function closeDeleteModal() {
+      const modal = document.getElementById('deleteModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+      userToDelete = '';
+    }
+
+    // @ts-ignore
+    window.confirmDelete = confirmDelete;
+    // @ts-ignore
+    window.closeDeleteModal = closeDeleteModal;
+
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    if (confirmDeleteBtn) {
+      confirmDeleteBtn.addEventListener('click', async () => {
+        if (!userToDelete) return;
+
+        try {
+          const response = await fetch(`/api/admin/users/${userToDelete}/delete`, {
+            method: 'DELETE',
+          });
+
+          if (response.ok) {
+            window.location.reload();
+          } else {
+            alert('Failed to delete user');
+          }
+        } catch (error) {
+          console.error('Delete error:', error);
+          alert('Failed to delete user');
+        }
+      });
+    }
+  </script>
+</AdminLayout>
