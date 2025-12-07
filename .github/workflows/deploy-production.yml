@@ -138,6 +138,9 @@ jobs:
           script: |
             set -euo pipefail
 
+            # Fix git ownership issue for deploy user
+            git config --global --add safe.directory /opt/cycleparadise
+
             cd /opt/cycleparadise
             git fetch --all --tags --force
             git checkout "$VERSION"
