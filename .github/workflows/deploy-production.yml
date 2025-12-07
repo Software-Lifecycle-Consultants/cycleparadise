@@ -142,6 +142,9 @@ jobs:
             git fetch --all --tags --force
             git checkout "$VERSION"
 
+            # Remove old .env file to prevent variable conflicts
+            rm -f .env
+            
             cat > .env <<EOF
             DB_USER=cycleparadise
             DB_PASSWORD=${POSTGRES_PASSWORD}
@@ -161,6 +164,12 @@ jobs:
             IMAGE_QUALITY=80
             MAX_IMAGE_SIZE=2048
             EOF
+            
+            # Debug: Show what we actually wrote to .env (hide passwords)
+            echo "=== Generated .env file (passwords hidden) ==="
+            grep -v "PASSWORD\|SECRET" .env || true
+            echo "DATABASE_URL format check:"
+            grep DATABASE_URL .env | sed 's/:.*@/:***@/g'
 
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             TAG=$VERSION docker compose pull
