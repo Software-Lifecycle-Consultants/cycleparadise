@@ -24,8 +24,8 @@ services:
     build: .
     command: npx prisma migrate deploy
     environment:
-      DATABASE_URL: "postgresql://${DB_USER:-cycleparadise}:${DB_PASSWORD}@db:5432/${DB_NAME:-cycleparadise}?schema=public"
-      DIRECT_URL: "postgresql://${DB_USER:-cycleparadise}:${DB_PASSWORD}@db:5432/${DB_NAME:-cycleparadise}?schema=public"
+      DATABASE_URL: ${DATABASE_URL}
+      DIRECT_URL: ${DIRECT_URL:-${DATABASE_URL}}
     depends_on:
       db:
         condition: service_healthy
@@ -42,13 +42,18 @@ services:
       - '127.0.0.1:4321:4321'
     environment:
       NODE_ENV: ${NODE_ENV:-production}
-      DATABASE_URL: "postgresql://${DB_USER:-cycleparadise}:${DB_PASSWORD}@db:5432/${DB_NAME:-cycleparadise}?schema=public"
+      DATABASE_URL: ${DATABASE_URL}
+      SESSION_SECRET: ${SESSION_SECRET}
       SMTP_HOST: ${SMTP_HOST}
       SMTP_PORT: ${SMTP_PORT}
       SMTP_USER: ${SMTP_USER}
-      SMTP_PASS: ${SMTP_PASS}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      FROM_EMAIL: ${FROM_EMAIL:-noreply@cycleparadise.bike}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@cycleparadise.bike}
       CONTACT_EMAIL: ${CONTACT_EMAIL}
       PUBLIC_SITE_URL: ${PUBLIC_SITE_URL}
+      IMAGE_QUALITY: ${IMAGE_QUALITY:-80}
+      MAX_IMAGE_SIZE: ${MAX_IMAGE_SIZE:-2048}
     depends_on:
       migrator:
         condition: service_completed_successfully

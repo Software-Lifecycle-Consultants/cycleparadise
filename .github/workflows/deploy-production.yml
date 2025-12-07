@@ -123,6 +123,7 @@ jobs:
         env:
           VERSION: ${{ needs.build-image.outputs.version }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_USER: ${{ secrets.SMTP_USER }}
@@ -133,7 +134,7 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          envs: VERSION,POSTGRES_PASSWORD,SMTP_HOST,SMTP_PORT,SMTP_USER,SMTP_PASS,CONTACT_EMAIL,PUBLIC_SITE_URL
+          envs: VERSION,POSTGRES_PASSWORD,SESSION_SECRET,SMTP_HOST,SMTP_PORT,SMTP_USER,SMTP_PASS,CONTACT_EMAIL,PUBLIC_SITE_URL
           script: |
             set -euo pipefail
 
@@ -146,13 +147,19 @@ jobs:
             DB_PASSWORD=${POSTGRES_PASSWORD}
             DB_NAME=cycleparadise
             DATABASE_URL="postgresql://cycleparadise:${POSTGRES_PASSWORD}@db:5432/cycleparadise?schema=public"
+            DIRECT_URL="postgresql://cycleparadise:${POSTGRES_PASSWORD}@db:5432/cycleparadise?schema=public"
+            SESSION_SECRET=${SESSION_SECRET}
             NODE_ENV=production
             SMTP_HOST=${SMTP_HOST}
             SMTP_PORT=${SMTP_PORT}
             SMTP_USER=${SMTP_USER}
-            SMTP_PASS=${SMTP_PASS}
+            SMTP_PASSWORD=${SMTP_PASS}
+            FROM_EMAIL=noreply@cycleparadise.bike
+            ADMIN_EMAIL=admin@cycleparadise.bike
             CONTACT_EMAIL=${CONTACT_EMAIL}
             PUBLIC_SITE_URL=${PUBLIC_SITE_URL}
+            IMAGE_QUALITY=80
+            MAX_IMAGE_SIZE=2048
             EOF
 
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
