@@ -3,7 +3,8 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-RUN apk add --no-cache libc6-compat openssl
+# Install build dependencies for native modules like bcrypt
+RUN apk add --no-cache libc6-compat openssl python3 make g++
 
 # Install dependencies
 COPY package.json package-lock.json ./
