@@ -143,6 +143,9 @@ jobs:
 
             cd /opt/cycleparadise
             
+            # Stop and remove all containers BEFORE checkout to avoid using stale docker-compose.yml
+            docker compose down 2>/dev/null || true
+            
             # Clean any local changes and fetch
             git reset --hard HEAD
             git clean -fd
@@ -190,15 +193,13 @@ jobs:
             grep DATABASE_URL .env | sed 's/:.*@/:***@/g'
 
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            
+            # Now use the updated docker-compose.yml for all operations
             TAG=$VERSION docker compose pull
-            docker compose down
             
             # Force rebuild images with the new docker-compose.yml
             echo "=== Rebuilding images with updated configuration ==="
             TAG=$VERSION docker compose build --no-cache
-            
-            # Explicitly unset any conflicting environment variables
-            unset dfgdg12589
             
             # Start containers with explicit --env-file to force our .env
             set +e
