@@ -258,9 +258,9 @@ jobs:
               exit 1
             fi
             
-            # Run migrations from web container
-            echo "=== Running migrations from web container ==="
-            docker compose --env-file .env exec -T web npx prisma migrate deploy
+            # Migrations are already applied by the migrator service
+            echo "=== Deployment successful ==="
+            docker compose --env-file .env ps
             
             docker image prune -af --filter "until=72h"
 
