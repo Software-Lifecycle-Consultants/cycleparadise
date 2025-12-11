@@ -146,9 +146,12 @@ jobs:
             # Stop and remove all containers BEFORE checkout to avoid using stale docker-compose.yml
             docker compose down 2>/dev/null || true
             
+            # Remove ALL potential sources of stale environment variables
+            rm -f .env .env.* docker-compose.override.yml
+            
             # Clean any local changes and fetch
             git reset --hard HEAD
-            git clean -fd
+            git clean -ffdx
             git fetch --all --tags --force
             
             # Force checkout the version
@@ -162,8 +165,12 @@ jobs:
             # Verify docker-compose.yml was updated
             echo "=== Checking docker-compose.yml migrator section ==="
             grep -A 3 "migrator:" docker-compose.yml | head -10
+            
+            # Check for any stray files that might contain dfgdg12589
+            echo "=== Checking for dfgdg12589 in directory ==="
+            grep -r "dfgdg12589" . 2>/dev/null || echo "No dfgdg12589 found in files"
 
-            # Remove old .env file to prevent variable conflicts
+            # Create fresh .env file
             rm -f .env
             
             cat > .env <<EOF
@@ -194,12 +201,19 @@ jobs:
 
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             
+            # Clear any environment variables that might interfere
+            unset dfgdg12589 COMPOSE_FILE COMPOSE_PROJECT_NAME 2>/dev/null || true
+            
+            # Use explicit project directory and env file for all docker compose commands
+            export COMPOSE_PROJECT_NAME=cycleparadise
+            export COMPOSE_FILE=docker-compose.yml
+            
             # Now use the updated docker-compose.yml for all operations
-            TAG=$VERSION docker compose pull
+            TAG=$VERSION docker compose --env-file .env pull
             
             # Force rebuild images with the new docker-compose.yml
             echo "=== Rebuilding images with updated configuration ==="
-            TAG=$VERSION docker compose build --no-cache
+            TAG=$VERSION docker compose --env-file .env build --no-cache
             
             # Start containers with explicit --env-file to force our .env
             set +e
