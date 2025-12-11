@@ -275,11 +275,11 @@ jobs:
 
       - name: Check homepage
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://cycleparadise.bike)
+          STATUS=$(curl -sL -o /dev/null -w "%{http_code}" https://cycleparadise.bike)
           if [ "$STATUS" != "200" ]; then
             echo "Unexpected status: $STATUS" && exit 1
           fi
 
       - name: Check health endpoint
         run: |
-          curl -sf https://cycleparadise.bike/health > /dev/null
+          curl -sfL https://cycleparadise.bike/health > /dev/null
