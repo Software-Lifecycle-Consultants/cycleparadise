@@ -187,12 +187,16 @@ jobs:
             # Docker Compose interprets $var as variable reference, so we need $$var for literal $var
             ESCAPED_PASSWORD=$(echo "${POSTGRES_PASSWORD}" | sed 's/\$/\$\$/g')
             
+            # URL-encode the password for PostgreSQL connection string
+            # Special characters in passwords need to be percent-encoded in connection URLs
+            URL_ENCODED_PASSWORD=$(python3 -c "import urllib.parse; print(urllib.parse.quote('${POSTGRES_PASSWORD}', safe=''))")
+            
             cat > .env <<EOF
             DB_USER=cycleparadise
             DB_PASSWORD=${ESCAPED_PASSWORD}
             DB_NAME=cycleparadise
-            DATABASE_URL="postgresql://cycleparadise:${ESCAPED_PASSWORD}@db:5432/cycleparadise?schema=public"
-            DIRECT_URL="postgresql://cycleparadise:${ESCAPED_PASSWORD}@db:5432/cycleparadise?schema=public"
+            DATABASE_URL="postgresql://cycleparadise:${URL_ENCODED_PASSWORD}@db:5432/cycleparadise?schema=public"
+            DIRECT_URL="postgresql://cycleparadise:${URL_ENCODED_PASSWORD}@db:5432/cycleparadise?schema=public"
             SESSION_SECRET=${SESSION_SECRET}
             NODE_ENV=production
             SMTP_HOST=${SMTP_HOST}
