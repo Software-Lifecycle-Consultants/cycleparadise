@@ -1,0 +1,79 @@
+name: Debug Server State
+
+on:
+  workflow_dispatch:
+
+jobs:
+  investigate:
+    name: Investigate Server
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: SSH and investigate
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            set -x
+            
+            echo "=== Current directory contents ==="
+            cd /opt/cycleparadise
+            ls -la
+            
+            echo ""
+            echo "=== All .env* files ==="
+            find . -name ".env*" -type f 2>/dev/null || echo "No .env files found"
+            
+            echo ""
+            echo "=== Content of any .env files (hiding passwords) ==="
+            for f in .env .env.*; do
+              if [ -f "$f" ]; then
+                echo "File: $f"
+                grep -v "PASSWORD\|SECRET" "$f" 2>/dev/null || cat "$f"
+                echo "---"
+              fi
+            done
+            
+            echo ""
+            echo "=== Docker Compose override files ==="
+            find . -name "docker-compose*.yml" -o -name "docker-compose*.yaml" 2>/dev/null
+            
+            echo ""
+            echo "=== Search for dfgdg12589 in all files ==="
+            grep -r "dfgdg12589" . 2>/dev/null || echo "Not found in any files"
+            
+            echo ""
+            echo "=== Current docker-compose.yml content ==="
+            cat docker-compose.yml
+            
+            echo ""
+            echo "=== Docker Compose project list ==="
+            docker compose ls -a
+            
+            echo ""
+            echo "=== Docker Compose config (what Docker actually sees) ==="
+            cd /opt/cycleparadise
+            docker compose config 2>&1 | head -100
+            
+            echo ""
+            echo "=== Existing containers ==="
+            docker ps -a --filter "name=cycleparadise"
+            
+            echo ""
+            echo "=== Docker volumes ==="
+            docker volume ls --filter "name=cycleparadise"
+            
+            echo ""
+            echo "=== Check for Docker Compose environment file cache ==="
+            docker compose convert 2>&1 | grep -i dfgdg || echo "dfgdg not in converted config"
+            
+            echo ""
+            echo "=== Environment variables in current shell ==="
+            env | grep -i dfgdg || echo "dfgdg not in environment"
+            
+            echo ""
+            echo "=== Git status ==="
+            git status
+            git log --oneline -5
