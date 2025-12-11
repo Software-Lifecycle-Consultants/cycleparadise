@@ -142,8 +142,23 @@ jobs:
             git config --global --add safe.directory /opt/cycleparadise
 
             cd /opt/cycleparadise
+            
+            # Clean any local changes and fetch
+            git reset --hard HEAD
+            git clean -fd
             git fetch --all --tags --force
-            git checkout "$VERSION"
+            
+            # Force checkout the version
+            git checkout --force "$VERSION"
+            
+            # Verify we're on the right version
+            echo "=== Current git status ==="
+            git log --oneline -1
+            git status
+            
+            # Verify docker-compose.yml was updated
+            echo "=== Checking docker-compose.yml migrator section ==="
+            grep -A 3 "migrator:" docker-compose.yml | head -10
 
             # Remove old .env file to prevent variable conflicts
             rm -f .env
