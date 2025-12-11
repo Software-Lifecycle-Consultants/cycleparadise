@@ -137,6 +137,12 @@ jobs:
           envs: VERSION,POSTGRES_PASSWORD,SESSION_SECRET,SMTP_HOST,SMTP_PORT,SMTP_USER,SMTP_PASS,CONTACT_EMAIL,PUBLIC_SITE_URL
           script: |
             set -euo pipefail
+            
+            # Debug: Show all environment variables to find dfgdg12589
+            echo "=== Environment variables (filtered for secrets) ==="
+            env | grep -v "PASSWORD\|SECRET\|KEY\|TOKEN" | sort
+            echo "=== Checking for dfgdg12589 specifically ==="
+            env | grep -i dfgdg || echo "dfgdg12589 NOT in environment"
 
             # Fix git ownership issue for deploy user
             git config --global --add safe.directory /opt/cycleparadise
