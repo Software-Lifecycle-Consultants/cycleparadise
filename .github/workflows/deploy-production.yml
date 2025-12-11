@@ -149,11 +149,15 @@ jobs:
 
             cd /opt/cycleparadise
             
-            # Stop and remove all containers BEFORE checkout to avoid using stale docker-compose.yml
-            docker compose down 2>/dev/null || true
+            # Completely stop and remove Docker Compose project to clear any cached state
+            docker compose down --remove-orphans --volumes 2>/dev/null || true
+            docker compose rm -f -s -v 2>/dev/null || true
+            
+            # Remove Docker Compose cache/config that might store old variable references
+            rm -rf .docker 2>/dev/null || true
             
             # Remove ALL potential sources of stale environment variables
-            rm -f .env .env.* docker-compose.override.yml
+            rm -f .env .env.* docker-compose.override.yml docker-compose.*.yml
             
             # Clean any local changes and fetch
             git reset --hard HEAD
@@ -212,7 +216,12 @@ jobs:
             
             # Use explicit project directory and env file for all docker compose commands
             export COMPOSE_PROJECT_NAME=cycleparadise
-            export COMPOSE_FILE=docker-compose.yml
+            export COMPOSE_FILE=/opt/cycleparadise/docker-compose.yml
+            
+            # Show what compose file Docker will use
+            echo "=== Docker Compose configuration ==="
+            echo "COMPOSE_FILE=$COMPOSE_FILE"
+            docker compose config --services
             
             # Now use the updated docker-compose.yml for all operations
             TAG=$VERSION docker compose --env-file .env pull
