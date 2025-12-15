@@ -122,6 +122,13 @@ const supportContacts = ensureArray<{ label: string; value: string; href?: strin
   packageData.supportContacts
 );
 const sustainability = packageData.sustainability || {};
+
+// Guide information (only shown if provided)
+const hasGuideInfo = Boolean(packageData.guideName);
+const guideLanguages = ensureArray<string>(packageData.guideLanguages);
+const guideCertifications = ensureArray<string>(packageData.guideCertifications);
+const guideSpecialties = ensureArray<string>(packageData.guideSpecialties);
+
 const siteUrl = 'https://cycleparadise.lk';
 const canonicalUrl = `${siteUrl}/packages/${packageData.slug}`;
 const heroImageAbsolute = heroImage?.startsWith('http') ? heroImage : `${siteUrl}${heroImage}`;
@@ -578,6 +585,112 @@ const seoKeywords = [
           )
         }
 
+        {/* Tour Guide Information - Only shown if guide details are provided */}
+        {
+          hasGuideInfo && (
+            <section class="mb-12">
+              <h2 class="font-display font-semibold text-2xl text-gray-900 mb-4">
+                Your Tour Guide
+              </h2>
+              <div class="bg-gradient-to-br from-primary-50 to-white border border-primary-100 rounded-lg p-6 shadow-sm">
+                <div class="flex flex-col md:flex-row gap-6">
+                  {/* Guide Photo */}
+                  {packageData.guidePhoto && (
+                    <div class="flex-shrink-0">
+                      <img
+                        src={packageData.guidePhoto}
+                        alt={packageData.guideName}
+                        class="w-32 h-32 rounded-full object-cover border-4 border-white shadow-md"
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Guide Information */}
+                  <div class="flex-1">
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">
+                      {packageData.guideName}
+                    </h3>
+                    
+                    {packageData.guideExperience && (
+                      <p class="text-primary-600 font-medium mb-3">
+                        {packageData.guideExperience}
+                      </p>
+                    )}
+                    
+                    {packageData.guideBio && (
+                      <p class="text-gray-700 mb-4 leading-relaxed">
+                        {packageData.guideBio}
+                      </p>
+                    )}
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Languages */}
+                      {guideLanguages.length > 0 && (
+                        <div>
+                          <h4 class="text-sm font-semibold text-gray-900 mb-2 flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                            </svg>
+                            Languages
+                          </h4>
+                          <div class="flex flex-wrap gap-2">
+                            {guideLanguages.map((language) => (
+                              <span class="px-3 py-1 bg-white border border-primary-200 text-primary-700 rounded-full text-sm">
+                                {language}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Specialties */}
+                      {guideSpecialties.length > 0 && (
+                        <div>
+                          <h4 class="text-sm font-semibold text-gray-900 mb-2 flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                            </svg>
+                            Specialties
+                          </h4>
+                          <div class="flex flex-wrap gap-2">
+                            {guideSpecialties.map((specialty) => (
+                              <span class="px-3 py-1 bg-white border border-primary-200 text-primary-700 rounded-full text-sm">
+                                {specialty}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Certifications */}
+                    {guideCertifications.length > 0 && (
+                      <div class="mt-4">
+                        <h4 class="text-sm font-semibold text-gray-900 mb-2 flex items-center">
+                          <svg class="w-4 h-4 mr-2 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          Certifications & Qualifications
+                        </h4>
+                        <ul class="space-y-1">
+                          {guideCertifications.map((cert) => (
+                            <li class="flex items-start text-sm text-gray-700">
+                              <svg class="w-4 h-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                              </svg>
+                              {cert}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </section>
+          )
+        }
+
         {
           faqItems.length > 0 && (
             <section class="mb-12">
@@ -629,7 +742,12 @@ const seoKeywords = [
           <div class="space-y-3 mb-6">
             <div class="flex justify-between text-sm">
               <span class="text-gray-600">Duration:</span>
-              <span class="font-medium">{packageData.duration} days</span>
+              <span class="font-medium">
+                {packageData.durationHours 
+                  ? `${packageData.durationHours} hours (${Math.ceil(packageData.durationHours / 8)} days)`
+                  : `${packageData.duration} days`
+                }
+              </span>
             </div>
             <div class="flex justify-between text-sm">
               <span class="text-gray-600">Group Size:</span>

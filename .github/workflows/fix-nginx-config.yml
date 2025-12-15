@@ -13,11 +13,18 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
+          script_stop: true
+          command_timeout: 5m
           script: |
             set -e
             
             echo "=== Creating backup of current config ==="
-            sudo cp /etc/nginx/sites-available/cycleparadise /etc/nginx/sites-available/cycleparadise.backup.$(date +%Y%m%d_%H%M%S)
+            sudo -n cp /etc/nginx/sites-available/cycleparadise /etc/nginx/sites-available/cycleparadise.backup.$(date +%Y%m%d_%H%M%S) 2>&1 || {
+              echo "ERROR: Cannot run sudo commands. Please configure passwordless sudo for nginx files."
+              echo "Run this on your server as root:"
+              echo "echo '${USER} ALL=(ALL) NOPASSWD: /usr/bin/nginx, /usr/sbin/nginx, /bin/systemctl reload nginx, /bin/systemctl status nginx, /bin/cp /etc/nginx/sites-available/cycleparadise*, /usr/bin/tee /etc/nginx/sites-available/cycleparadise' | sudo tee /etc/sudoers.d/nginx-deploy"
+              exit 1
+            }
             
             echo "=== Creating correct Nginx configuration ==="
             sudo tee /etc/nginx/sites-available/cycleparadise > /dev/null <<'EOF'

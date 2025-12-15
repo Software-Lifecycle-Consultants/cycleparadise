@@ -56,33 +56,44 @@ enum AdminRole {
 
 // Main entities
 model TourPackage {
-  id                String          @id @default(uuid()) @db.Uuid
-  title             String
-  slug              String          @unique
-  description       String?         @db.Text
-  shortDescription  String?
-  itinerary         Json?
-  duration          Int
-  difficultyLevel   DifficultyLevel
-  region            String
-  basePrice         Decimal         @db.Decimal(10, 2)
-  maxParticipants   Int
-  includedServices  Json?
-  excludedServices  Json?
-  highlights        Json?
-  whatToBring       Json?
-  faqs              Json?
-  reviews           Json?
-  supportContacts   Json?
-  sustainability    Json?
-  mediaGallery      Json?
-  youtubeVideoId    String?
-  isActive          Boolean         @default(true)
-  featured          Boolean         @default(false)
-  metaTitle         String?
-  metaDescription   String?
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
+  id                  String          @id @default(uuid()) @db.Uuid
+  title               String
+  slug                String          @unique
+  description         String?         @db.Text
+  shortDescription    String?
+  itinerary           Json?
+  duration            Int             // Duration in days (legacy, kept for backward compatibility)
+  durationHours       Int?            // Duration in hours for more accurate scheduling
+  difficultyLevel     DifficultyLevel
+  region              String
+  basePrice           Decimal         @db.Decimal(10, 2)
+  maxParticipants     Int
+  includedServices    Json?
+  excludedServices    Json?
+  highlights          Json?
+  whatToBring         Json?
+  faqs                Json?
+  reviews             Json?
+  supportContacts     Json?
+  sustainability      Json?
+  mediaGallery        Json?
+  youtubeVideoId      String?
+  
+  // Tour Guide Information (optional - only displayed if provided)
+  guideName           String?         @db.Text
+  guideBio            String?         @db.Text
+  guidePhoto          String?         @db.Text
+  guideExperience     String?         @db.Text
+  guideLanguages      Json?           // Array of languages: ["English", "Sinhala", "Tamil"]
+  guideCertifications Json?           // Array of certifications/qualifications
+  guideSpecialties    Json?           // Array of specialties: ["Mountain biking", "Cultural tours"]
+  
+  isActive            Boolean         @default(true)
+  featured            Boolean         @default(false)
+  metaTitle           String?
+  metaDescription     String?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
 
   // Relationships
   bookings              Booking[]
