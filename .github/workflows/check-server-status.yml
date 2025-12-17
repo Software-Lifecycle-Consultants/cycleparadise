@@ -25,10 +25,6 @@ jobs:
             docker compose ps
             
             echo ""
-            echo "=== Web container logs (last 50 lines) ==="
-            docker compose logs --tail=50 web
-            
-            echo ""
             echo "=== Check if port 4321 is listening ==="
             netstat -tlnp | grep 4321 || echo "Port 4321 not listening"
             
@@ -41,22 +37,6 @@ jobs:
             systemctl status nginx --no-pager || echo "Nginx not running"
             
             echo ""
-            echo "=== Nginx configuration for cycleparadise ==="
-            if [ -f /etc/nginx/sites-enabled/cycleparadise ]; then
-              cat /etc/nginx/sites-enabled/cycleparadise
-            elif [ -f /etc/nginx/sites-enabled/cycleparadise.conf ]; then
-              cat /etc/nginx/sites-enabled/cycleparadise.conf
-            else
-              echo "No Nginx config found for cycleparadise"
-              echo "Available configs:"
-              ls -la /etc/nginx/sites-enabled/
-            fi
-            
-            echo ""
-            echo "=== Nginx error log (last 30 lines) ==="
-            tail -30 /var/log/nginx/error.log || echo "Cannot read nginx error log"
-            
-            echo ""
             echo "=== Test localhost connection to app ==="
             curl -v http://localhost:4321 2>&1 | head -30 || echo "Cannot connect to localhost:4321"
             
@@ -67,15 +47,3 @@ jobs:
             echo ""
             echo "=== Test external HTTPS connection ==="
             curl -v https://cycleparadise.bike 2>&1 | head -30
-            
-            echo ""
-            echo "=== SSL certificate status ==="
-            if command -v certbot &> /dev/null; then
-              certbot certificates
-            else
-              echo "Certbot not installed"
-            fi
-            
-            echo ""
-            echo "=== Firewall status ==="
-            ufw status || iptables -L -n | head -20 || echo "No firewall info available"
