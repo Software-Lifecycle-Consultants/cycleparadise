@@ -138,11 +138,7 @@ jobs:
           script: |
             set -euo pipefail
             
-            # Debug: Show all environment variables to find dfgdg12589
-            echo "=== Environment variables (filtered for secrets) ==="
-            env | grep -v "PASSWORD\|SECRET\|KEY\|TOKEN" | sort
-            echo "=== Checking for dfgdg12589 specifically ==="
-            env | grep -i dfgdg || echo "dfgdg12589 NOT in environment"
+            echo "Deploying version: $VERSION"
 
             # Fix git ownership issue for deploy user
             git config --global --add safe.directory /opt/cycleparadise
@@ -167,28 +163,13 @@ jobs:
             # Force checkout the version
             git checkout --force "$VERSION"
             
-            # Verify we're on the right version
-            echo "=== Current git status ==="
-            git log --oneline -1
-            git status
-            
-            # Verify docker-compose.yml was updated
-            echo "=== Checking docker-compose.yml migrator section ==="
-            grep -A 3 "migrator:" docker-compose.yml | head -10
-            
-            # Check for any stray files that might contain dfgdg12589
-            echo "=== Checking for dfgdg12589 in directory ==="
-            grep -r "dfgdg12589" . 2>/dev/null || echo "No dfgdg12589 found in files"
-
             # Create fresh .env file
             rm -f .env
             
             # Escape dollar signs in password for Docker Compose variable interpolation
-            # Docker Compose interprets $var as variable reference, so we need $$var for literal $var
             ESCAPED_PASSWORD=$(echo "${POSTGRES_PASSWORD}" | sed 's/\$/\$\$/g')
             
             # URL-encode the password for PostgreSQL connection string
-            # Special characters in passwords need to be percent-encoded in connection URLs
             URL_ENCODED_PASSWORD=$(python3 -c "import urllib.parse; print(urllib.parse.quote('${POSTGRES_PASSWORD}', safe=''))")
             
             cat > .env <<EOF
@@ -211,31 +192,16 @@ jobs:
             MAX_IMAGE_SIZE=2048
             EOF
             
-            # Debug: Show what we actually wrote to .env (hide passwords)
-            echo "=== Generated .env file (passwords hidden) ==="
-            grep -v "PASSWORD\|SECRET" .env || true
-            echo "DATABASE_URL format check:"
-            grep DATABASE_URL .env | sed 's/:.*@/:***@/g'
-
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            
-            # Clear any environment variables that might interfere
-            unset dfgdg12589 COMPOSE_FILE COMPOSE_PROJECT_NAME 2>/dev/null || true
             
             # Use explicit project directory and env file for all docker compose commands
             export COMPOSE_PROJECT_NAME=cycleparadise
             export COMPOSE_FILE=/opt/cycleparadise/docker-compose.yml
             
-            # Show what compose file Docker will use
-            echo "=== Docker Compose configuration ==="
-            echo "COMPOSE_FILE=$COMPOSE_FILE"
-            docker compose config --services
-            
             # Now use the updated docker-compose.yml for all operations
             TAG=$VERSION docker compose --env-file .env pull
             
             # Force rebuild images with the new docker-compose.yml
-            echo "=== Rebuilding images with updated configuration ==="
             TAG=$VERSION docker compose --env-file .env build --no-cache
             
             # Start containers with explicit --env-file to force our .env
@@ -247,10 +213,6 @@ jobs:
             # Wait for containers to be ready
             sleep 10
             
-            # Show migrator logs
-            echo "=== Migrator logs ==="
-            docker compose --env-file .env logs migrator
-            
             # Check if web container is running
             if ! docker compose --env-file .env ps web | grep -q "Up"; then
               echo "ERROR: Web container is not running"
@@ -258,8 +220,7 @@ jobs:
               exit 1
             fi
             
-            # Migrations are already applied by the migrator service
-            echo "=== Deployment successful ==="
+            echo "Deployment completed successfully"
             docker compose --env-file .env ps
             
             docker image prune -af --filter "until=72h"
