@@ -3,13 +3,18 @@
 interface ImportMetaEnv {
   readonly DATABASE_URL: string;
   readonly DIRECT_URL: string;
-  readonly JWT_SECRET: string;
+  readonly SESSION_SECRET: string;
   readonly SMTP_HOST: string;
   readonly SMTP_PORT: string;
   readonly SMTP_USER: string;
   readonly SMTP_PASS: string;
+  readonly FROM_EMAIL: string;
+  readonly ADMIN_EMAIL: string;
   readonly CONTACT_EMAIL: string;
   readonly PUBLIC_SITE_URL: string;
+  readonly IMAGE_QUALITY: string;
+  readonly MAX_IMAGE_SIZE: string;
+  readonly NODE_ENV: string;
   readonly PROD: boolean;
   readonly DEV: boolean;
 }
@@ -25,6 +30,7 @@ declare namespace App {
       email: string;
       firstName: string;
       lastName: string;
+      role: string;
       createdAt: number;
     };
   }
