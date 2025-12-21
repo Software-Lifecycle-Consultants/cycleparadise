@@ -132,6 +132,24 @@ const difficultyLevels = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'];
           />
         </div>
 
+        <!-- Duration in Hours -->
+        <div>
+          <label for="durationHours" class="block text-sm font-medium text-gray-700 mb-2">
+            Duration (hours)
+          </label>
+          <input
+            type="number"
+            id="durationHours"
+            name="durationHours"
+            value={packageData?.durationHours || ''}
+            min="1"
+            step="0.5"
+            placeholder="e.g., 8, 24, 72"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+          />
+          <p class="mt-1 text-sm text-gray-500">Optional: Specify duration in hours for more precision</p>
+        </div>
+
         <!-- Difficulty Level -->
         <div>
           <label for="difficultyLevel" class="block text-sm font-medium text-gray-700 mb-2">
@@ -471,6 +489,8 @@ const difficultyLevels = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'];
             data[key] = checkbox ? checkbox.checked : false;
           } else if (key === 'duration' || key === 'maxParticipants') {
             data[key] = parseInt(value);
+          } else if (key === 'durationHours') {
+            data[key] = value ? parseFloat(value) : null;
           } else if (key === 'basePrice') {
             data[key] = parseFloat(value);
           } else {

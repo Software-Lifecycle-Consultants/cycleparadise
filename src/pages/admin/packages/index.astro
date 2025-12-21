@@ -297,7 +297,10 @@ const getDifficultyColor = (level: string) => {
                       <div class="text-sm text-gray-900">{pkg.region}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                      <div class="text-sm text-gray-900">{pkg.duration} days</div>
+                      <div class="text-sm text-gray-900">
+                        {pkg.duration} days
+                        {pkg.durationHours && <span class="text-gray-500"> ({pkg.durationHours}h)</span>}
+                      </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                       <span
