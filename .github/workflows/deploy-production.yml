@@ -134,38 +134,29 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
+          fingerprint: ${{ secrets.SERVER_HOST_FINGERPRINT }}   # pins the server host key
           envs: VERSION,POSTGRES_PASSWORD,SESSION_SECRET,SMTP_HOST,SMTP_PORT,SMTP_USER,SMTP_PASS,CONTACT_EMAIL,PUBLIC_SITE_URL
           script: |
             set -euo pipefail
-            
+            umask 077
+
             echo "Deploying version: $VERSION"
 
-            # Fix git ownership issue for deploy user
+            cd /opt/cycleparadise
             git config --global --add safe.directory /opt/cycleparadise
 
-            cd /opt/cycleparadise
-            
-            # Completely stop and remove Docker Compose project to clear any cached state
-            docker compose down --remove-orphans --volumes 2>/dev/null || true
-            docker compose rm -f -s -v 2>/dev/null || true
-            
-            # Remove Docker Compose cache/config that might store old variable references
-            rm -rf .docker 2>/dev/null || true
-            
-            # Remove ALL potential sources of stale environment variables
-            rm -f .env .env.* docker-compose.override.yml docker-compose.*.yml
-            
-            # Clean any local changes and fetch
+            # Pre-deploy database backup (kept 14 days). NEVER remove volumes: they hold the database.
+            mkdir -p "$HOME/db-backups"
+            if docker ps --format '{{.Names}}' | grep -qx cycleparadise-postgres; then
+              docker exec cycleparadise-postgres pg_dump -U cycleparadise cycleparadise | gzip > "$HOME/db-backups/pre_${VERSION}_$(date +%s).sql.gz" || echo "WARN: pre-deploy backup failed"
+            fi
+            find "$HOME/db-backups" -name '*.sql.gz' -mtime +14 -delete 2>/dev/null || true
+
             git reset --hard HEAD
             git clean -ffdx
             git fetch --all --tags --force
-            
-            # Force checkout the version
             git checkout --force "$VERSION"
-            
-            # Create fresh .env file
-            rm -f .env
-            
+
             # Escape dollar signs in password for Docker Compose variable interpolation
             ESCAPED_PASSWORD=$(echo "${POSTGRES_PASSWORD}" | sed 's/\$/\$\$/g')
             
@@ -191,39 +182,29 @@ jobs:
             IMAGE_QUALITY=80
             MAX_IMAGE_SIZE=2048
             EOF
-            
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            
-            # Use explicit project directory and env file for all docker compose commands
+            chmod 600 .env
+
             export COMPOSE_PROJECT_NAME=cycleparadise
-            export COMPOSE_FILE=/opt/cycleparadise/docker-compose.yml
-            
-            # Now use the updated docker-compose.yml for all operations
-            TAG=$VERSION docker compose --env-file .env pull
-            
-            # Force rebuild images with the new docker-compose.yml
-            TAG=$VERSION docker compose --env-file .env build --no-cache
-            
-            # Start containers with explicit --env-file to force our .env
-            set +e
-            TAG=$VERSION docker compose --env-file .env up -d
-            COMPOSE_EXIT=$?
-            set -e
-            
-            # Wait for containers to be ready
-            sleep 10
-            
-            # Check if web container is running
-            if ! docker compose --env-file .env ps web | grep -q "Up"; then
-              echo "ERROR: Web container is not running"
-              docker compose --env-file .env logs web
+            C="docker compose --env-file .env -f docker-compose.yml -f docker-compose.edge.yml"
+
+            $C build
+            $C up -d --remove-orphans
+
+            # Wait for the web container to report healthy (migrations run first via the migrator service)
+            for i in $(seq 1 30); do
+              st=$(docker inspect -f '{{.State.Health.Status}}' cycleparadise-web 2>/dev/null || echo none)
+              [ "$st" = "healthy" ] && break
+              sleep 5
+            done
+            if [ "$st" != "healthy" ]; then
+              echo "ERROR: web container is not healthy (status=$st)"
+              $C logs --tail 80 web migrator
               exit 1
             fi
-            
+
             echo "Deployment completed successfully"
-            docker compose --env-file .env ps
-            
-            docker image prune -af --filter "until=72h"
+            $C ps
+            docker image prune -f
 
   health-check:
     name: Health Check

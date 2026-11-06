@@ -1,0 +1,27 @@
+# Override for running Cycle Paradise BEHIND the shared Caddy edge proxy (one server, many sites).
+#   docker compose --env-file .env -f docker-compose.yml -f docker-compose.edge.yml up -d --build
+# - No host ports: Caddy reaches the app as http://cycleparadise-web:4321 over the external "edge" network.
+# - Postgres is no longer published on the host at all (only reachable on the compose network).
+# - Healthcheck uses busybox wget (the runtime image has no curl).
+# Requires Docker Compose >= 2.24 (!reset / !override tags). Create the network once: docker network create edge
+
+services:
+  db:
+    ports: !reset []
+
+  web:
+    ports: !reset []
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4321/health >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks: !override
+      - cycleparadise-network
+      - edge
+
+networks:
+  edge:
+    external: true
+    name: edge
