@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { CONTACT } from '../config/site';
 
 // Get pre-filled data from URL params (when coming from package page)
 const url = new URL(Astro.request.url);
@@ -302,11 +303,11 @@ const pageTitle = preSelectedPackage
       <div class="mt-8 text-center text-sm text-gray-600">
         <p>
           Need help? Contact us at <a
-            href="mailto:bookings@cycleparadise.lk"
-            class="text-primary-600 hover:text-primary-700">bookings@cycleparadise.lk</a
+            href={`mailto:${CONTACT.email}`}
+            class="text-primary-600 hover:text-primary-700">{CONTACT.email}</a
           >
-          or call <a href="tel:+94123456789" class="text-primary-600 hover:text-primary-700"
-            >+94 12 345 6789</a>
+          or call <a href={`tel:${CONTACT.phone}`} class="text-primary-600 hover:text-primary-700"
+            >{CONTACT.phoneDisplay}</a>
         </p>
       </div>
     </div>

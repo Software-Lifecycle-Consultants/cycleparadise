@@ -1,9 +1,10 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { SITE_URL, CONTACT } from '../config/site';
 
-const contactEmail = import.meta.env.CONTACT_EMAIL || 'info@cycleparadise.lk';
-const contactPhone = '+94 77 123 4567';
-const whatsappNumber = '+94 71 555 8899';
+const contactEmail = CONTACT.email;
+const contactPhone = CONTACT.phoneDisplay;
+const whatsappNumber = CONTACT.phoneDisplay;
 const officeAddress = '38/12 Temple Lane, Colombo 05, Sri Lanka';
 const mapEmbedUrl =
   'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d7934.353533961576!2d79.852027!3d6.877091!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ae25a4a5eb1a6d7%3A0x8fd97845e15b8ff9!2sColombo%2005!5e0!3m2!1sen!2slk!4v1700000000000!5m2!1sen!2slk';
@@ -11,7 +12,7 @@ const mapEmbedUrl =
 const officeHours = [
   { label: 'Monday - Friday', value: '08:00 – 18:00' },
   { label: 'Saturday', value: '08:00 – 13:00' },
-  { label: '24/7 Rider Hotline', value: '+94 77 123 4567' },
+  { label: '24/7 Rider Hotline', value: CONTACT.phoneDisplay },
 ];
 
 const supportChannels = [
@@ -19,7 +20,7 @@ const supportChannels = [
     title: 'Call Us',
     description: 'Speak with a trip designer about routes, pricing, or gear logistics.',
     value: contactPhone,
-    action: `tel:${contactPhone.replace(/\s/g, '')}`,
+    action: `tel:${CONTACT.phone}`,
   },
   {
     title: 'Email',
@@ -31,7 +32,7 @@ const supportChannels = [
     title: 'WhatsApp',
     description: 'Quick updates, live ride support, and photo sharing for guests on tour.',
     value: whatsappNumber,
-    action: `https://wa.me/${whatsappNumber.replace(/[^\d]/g, '')}`,
+    action: CONTACT.whatsappUrl,
   },
 ];
 
@@ -69,7 +70,7 @@ const structuredData = {
   name: 'Contact Cycle Paradise',
   description:
     'Reach the Cycle Paradise team for cycling tour planning, partnerships, and support.',
-  url: 'https://cycleparadise.lk/contact',
+  url: `${SITE_URL}/contact`,
   mainEntity: {
     '@type': 'Organization',
     name: 'Cycle Paradise',

@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { SITE_URL, CONTACT } from '../config/site';
 
 const missionStats = [
   {
@@ -127,11 +128,11 @@ const structuredData = {
   name: 'About Cycle Paradise',
   description:
     'Meet the guides, makers, and sustainability partners behind Cycle Paradise cycling tours in Sri Lanka.',
-  url: 'https://cycleparadise.lk/about',
+  url: `${SITE_URL}/about`,
   breadcrumb: {
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://cycleparadise.lk' },
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
       { '@type': 'ListItem', position: 2, name: 'About' },
     ],
   },
@@ -152,8 +153,8 @@ const structuredData = {
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'customer support',
-      email: 'info@cycleparadise.lk',
-      telephone: '+94-77-123-4567',
+      email: CONTACT.email,
+      telephone: CONTACT.phone,
     },
   },
 };
@@ -506,11 +507,11 @@ const structuredData = {
           <dl class="mt-6 space-y-4">
             <div>
               <dt class="text-sm font-semibold text-gray-500">Email</dt>
-              <dd class="text-lg font-semibold text-gray-900">info@cycleparadise.lk</dd>
+              <dd class="text-lg font-semibold text-gray-900">{CONTACT.email}</dd>
             </div>
             <div>
               <dt class="text-sm font-semibold text-gray-500">Phone</dt>
-              <dd class="text-lg font-semibold text-gray-900">+94 77 123 4567</dd>
+              <dd class="text-lg font-semibold text-gray-900">{CONTACT.phoneDisplay}</dd>
             </div>
             <div>
               <dt class="text-sm font-semibold text-gray-500">Studio</dt>
