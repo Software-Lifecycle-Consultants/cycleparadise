@@ -7,7 +7,7 @@ import { defineConfig } from 'astro/config';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://cycleparadise.lk', // Update with actual domain
+  site: 'https://cycleparadise.bike',
   integrations: [tailwind(), react(), sitemap()],
   output: 'server',
   adapter: node({

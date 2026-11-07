@@ -34,7 +34,7 @@ export class EmailService {
       port: parseInt(process.env.SMTP_PORT || '587'),
       user: process.env.SMTP_USER || '',
       password: process.env.SMTP_PASSWORD || '',
-      from: process.env.FROM_EMAIL || 'noreply@cycleparadise.lk'
+      from: process.env.FROM_EMAIL || 'noreply@cycleparadise.bike'
     };
 
     this.fromEmail = config.from;
@@ -130,7 +130,7 @@ export class EmailService {
   async sendAdminNotification(
     subject: string,
     content: string,
-    adminEmails: string[] = [process.env.ADMIN_EMAIL || 'admin@cycleparadise.lk']
+    adminEmails: string[] = [process.env.ADMIN_EMAIL || 'admin@cycleparadise.bike']
   ): Promise<boolean> {
     const template: EmailTemplate = {
       subject: `[Cycle Paradise Admin] ${subject}`,

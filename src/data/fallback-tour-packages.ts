@@ -175,7 +175,7 @@ export const fallbackTourPackages: EnrichedTourPackage[] = [
       ],
       'Hill Country Explorer'
     ),
-    videoUrl: 'dQw4w9WgXcQ',
+    videoUrl: null,
     isActive: true,
     featured: true,
     metaTitle: 'Hill Country Explorer Cycling Tour - Cycle Paradise',
@@ -251,8 +251,8 @@ export const fallbackTourPackages: EnrichedTourPackage[] = [
     supportContacts: [
       {
         label: 'Trip designer',
-        value: 'coastal@cycleparadise.lk',
-        href: 'mailto:coastal@cycleparadise.lk',
+        value: 'info@cycleparadise.bike',
+        href: 'mailto:info@cycleparadise.bike',
       },
       { label: 'On-trip captain', value: '+94 76 441 9087', href: 'tel:+94764419087' },
     ],
@@ -397,7 +397,7 @@ export const fallbackTourPackages: EnrichedTourPackage[] = [
       ['/images/cultural-1.jpg', '/images/cultural-2.jpg', '/images/cultural-3.jpg'],
       'Cultural Triangle Expedition'
     ),
-    videoUrl: '9No-FiEInLA',
+    videoUrl: null,
     isActive: true,
     featured: false,
     metaTitle: 'Cultural Triangle Expedition - Cycle Paradise',

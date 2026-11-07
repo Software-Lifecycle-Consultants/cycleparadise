@@ -1,5 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import { SITE_URL, CONTACT } from '../../config/site';
 import PackageGallery from '../../components/media/PackageGallery.astro';
 import YouTubeEmbed from '../../components/media/YouTubeEmbed.astro';
 import { tourPackageRepository } from '../../lib/db/repositories/tour-packages.js';
@@ -129,7 +130,7 @@ const guideLanguages = ensureArray<string>(packageData.guideLanguages);
 const guideCertifications = ensureArray<string>(packageData.guideCertifications);
 const guideSpecialties = ensureArray<string>(packageData.guideSpecialties);
 
-const siteUrl = 'https://cycleparadise.lk';
+const siteUrl = SITE_URL;
 const canonicalUrl = `${siteUrl}/packages/${packageData.slug}`;
 const heroImageAbsolute = heroImage?.startsWith('http') ? heroImage : `${siteUrl}${heroImage}`;
 const getPackageThumbnail = (pkg: TourPackage) => {
@@ -805,8 +806,8 @@ const seoKeywords = [
               ) : (
                 <p class="text-sm font-medium text-gray-900">
                   Call us:{' '}
-                  <a href="tel:+94123456789" class="text-primary-600 hover:text-primary-700">
-                    +94 12 345 6789
+                  <a href={`tel:${CONTACT.phone}`} class="text-primary-600 hover:text-primary-700">
+                    {CONTACT.phoneDisplay}
                   </a>
                 </p>
               )

@@ -1,5 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import { SITE_URL, CONTACT } from '../../config/site';
 import { cyclingGuideRepository } from '../../lib/db/repositories/cycling-guides.js';
 import {
   getFallbackGuideBySlug,
@@ -106,7 +107,7 @@ const hydrationStops = ensureArray<{ name: string; type: string; notes?: string 
 const gearChecklist = ensureArray<string>(guideData.gearChecklist);
 const faqItems = ensureArray<{ question: string; answer: string }>(guideData.faqs);
 const heroImage = galleryImages[0] || '/images/default-route.jpg';
-const siteUrl = 'https://cycleparadise.lk';
+const siteUrl = SITE_URL;
 const canonicalUrl = `${siteUrl}/guides/${guideData.slug}`;
 const heroImageAbsolute = heroImage.startsWith('http') ? heroImage : `${siteUrl}${heroImage}`;
 const startingPoint = (guideData as any).startingPoint || 'Flexible meet-up point';
@@ -704,8 +705,8 @@ const readingTime = Math.ceil((guideData.content?.length || 0) / 1000) || 5;
           <div class="mt-6 pt-6 border-t border-gray-200 text-center">
             <p class="text-sm text-gray-600 mb-2">Need route assistance?</p>
             <p class="text-sm font-medium text-gray-900">
-              Call: <a href="tel:+94123456789" class="text-primary-600 hover:text-primary-700"
-                >+94 12 345 6789</a
+              Call: <a href={`tel:${CONTACT.phone}`} class="text-primary-600 hover:text-primary-700"
+                >{CONTACT.phoneDisplay}</a
               >
             </p>
           </div>

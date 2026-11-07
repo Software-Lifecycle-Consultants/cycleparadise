@@ -18,7 +18,7 @@ Allow: /guides/
 Allow: /search
 
 # Specify sitemap location
-Sitemap: https://cycleparadise.lk/sitemap.xml
+Sitemap: https://cycleparadise.bike/sitemap.xml
 
 # Crawl-delay for bots (1 second)
 Crawl-delay: 1
